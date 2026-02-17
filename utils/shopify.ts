@@ -1,0 +1,14 @@
+import Client from 'shopify-buy';
+
+const domain = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN || '';
+const storefrontAccessToken = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN || '';
+
+if (!domain || !storefrontAccessToken) {
+    console.warn('⚠️ Shopify configuration missing. Please check .env file.');
+}
+
+export const shopify = Client.buildClient({
+    domain,
+    storefrontAccessToken,
+    apiVersion: '2024-01'
+});

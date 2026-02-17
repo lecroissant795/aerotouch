@@ -1,0 +1,141 @@
+
+import React, { useEffect, useState } from 'react';
+import { ProductCard } from '../components/ProductCard';
+import { Product } from '../types';
+import { shopify } from '../utils/shopify';
+import { mapShopifyProduct } from '../utils/mapper';
+
+// Duplicated for now, ideally verified to be moved to a shared constant file
+const FEATURED_PRODUCTS: Product[] = [
+  {
+    id: 'massage-insoles',
+    name: 'AeroTouch Massage Insoles',
+    tagline: 'Therapeutic acupressure with every step',
+    price: 34.00,
+    rating: 4.9,
+    reviews: 1540,
+    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
+    features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'],
+    description: ''
+  },
+  {
+    id: 'massage-roller',
+    name: 'Massage Roller',
+    tagline: 'Deep tissue recovery for sore feet',
+    price: 19.00,
+    rating: 4.8,
+    reviews: 820,
+    image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
+    features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
+    description: ''
+  },
+  {
+    id: 'heel-cushion-pad',
+    name: 'Heel Cushion Pad',
+    tagline: 'Instant impact protection for heels',
+    price: 24.00,
+    rating: 4.9,
+    reviews: 2100,
+    image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop',
+    features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'],
+    description: ''
+  },
+  {
+    id: 'compression-socks',
+    name: 'Compression Socks',
+    tagline: 'Boost circulation and reduce swelling',
+    price: 29.00,
+    rating: 4.7,
+    reviews: 940,
+    image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=800&auto=format&fit=crop',
+    features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
+    description: ''
+  },
+  {
+    id: 'fascilites-relief',
+    name: 'Fascilites Relief Kit',
+    tagline: 'Complete recovery system',
+    price: 48.00,
+    rating: 5.0,
+    reviews: 3200,
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
+    features: ['Elite Insoles', 'Massage Ball', 'Instructional Guide'],
+    description: ''
+  },
+  {
+    id: 'height-insoles',
+    name: 'Height Insoles',
+    tagline: 'Discreet elevation with maximum comfort',
+    price: 39.00,
+    rating: 4.8,
+    reviews: 1100,
+    image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
+    features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
+    description: ''
+  }
+];
+
+import { PageHero } from '../components/PageHero';
+
+// ... (existing imports and FEATURED_PRODUCTS)
+
+interface ShopPageProps {
+  onProductSelect: (product: Product) => void;
+}
+
+export const ShopPage: React.FC<ShopPageProps> = ({ onProductSelect }) => {
+  const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const shopifyProducts = await shopify.product.fetchAll(20);
+        if (shopifyProducts && shopifyProducts.length > 0) {
+          setProducts(shopifyProducts.map(mapShopifyProduct));
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Shopify products, using local data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  return (
+    <div className="animate-in fade-in duration-500 pt-24">
+      <PageHero 
+        title="Shop All Products"
+        description="Explore our full range of performance insoles and recovery tools, designed to keep you moving pain-free."
+        image="https://images.unsplash.com/photo-1519415387722-a1c3bbef716c?q=80&w=1920&auto=format&fit=crop"
+      />
+      
+      <div className="container mx-auto px-4 md:px-6 py-12">
+
+        {loading ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1,2,3,4,5,6].map(i => (
+                    <div key={i} className="bg-slate-100 rounded-2xl h-[400px] animate-pulse" />
+                ))}
+             </div>
+        ) : products.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-slate-600 text-lg">No products available.</p>
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {products.map(product => (
+                <ProductCard 
+                    key={product.id}
+                    product={product} 
+                    onClick={onProductSelect}
+                />
+                ))}
+            </div>
+        )}
+      </div>
+    </div>
+  );
+};

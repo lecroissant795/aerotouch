@@ -1,0 +1,186 @@
+<!doctype html>
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+
+    <title>
+      {{ page_title }}
+      {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
+      {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
+      {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+    </title>
+
+    {% if page_description %}
+      <meta name="description" content="{{ page_description | escape }}">
+    {% endif %}
+
+    {{ content_for_header }}
+
+    <!-- Tailwind & Fonts from index.html -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                orange: '#FF5722',
+                dark: '#1E293B',
+                light: '#F8FAFC',
+                gray: '#64748B',
+                lime: '#C1F11D'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+  
+      /* Global Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+  
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+  
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+  
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+  
+      /* Specific Best Seller Scrollbar */
+      .best-seller-scroll::-webkit-scrollbar {
+        height: 6px;
+      }
+  
+      .best-seller-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        /* Slate-100 */
+        border-radius: 3px;
+        margin: 0 20%;
+        /* Inset track slightly */
+      }
+  
+      .best-seller-scroll::-webkit-scrollbar-thumb {
+        background: #1e293b;
+        /* Brand dark */
+        border-radius: 3px;
+      }
+  
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+  
+      .fade-in-up {
+        animation: fadeInUp 0.8s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+  
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+  
+      @keyframes marquee {
+        0% {
+          transform: translateX(0);
+        }
+  
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+  
+      .animate-marquee {
+        animation: marquee 20s linear infinite;
+        will-change: transform;
+      }
+  
+      @keyframes running-dash {
+        to {
+          stroke-dashoffset: -10;
+        }
+      }
+  
+      .animate-running-dash {
+        animation: running-dash 0.5s linear infinite;
+      }
+  
+      @keyframes shine {
+        0% {
+          left: -100%;
+          opacity: 0;
+        }
+  
+        50% {
+          opacity: 0.5;
+        }
+  
+        100% {
+          left: 200%;
+          opacity: 0;
+        }
+      }
+  
+      .animate-shine {
+        animation: shine 4s infinite linear;
+      }
+  
+      @keyframes pulse-urgent {
+  
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+  
+        50% {
+          transform: scale(1.03);
+          box-shadow: 0 20px 30px -5px rgba(255, 87, 34, 0.2), 0 10px 10px -5px rgba(255, 87, 34, 0.1);
+          border-color: rgba(255, 87, 34, 0.4);
+        }
+      }
+  
+      .animate-urgent {
+        animation: pulse-urgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        will-change: transform, box-shadow;
+      }
+    </style>
+
+    <!-- React Bundle (Vite Output) -->
+    <script type="module" src="{{ 'index.js' | asset_url }}" defer="defer"></script>
+  </head>
+
+  <body class="gradient bg-brand-light text-brand-dark">
+    <div id="root"></div>
+    <div style="display:none;">
+      {{ content_for_layout }}
+    </div>
+  </body>
+</html>
