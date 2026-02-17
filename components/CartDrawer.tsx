@@ -32,6 +32,7 @@ interface CartDrawerProps {
   onCheckout?: () => void;
   /** Called when user taps "Make it a kit" — e.g. close cart and navigate to kits. */
   onMakeItAKit?: () => void;
+  isLoading?: boolean;
 }
 
 const UPSELL_PRODUCTS = [
@@ -89,7 +90,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onUpdateQuantity,
   onRemoveItem,
   onCheckout,
-  onMakeItAKit
+  onMakeItAKit,
+  isLoading = false
 }) => {
   const [secondsLeft, setSecondsLeft] = useState(CART_RESERVE_SECONDS);
   const [currentUpsellIndex, setCurrentUpsellIndex] = useState(0);
@@ -514,11 +516,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <Button
                   fullWidth
                   size="lg"
-                  className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-brand-lime font-bold text-brand-dark shadow-lg shadow-brand-lime/25 hover:bg-lime-400 transition"
+                  className={`mt-4 flex items-center justify-center gap-2 rounded-xl bg-brand-lime font-bold text-brand-dark shadow-lg shadow-brand-lime/25 hover:bg-lime-400 transition ${isLoading ? 'opacity-80 cursor-wait' : ''}`}
                   onClick={onCheckout}
+                  disabled={isLoading}
                 >
-                  Checkout
-                  <ArrowRight className="h-4 w-4" />
+                  {isLoading ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-dark border-t-transparent" />
+                      Redirecting...
+                    </>
+                  ) : (
+                    <>
+                      Checkout
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
                 </Button>
                 <div className="mt-3 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
                   {PAYMENT_METHODS.map(m => (

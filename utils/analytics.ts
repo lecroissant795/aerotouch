@@ -34,9 +34,24 @@ export const logAddToCart = (productName: string, value: number, currency = 'USD
             value,
             items: [
                 {
-                    item_name: productName
+                    item_name: productName,
+                    price: value
                 }
             ]
         });
     }
-}
+};
+
+export const logBeginCheckout = (items: { name: string, price: number, quantity: number }[], value: number, currency = 'USD') => {
+    if (GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
+        ReactGA.event("begin_checkout", {
+            currency,
+            value,
+            items: items.map(item => ({
+                item_name: item.name,
+                price: item.price,
+                quantity: item.quantity
+            }))
+        });
+    }
+};

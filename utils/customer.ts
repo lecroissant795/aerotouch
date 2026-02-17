@@ -7,18 +7,24 @@ const executeQuery = async (query: string, variables: any) => {
   // If not, we fall back to a direct fetch using the config from the client.
 
   // @ts-ignore - accessing internal or un-typed property if necessary, or strictly using fetch
-  if (typeof shopify.fetch === 'function') {
+  if (shopify && typeof shopify.fetch === 'function') {
     // @ts-ignore
     return shopify.fetch(query, variables);
   }
 
   // Fallback to fetch
-  const url = `https://${import.meta.env.VITE_SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`;
+  const domain = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN;
+  const token = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN;
+  if (!domain || !token) {
+    throw new Error('Shopify configuration missing');
+  }
+
+  const url = `https://${domain}/api/2024-01/graphql.json`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN
+      'X-Shopify-Storefront-Access-Token': token
     },
     body: JSON.stringify({ query, variables })
   });

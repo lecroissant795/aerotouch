@@ -15,6 +15,9 @@ interface ProductPageProps {
   onBack: () => void;
   onProductSelect?: (product: Product) => void;
   onNavigateToBlog?: () => void;
+  isLoading?: boolean;
+  error?: string | null;
+  onBuyNow?: (product: Product, size: string, color: string, quantity?: number) => void;
 }
 
 // Temporary fallback constants until fetching is fully verified for all products
@@ -66,7 +69,16 @@ const TESTIMONIALS = [
   }
 ];
 
-export const ProductPage: React.FC<ProductPageProps> = ({ product: initialProduct, onAddToCart, onBack, onProductSelect, onNavigateToBlog }) => {
+export const ProductPage: React.FC<ProductPageProps> = ({ 
+  product: initialProduct, 
+  onAddToCart, 
+  onBack, 
+  onProductSelect,
+  onNavigateToBlog,
+  isLoading = false,
+  error = null,
+  onBuyNow
+}) => {
   const [product, setProduct] = useState<Product>(initialProduct);
   const [shopifyProduct, setShopifyProduct] = useState<any>(null);
   const [variants, setVariants] = useState<any[]>([]);
@@ -611,18 +623,35 @@ export const ProductPage: React.FC<ProductPageProps> = ({ product: initialProduc
                     </div>
                 </div>
 
-                {/* Main Action */}
-                <Button 
-                   fullWidth 
-                   size="lg" 
-                   className="h-16 text-xl shadow-xl shadow-brand-orange/30 relative overflow-hidden group"
-                   onClick={handleAddToCartWrapper}
-                   disabled={!selectedSize}
-                >
-                   <span className="relative z-10">{selectedSize ? 'ADD TO CART' : 'SELECT SIZE'}</span>
-                   {/* Shine effect */}
-                   <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine" />
-                </Button>
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm animate-fadeIn">
+                        <X className="w-4 h-4 flex-shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                {/* Main Action - Buy Now */}
+                {onBuyNow && (
+                    <Button
+                        fullWidth
+                        size="lg"
+                        className={`h-16 text-xl shadow-xl relative overflow-hidden group bg-black text-white hover:bg-[#C1F11D] hover:text-white transition-all duration-300 ${isLoading ? 'opacity-90 cursor-wait' : ''}`}
+                        onClick={() => {
+                            if (selectedSize) {
+                                onBuyNow(product, selectedSize, selectedColor, bundle);
+                            }
+                        }}
+                        disabled={!selectedSize || isLoading}
+                    >
+                       <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
+                           {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
+                           {isLoading ? 'PROCESSING...' : (selectedSize ? 'BUY NOW' : 'SELECT SIZE')}
+                       </span>
+                       {/* Shine effect */}
+                       {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
+                    </Button>
+                )}
 
                 {/* Payment methods under buy button - link opens popup */}
                 <div className="mt-4 flex justify-center">
@@ -896,7 +925,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ product: initialProduc
                         onMouseLeave={() => setIsTestimonialHovered(false)}
                     >
                         <div className="flex gap-4 items-start relative z-10">
-                            <img 
+                            <img
                                 src={currentTestimonial.image}
                                 alt={currentTestimonial.name}
                                 className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
