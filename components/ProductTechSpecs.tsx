@@ -166,6 +166,7 @@ const VIDEO_REVIEWS = [
 ];
 
 const MOBILE_BREAKPOINT = 768;
+const TABLET_BREAKPOINT = 1024;
 
 interface ProductTechSpecsProps {
   currentProductId?: string;
@@ -179,6 +180,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
   const [splitPos, setSplitPos] = useState(50);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false);
+  const [isTablet, setIsTablet] = useState(typeof window !== 'undefined' ? (window.innerWidth >= MOBILE_BREAKPOINT && window.innerWidth < TABLET_BREAKPOINT) : false);
   const [playingVideoId, setPlayingVideoId] = useState<number | null>(null);
   const [videoReviewSlideIndex, setVideoReviewSlideIndex] = useState(0);
   const [textReviewSlideIndex, setTextReviewSlideIndex] = useState(0);
@@ -191,11 +193,17 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
   const TEXT_REVIEW_COUNT = 6;
 
   useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < MOBILE_BREAKPOINT);
+      setIsTablet(width >= MOBILE_BREAKPOINT && width < TABLET_BREAKPOINT);
+    };
+
+    // Initial check
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const scrollVideoReviewTo = (index: number) => {
@@ -309,24 +317,30 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
     {
       title: "AeroFoam™ Rebound Core",
       desc: "Dual-layer nitrogen-injected cushioning delivers ultimate comfort and 85% energy return in every step.",
-      position: { top: '60%', left: '70%' },  // right (white) insole – middle of heel
-      mobilePosition: { top: '60%', left: '77%' }  // mobile: more right
+      position: { top: '65%', left: '82%' },  // right (white) insole – middle of heel
+      mobilePosition: { top: '65%', left: '82%' },  // mobile: more right
+      tabletPosition: { top: '65%', left: '82%' }
     },
     {
       title: "Reinforced Stabilizer",
       desc: "Aerospace-grade cap maintains structure and provides torsional rigidity for maximum stability.",
-      position: { top: '28%', left: '54%' }  // swapped with point 4
+      position: { top: '28%', left: '59%' },  // swapped with point 4
+      mobilePosition: { top: '28%', left: '59%' },
+      tabletPosition: { top: '28%', left: '59%' }
     },
     {
       title: "Deep Heel Cradle",
       desc: "Anatomically designed heel cup locks the foot in place and absorbs impact shock.",
-      position: { top: '66%', left: '46%' }  // left (orange) insole – heel
+      position: { top: '75%', left: '47%' },  // left (orange) insole – heel
+      mobilePosition: { top: '75%', left: '47%' },
+      tabletPosition: { top: '75%', left: '47%' }
     },
     {
       title: "Moisture-Wicking Top",
       desc: "Antimicrobial fabric keeps feet cool, dry, and blister-free during intense activity.",
-      position: { top: '34%', left: '30%' },  // swapped with point 2
-      mobilePosition: { top: '34%', left: '25%' }  // mobile: more left
+      position: { top: '34%', left: '22%' },  // swapped with point 2
+      mobilePosition: { top: '34%', left: '22%' },  // mobile: more left
+      tabletPosition: { top: '34%', left: '22%' }
     }
   ];
 
@@ -348,17 +362,19 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
 
           <div className="relative flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24">
              {/* Visual with Hotspots - shorter aspect so text below is visible */}
-             <div className="relative w-full max-w-2xl aspect-[5/3] flex items-center justify-center">
+             <div className="relative w-full max-w-2xl aspect-[5/4] flex items-center justify-center scale-[0.78] md:scale-[0.72]">
                 {/* Simulated Insole Image using CSS/SVG or Placeholder */}
-                <img 
-                  src={reviewPhotos.productClose} 
-                  alt="Insole Tech View" 
-                  className="w-full h-full object-contain drop-shadow-2xl"
-                />
+                <div className="w-full h-full rounded-[30px] overflow-hidden shadow-2xl">
+                  <img 
+                    src={reviewPhotos.productClose} 
+                    alt="Insole Tech View" 
+                    className="w-full h-full object-contain p-10"
+                  />
+                </div>
                 
                 {/* Hotspots */}
                 {features.map((f, i) => {
-                   const pos = (isMobile && 'mobilePosition' in f && f.mobilePosition) ? f.mobilePosition : f.position;
+                   const pos = isMobile && 'mobilePosition' in f ? f.mobilePosition : (isTablet && 'tabletPosition' in f ? f.tabletPosition : f.position);
                    return (
                    <button
                      key={i}
@@ -368,9 +384,9 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
                        left: pos.left,
                        transform: `translate(-50%, -50%)${activeFeature === i ? ' scale(1.25)' : ''}`
                      }}
-                     className={`absolute w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${activeFeature === i ? 'bg-brand-orange border-white shadow-lg z-20' : 'bg-[#1A202C]/40 border-white/80 hover:border-brand-orange/60 z-10'}`}
+                     className={`absolute w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${activeFeature === i ? 'bg-brand-orange border-white shadow-lg z-20' : 'bg-[#1A202C]/40 border-white/80 hover:border-brand-orange/60 z-10'}`}
                    >
-                     <div className="w-2 h-2 rounded-full bg-white"></div>
+                     <div className="w-3 h-3 rounded-full bg-white"></div>
                      {activeFeature === i && (
                         <div className="absolute w-full h-full rounded-full border-2 border-brand-orange animate-ping opacity-75"></div>
                      )}
@@ -1115,7 +1131,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
           {/* Top row: interactive split image + headline */}
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 md:gap-16 items-center mb-16">
             {/* Left – interactive before/after slider */}
-            <div className="relative mx-auto w-full max-w-md select-none">
+            <div className="relative mx-auto w-full max-w-[22.56rem] select-none">
               {/* Normal label */}
               {splitPos > 15 && (
                 <span className="absolute top-4 left-4 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md z-10 pointer-events-none">Normal</span>

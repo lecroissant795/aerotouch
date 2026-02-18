@@ -70,7 +70,7 @@ export const reviewPhotos = {
     lisaThompson: `${STORAGE_BASE}/reviews/Lisa%20Thompson.jpg`,
     davidMiller: `${STORAGE_BASE}/reviews/David%20Miller.jpg`,
     fitnessCoach: `${STORAGE_BASE}/reviews/Fitness%20Coach.png`,
-    productClose: `${STORAGE_BASE}/reviews/IMG_4813%20copy.JPG`,
+    productClose: '/images/IMG_4813-removebg-preview.png',
 };
 
 // ── Review videos ───────────────────────────────────────────────────────────
