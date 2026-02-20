@@ -8,40 +8,64 @@ export const TrackOrderPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleTrack = (e: React.FormEvent) => {
+  const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     setTrackingResult(null);
 
-    // Mock API call
-    setTimeout(() => {
-      if (orderNumber.trim() && email.trim()) {
-        // Mock successful result
-        setTrackingResult({
-          status: 'In Transit',
-          estimatedDelivery: 'Oct 24, 2025',
-          carrier: 'FedEx',
-          trackingNumber: '123456789012',
-          weight: '2.5 lbs / 1.13 kg',
-          dimensions: '12x8x6 in.',
-          service: 'FedEx Standard Overnight',
-          origin: 'Portland, OR, US',
-          destination: 'Seattle, WA, US',
-          steps: [
-            { label: 'Order Placed', date: 'Oct 20, 2025', completed: true, icon: CheckCircle },
-            { label: 'Packaging', date: 'Oct 21, 2025', completed: true, icon: Package },
-            { label: 'Shipped', date: 'Oct 22, 2025', completed: true, icon: Truck },
-            { label: 'Arrived at Local Facility', date: 'Oct 23, 2025', completed: true, icon: MapPin },
+    // Basic validation
+    if (!orderNumber.trim() || !email.trim()) {
+      setError('Please enter both order number and email.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/track-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderNumber, email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to track order');
+      }
+
+      // Transform API data to component state format
+      // Note: Some fields like dimensions/weight might need to be calculated or fetched from meta-fields if not in standard order data
+      const order = data.rawData; // Assuming rawData is passed for now, or use mapped fields
+      
+      // Basic mapping - refine based on actual API response structure
+      const mappedResult = {
+        status: data.status || 'Processing',
+        estimatedDelivery: 'Calculating...', // You might want to calculate this based on shipping dates
+        carrier: order.fulfillments?.[0]?.trackingInfo?.[0]?.company || 'Pending',
+        trackingNumber: order.fulfillments?.[0]?.trackingInfo?.[0]?.number || 'Pending',
+        weight: 'N/A', // Placeholder
+        dimensions: 'N/A', // Placeholder
+        service: 'Standard Shipping',
+        origin: 'Warehouse', // Placeholder
+        destination: 'Customer Address', // order.shippingAddress.city ...
+        steps: [
+            { label: 'Order Placed', date: new Date(order.createdAt).toLocaleDateString(), completed: true, icon: CheckCircle },
+            { label: 'Processing', date: null, completed: data.status !== 'Order Placed', icon: Package },
+            { label: 'Shipped', date: null, completed: data.status === 'Shipped', icon: Truck },
             { label: 'Out for Delivery', date: null, completed: false, icon: Truck },
             { label: 'Delivered', date: null, completed: false, icon: CheckCircle },
-          ]
-        });
-      } else {
-        setError('Please enter both order number and email.');
-      }
+        ]
+      };
+
+      setTrackingResult(mappedResult);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while tracking your order.');
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (

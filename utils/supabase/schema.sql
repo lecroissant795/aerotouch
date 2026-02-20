@@ -28,3 +28,19 @@ create policy "Anyone can insert a review"
 
 -- Optional: Create an index on product_id for faster lookups
 create index reviews_product_id_idx on public.reviews (product_id);
+
+-- Create the leads table (for Discount Popup)
+create table public.leads (
+  id uuid default gen_random_uuid() primary key,
+  first_name text not null,
+  email text not null unique,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable Row Level Security (RLS) for leads
+alter table public.leads enable row level security;
+
+-- Policy: Allow anyone (anon) to insert leads
+create policy "Anyone can insert a lead" 
+  on public.leads for insert 
+  with check ( true );

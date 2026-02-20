@@ -749,18 +749,18 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                             },
                             { 
                                 id: 'fit', 
-                                q: 'Will Aerotouch Fit My Shoes?', 
+                                q: 'Will AeroTouch Fit My Shoes?', 
                                 icon: Activity,
                                 answer: (
                                     <>
-                                        <p className="mb-2">Yes — Aerotouch are designed to fit most types of footwear, including:</p>
+                                        <p className="mb-2">Yes — AeroTouch insoles are designed to fit most types of footwear, including:</p>
                                         <ul className="list-disc pl-5 mb-2 space-y-1">
                                             <li>Sneakers</li>
                                             <li>Running shoes</li>
                                             <li>Work boots</li>
                                             <li>Casual shoes</li>
                                         </ul>
-                                        <p className="mb-2">Simply remove your existing insoles and replace them with SteppRs.</p>
+                                        <p className="mb-2">Simply remove your existing insoles and replace them with AeroTouch insoles.</p>
                                         <p className="font-bold">👉 For best results, use in shoes with removable insoles.</p>
                                     </>
                                 )
@@ -771,21 +771,21 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                 icon: Star,
                                 answer: (
                                     <>
-                                        <p className="mb-2">Aerotouch are designed to provide enhanced arch support, shock absorption, and stability, which can help relieve discomfort from:</p>
+                                        <p className="mb-2">AeroTouch insoles are designed to provide enhanced arch support, shock absorption, and stability, which can help relieve discomfort from:</p>
                                         <ul className="list-disc pl-5 mb-2 space-y-1">
                                             <li>Plantar fasciitis</li>
                                             <li>Flat feet</li>
                                             <li>Heel pain</li>
                                             <li>General foot fatigue</li>
                                         </ul>
-                                        <p className="mb-2">While many customers experience significant relief, Aerotouch are not a medical device. For severe conditions, consult a healthcare professional.</p>
+                                        <p className="mb-2">While many customers experience significant relief, AeroTouch insoles are not a medical device. For severe conditions, consult a healthcare professional.</p>
                                         <p className="font-bold">👉 Our goal is to help you move comfortably every day.</p>
                                     </>
                                 )
                             },
                             { 
                                 id: 'last', 
-                                q: 'How Long Do Aerotuch Insoles Last?', 
+                                q: 'How Long Do AeroTouch Insoles Last?', 
                                 icon: Wrench,
                                 answer: (
                                     <>
@@ -1321,7 +1321,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     ))}
                   </div>
                   <p className="text-xs text-slate-400">
-                    <span className="font-bold text-white">1000+ athletics bought this combo</span>
+                    <span className="font-bold text-white">1000+ athletes bought this combo</span>
                   </p>
                 </div>
 

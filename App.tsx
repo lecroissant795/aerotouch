@@ -92,8 +92,8 @@ function App() {
     window.scrollTo(0, 0);
   };
 
-  const handleAddToCart = async (product: Product, size: string, color: string, quantity = 1) => {
-    if (!checkoutId || !shopify) return;
+  const handleAddToCart = async (product: Product, size: string, color: string, quantity = 1): Promise<string | null> => {
+    if (!checkoutId || !shopify) return null;
     setIsCartLoading(true);
     setCartError(null);
 
@@ -117,7 +117,7 @@ function App() {
              console.error("Product not found");
              setCartError("Product not found");
              setIsCartLoading(false);
-             return;
+             return null;
         }
 
         const variant = shopifyProduct.variants.find((v: any) => {
@@ -134,12 +134,15 @@ function App() {
             
             const checkout = await shopify.checkout.addLineItems(checkoutId, lineItemsToAdd);
             setCartItems(checkout.lineItems.map(mapShopifyLineItem));
+            setCheckoutUrl(checkout.webUrl);
             setIsCartOpen(true);
             logAddToCart(product.name, product.price * quantity);
+            return checkout.webUrl || null;
         } else {
              // Fallback: Just add first variant or error
              console.error("Variant not found for", size, color);
              setCartError(`Variant not found: ${size} / ${color}`);
+             return null;
         }
     } catch(e) {
         console.error("Add to cart failed", e);
@@ -158,6 +161,7 @@ function App() {
             return [...prev, { ...product, quantity: qtyToAdd, selectedSize: size, selectedColor: color }];
         });
         setIsCartOpen(true);
+        return null;
     } finally {
         setIsCartLoading(false);
     }
@@ -223,6 +227,18 @@ function App() {
         }
     };
 
+  const handleBuyNow = async (prod: Product, size: string, col: string, qty = 1) => {
+      const directUrl = await handleAddToCart(prod, size, col, qty);
+      const finalUrl = directUrl || checkoutUrl;
+
+      if (finalUrl) {
+          window.location.href = finalUrl;
+          return;
+      }
+
+      setCartError("Checkout link not ready yet. Please try again.");
+  };
+
   const handleNavigate = (page: Page, category?: string) => {
     setCurrentPage(page);
     if (category) {
@@ -246,62 +262,6 @@ function App() {
     handleAddToCart(kitAsProduct, 'Standard', 'One Size', quantity);
   };
 
-  const handleBuyNow = async (product: Product, size: string, color: string, quantity = 1) => {
-    // Similar to Add to Cart but redirects to checkout immediately
-    if (!checkoutId) return;
-    setIsCartLoading(true);
-    setCartError(null);
-    
-    try {
-        await handleAddToCart(product, size, color, quantity);
-        // handleAddToCart handles the adding. Now we redirect.
-        // Wait, handleAddToCart sets isCartOpen(true). We might want to avoid that?
-        // Actually handleAddToCart is async.
-        // It sets isCartOpen(true) at the end.
-        // We can't easily prevent that without changing handleAddToCart signature.
-        
-        // For now, let's just let it open cart then redirect? No, that's glitchy.
-        // Let's refactor handleAddToCart or just copy logic? 
-        // Better: modify handleAddToCart to accept an option?
-        // Or just redirect here. 
-        
-        if (checkoutUrl) {
-            // Analytics for Buy Now
-            // Since we just added the item, we can construct the event manually or use cart state (which might not be updated yet? actually handleAddToCart awaits completion)
-            // handleAddToCart updates cartItems state but React state update is async.
-            // So cartItems here might be stale. 
-            // Better to log just this item or rely on next render?
-            // Actually relying on cartItems allows catching other items too.
-            // But for Buy Now, user expects single item checkout usually? 
-            // Current implementation adds to existing cart.
-            
-            // Let's log the single item for now as the primary intent
-            logBeginCheckout([{ name: product.name, price: product.price, quantity }], product.price * quantity);
-            
-            window.location.href = checkoutUrl;
-        }
-    } catch (e) {
-        console.error("Buy Now failed", e);
-        setCartError("Failed to proceed to checkout.");
-        setIsCartLoading(false);
-    }
-    // Note: handleAddToCart sets isCartLoading(false) in finally block.
-    // If we redirect, page unloads, so state doesn't matter.
-    // But if handleAddToCart finishes, it sets loading false.
-    // We want to keep loading true if redirecting.
-  };
-
-  // Refactored handleAddToCart to allow skipping cart open? 
-  // For now I'll just leave as is. The user might see cart drawer open deeply briefly before redirect.
-  // Actually, handleAddToCart sets isCartOpen(true).
-  // I should essentially copy the logic or extract it.
-  
-  // To avoid duplication, I'll rely on handleAddToCart for now, but I'll override the drawer opening if possible?
-  // No, I can't.
-  
-  // Let's implement a cleaner handleAddToCart helper that takes `openCart` boolean.
-  
-  
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar 
@@ -341,13 +301,7 @@ function App() {
             isLoading={isCartLoading}
             error={cartError}
             onBuyNow={(prod, size, col, qty) => {
-                // Custom Buy Now logic: Add to cart then redirect
-                // Since handleAddToCart opens drawer, we might want to manually do it here to avoid drawer?
-                // But duplicating logic is bad.
-                // Let's just call handleAddToCart and then redirect.
-                handleAddToCart(prod, size, col, qty).then(() => {
-                    if (checkoutUrl) window.location.href = checkoutUrl;
-                });
+                handleBuyNow(prod, size, col, qty);
             }}
           />
         )}

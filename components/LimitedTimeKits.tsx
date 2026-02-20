@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Button } from './Button';
-import { Zap, Timer, ArrowRight, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { Zap, ArrowRight, ShieldCheck, ShoppingCart } from 'lucide-react';
 
 interface Kit {
   id: string;
@@ -61,7 +61,7 @@ interface LimitedTimeKitsProps {
 }
 
 export const LimitedTimeKits: React.FC<LimitedTimeKitsProps> = ({ onKitSelect, onAddKitToCart }) => {
-  const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 45, seconds: 0 });
+
   const carouselRef = useRef<HTMLDivElement>(null);
   const [activeKitIndex, setActiveKitIndex] = useState(0);
 
@@ -82,17 +82,7 @@ export const LimitedTimeKits: React.FC<LimitedTimeKitsProps> = ({ onKitSelect, o
     setActiveKitIndex(index);
   };
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return prev;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+
 
   return (
     <section id="recovery-kits" className="py-24 bg-brand-light relative overflow-hidden">
@@ -117,33 +107,7 @@ export const LimitedTimeKits: React.FC<LimitedTimeKitsProps> = ({ onKitSelect, o
           </div>
 
           {/* Premium Glass Timer */}
-          <div className="w-full min-w-0 bg-white/40 backdrop-blur-xl border border-white p-5 rounded-3xl shadow-xl shadow-slate-200/50 flex flex-wrap items-center gap-4 sm:gap-6 animate-urgent">
-             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                <div className="flex-shrink-0 bg-brand-orange/10 p-2.5 sm:p-3 rounded-2xl">
-                   <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-brand-orange animate-pulse" />
-                </div>
-                <div className="min-w-0">
-                   <span className="block text-[10px] sm:text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Ends In</span>
-                   <div className="flex gap-1.5 sm:gap-2">
-                      {[
-                        { val: timeLeft.hours, label: 'h' },
-                        { val: timeLeft.minutes, label: 'm' },
-                        { val: timeLeft.seconds, label: 's' }
-                      ].map((u, i) => (
-                        <div key={i} className="flex items-baseline gap-0.5">
-                           <span className="text-lg sm:text-xl font-black text-slate-900 font-mono tracking-tighter">{u.val.toString().padStart(2, '0')}</span>
-                           <span className="text-[10px] font-bold text-slate-500">{u.label}</span>
-                        </div>
-                      ))}
-                   </div>
-                </div>
-             </div>
-             <div className="h-8 sm:h-10 w-px bg-slate-200 flex-shrink-0 hidden sm:block" aria-hidden />
-             <div className="hidden sm:block flex-shrink-0">
-                <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</span>
-                <span className="text-xs font-bold text-brand-orange">Limited quantity — order soon</span>
-             </div>
-          </div>
+
         </div>
 
         {/* Enhanced Kit Grid / Mobile Carousel */}

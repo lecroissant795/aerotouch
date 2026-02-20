@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../utils/supabase/client';
 
 export const DiscountPopup: React.FC = () => {
   const [visible, setVisible] = useState(false);
@@ -25,10 +26,31 @@ export const DiscountPopup: React.FC = () => {
     }, 300);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName.trim() || !email.trim()) return;
+
+    // Optimistically show success
     setSubmitted(true);
+
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('leads').insert([
+          { first_name: firstName, email: email }
+        ]);
+        
+        if (error) {
+           console.error('Error saving lead:', error);
+           // If it's a duplicate email (code 23505), we can maybe just ignore or log it
+           // For now we keep the optimistic success UI to not disrupt the user experience
+        }
+      } catch (err) {
+        console.error('Unexpected error saving lead:', err);
+      }
+    } else {
+        console.warn('Supabase client not initialized - lead not saved to DB');
+    }
+
     setTimeout(() => {
       handleClose();
     }, 4000);
