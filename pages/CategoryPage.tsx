@@ -84,6 +84,7 @@ import { PageHero } from '../components/PageHero';
 interface CategoryPageProps {
     category: string;
     onProductSelect: (product: Product) => void;
+    onQuickAddToCart?: (product: Product) => void;
     onNavigateToBlog?: () => void;
 }
 
@@ -99,7 +100,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
     'default': 'https://images.unsplash.com/photo-1556906781-9a412961d289?q=80&w=1920&auto=format&fit=crop'
 };
 
-export const CategoryPage: React.FC<CategoryPageProps> = ({ category, onProductSelect, onNavigateToBlog }) => {
+export const CategoryPage: React.FC<CategoryPageProps> = ({ category, onProductSelect, onQuickAddToCart, onNavigateToBlog }) => {
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const [loading, setLoading] = useState(true);
 
@@ -148,6 +149,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ category, onProductS
                   key={product.id}
                   product={product}
                   onClick={onProductSelect}
+                  onAddToCart={onQuickAddToCart}
                   compactOnMobile
                 />
                 ))}

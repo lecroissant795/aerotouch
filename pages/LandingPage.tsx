@@ -16,6 +16,7 @@ import { LimitedTimeKits } from '../components/LimitedTimeKits';
 
 interface LandingPageProps {
   onProductSelect: (product: Product) => void;
+  onQuickAddToCart?: (product: Product) => void;
   onCategorySelect: (category: string) => void;
   onShopSaleClick?: () => void;
   onKitSelect?: (kit: BundleKit) => void;
@@ -91,7 +92,7 @@ const FEATURED_PRODUCTS: Product[] = [
   }
 ];
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onCategorySelect, onShopSaleClick, onKitSelect, onAddKitToCart }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQuickAddToCart, onCategorySelect, onShopSaleClick, onKitSelect, onAddKitToCart }) => {
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const bestSellerSectionRef = useRef<HTMLElement | null>(null);
 
@@ -157,6 +158,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onCat
                 <ProductCard
                   product={product}
                   onClick={onProductSelect}
+                  onAddToCart={onQuickAddToCart}
                   bestSeller
                 />
               </div>

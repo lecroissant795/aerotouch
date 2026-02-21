@@ -81,9 +81,10 @@ import { PageHero } from '../components/PageHero';
 
 interface ShopPageProps {
   onProductSelect: (product: Product) => void;
+  onQuickAddToCart?: (product: Product) => void;
 }
 
-export const ShopPage: React.FC<ShopPageProps> = ({ onProductSelect }) => {
+export const ShopPage: React.FC<ShopPageProps> = ({ onProductSelect, onQuickAddToCart }) => {
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const [loading, setLoading] = useState(true);
 
@@ -131,6 +132,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({ onProductSelect }) => {
                     key={product.id}
                     product={product} 
                     onClick={onProductSelect}
+                    onAddToCart={onQuickAddToCart}
                 />
                 ))}
             </div>

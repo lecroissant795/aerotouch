@@ -5,13 +5,14 @@ import { Star, ShoppingBag, Sparkles } from 'lucide-react';
 interface ProductCardProps {
   product: Product;
   onClick: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
   /** When true, shows a "Bestseller" badge on the card (e.g. in Best Seller section) */
   bestSeller?: boolean;
   /** When true, card is ~5% narrower and ~10% shorter on mobile (e.g. Category page) */
   compactOnMobile?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, bestSeller, compactOnMobile }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAddToCart, bestSeller, compactOnMobile }) => {
   const keyFeature = product.features[0] || 'Premium support';
 
   return (
@@ -83,6 +84,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, best
             className={`flex items-center justify-center gap-2 w-full px-4 rounded-xl bg-slate-900 text-white font-bold transition-all duration-200 hover:bg-brand-orange hover:shadow-lg hover:shadow-brand-orange/25 active:scale-[0.98] ${compactOnMobile ? 'py-2 text-xs md:py-2.5 md:text-sm' : 'py-2.5 text-sm'}`}
             onClick={(e) => {
               e.stopPropagation();
+              if (onAddToCart) {
+                onAddToCart(product);
+                return;
+              }
               onClick(product);
             }}
           >

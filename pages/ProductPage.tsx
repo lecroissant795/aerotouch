@@ -241,6 +241,49 @@ export const ProductPage: React.FC<ProductPageProps> = ({
       );
   }
 
+  if (product.id !== 'massage-insoles' && !product.name.toLowerCase().includes('massage insole')) {
+    return (
+      <div className="min-h-screen bg-slate-50 pt-28 pb-24">
+        <div className="container mx-auto px-4 md:px-6">
+          <button onClick={onBack} className="mb-8 flex items-center text-sm font-medium text-slate-500 hover:text-brand-orange transition-colors">
+            <ChevronLeft className="w-4 h-4 mr-1" /> Back to Results
+          </button>
+          <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm max-w-5xl mx-auto flex flex-col md:flex-row gap-8 md:gap-16">
+            <div className="md:w-1/2">
+              <div className="aspect-square bg-slate-50 rounded-2xl border border-slate-100 p-8 flex items-center justify-center">
+                <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+              </div>
+            </div>
+            <div className="md:w-1/2 flex flex-col justify-center">
+              <h1 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tight mb-4">{product.name}</h1>
+              <div className="text-3xl font-black text-brand-orange mb-6">${formatPrice(product.price)}</div>
+              <p className="text-slate-600 leading-relaxed md:text-lg mb-10">{product.description || product.tagline || 'Experience premium comfort and support with our advanced recovery technology designed to help you perform at your best every day.'}</p>
+              
+              <div className="flex flex-col gap-4">
+                <Button
+                  size="lg"
+                  className="w-full h-14 text-lg font-bold bg-black text-white hover:bg-brand-lime hover:text-black transition-colors shadow-lg"
+                  onClick={() => onAddToCart(product, 'Standard', 'Default', 1)}
+                >
+                  Add to Cart
+                </Button>
+                {onBuyNow && (
+                  <Button
+                    size="lg"
+                    className="w-full h-14 text-lg font-bold bg-brand-orange text-white hover:bg-orange-600 transition-colors shadow-lg"
+                    onClick={() => onBuyNow(product, 'Standard', 'Default', 1)}
+                  >
+                    Buy Now
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 animate-in fade-in duration-500 pb-24 md:pb-0">
       

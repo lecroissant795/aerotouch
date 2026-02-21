@@ -92,7 +92,26 @@ function App() {
     window.scrollTo(0, 0);
   };
 
-  const handleAddToCart = async (product: Product, size: string, color: string, quantity = 1): Promise<string | null> => {
+  const handleQuickAddToCart = async (product: Product) => {
+    let size = 'Standard';
+    let color = 'One Size';
+
+    if (shopify) {
+      try {
+        const shopifyProduct = (await shopify.product.fetchByHandle(product.id)) || (await shopify.product.fetch(product.id));
+        const firstVariant = shopifyProduct?.variants?.[0];
+        const selectedOptions = firstVariant?.selectedOptions || [];
+        size = selectedOptions.find((o: any) => o.name === 'Size')?.value || size;
+        color = selectedOptions.find((o: any) => o.name === 'Color')?.value || color;
+      } catch (e) {
+        console.warn('Failed to resolve default variant for quick add, using fallback values.', e);
+      }
+    }
+
+    await handleAddToCart(product, size, color, 1);
+  };
+
+  const handleAddToCart = async (product: Product, size: string, color: string, quantity = 1, openCart = true): Promise<string | null> => {
     if (!checkoutId || !shopify) return null;
     setIsCartLoading(true);
     setCartError(null);
@@ -135,8 +154,11 @@ function App() {
             const checkout = await shopify.checkout.addLineItems(checkoutId, lineItemsToAdd);
             setCartItems(checkout.lineItems.map(mapShopifyLineItem));
             setCheckoutUrl(checkout.webUrl);
-            setIsCartOpen(true);
             logAddToCart(product.name, product.price * quantity);
+            
+            if (openCart) {
+                setIsCartOpen(true);
+            }
             return checkout.webUrl || null;
         } else {
              // Fallback: Just add first variant or error
@@ -146,21 +168,7 @@ function App() {
         }
     } catch(e) {
         console.error("Add to cart failed", e);
-        setCartError("Connection failed. Using local cart for demo.");
-        // Fallback for local dev/demo
-        const qtyToAdd = Math.max(1, Math.floor(quantity));
-        setCartItems(prev => {
-            const existing = prev.find(item => item.id === product.id && item.selectedSize === size && item.selectedColor === color);
-            if (existing) {
-                return prev.map(item => 
-                item.id === product.id && item.selectedSize === size && item.selectedColor === color
-                    ? { ...item, quantity: item.quantity + qtyToAdd } 
-                    : item
-                );
-            }
-            return [...prev, { ...product, quantity: qtyToAdd, selectedSize: size, selectedColor: color }];
-        });
-        setIsCartOpen(true);
+        setCartError("Connection failed. Please try again.");
         return null;
     } finally {
         setIsCartLoading(false);
@@ -228,7 +236,7 @@ function App() {
     };
 
   const handleBuyNow = async (prod: Product, size: string, col: string, qty = 1) => {
-      const directUrl = await handleAddToCart(prod, size, col, qty);
+      const directUrl = await handleAddToCart(prod, size, col, qty, false);
       const finalUrl = directUrl || checkoutUrl;
 
       if (finalUrl) {
@@ -280,6 +288,7 @@ function App() {
         {currentPage === Page.HOME && (
           <LandingPage
             onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
             onCategorySelect={(cat) => handleNavigate(Page.CATEGORY, cat)}
             onShopSaleClick={() => handleNavigate(Page.SHOP)}
             onKitSelect={(kit) => {
@@ -307,13 +316,17 @@ function App() {
         )}
 
         {currentPage === Page.SHOP && (
-          <ShopPage onProductSelect={handleProductSelect} />
+          <ShopPage
+            onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
+          />
         )}
 
         {currentPage === Page.SEARCH && (
           <SearchResultsPage
             searchQuery={searchQuery}
             onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
           />
         )}
 
@@ -321,6 +334,7 @@ function App() {
           <CategoryPage 
             category={selectedCategory}
             onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
             onNavigateToBlog={() => handleNavigate(Page.BLOG)}
           />
         )}
@@ -328,6 +342,7 @@ function App() {
         {currentPage === Page.BEST_SELLERS && (
           <BestSellersPage 
             onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
           />
         )}
 

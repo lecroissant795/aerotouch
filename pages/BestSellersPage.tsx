@@ -81,9 +81,10 @@ import { PageHero } from '../components/PageHero';
 
 interface BestSellersPageProps {
   onProductSelect: (product: Product) => void;
+  onQuickAddToCart?: (product: Product) => void;
 }
 
-export const BestSellersPage: React.FC<BestSellersPageProps> = ({ onProductSelect }) => {
+export const BestSellersPage: React.FC<BestSellersPageProps> = ({ onProductSelect, onQuickAddToCart }) => {
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const [loading, setLoading] = useState(true);
 
@@ -131,6 +132,7 @@ export const BestSellersPage: React.FC<BestSellersPageProps> = ({ onProductSelec
                   key={product.id}
                   product={product}
                   onClick={onProductSelect}
+                  onAddToCart={onQuickAddToCart}
                   bestSeller
                 />
                 ))}

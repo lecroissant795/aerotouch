@@ -29,9 +29,10 @@ function filterProductsByQuery(products: Product[], query: string): Product[] {
 interface SearchResultsPageProps {
   searchQuery: string;
   onProductSelect: (product: Product) => void;
+  onQuickAddToCart?: (product: Product) => void;
 }
 
-export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuery, onProductSelect }) => {
+export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuery, onProductSelect, onQuickAddToCart }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -112,7 +113,7 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuer
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} onClick={onProductSelect} />
+              <ProductCard key={product.id} product={product} onClick={onProductSelect} onAddToCart={onQuickAddToCart} />
             ))}
           </div>
         )}
