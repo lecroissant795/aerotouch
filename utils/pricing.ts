@@ -5,9 +5,8 @@ export interface PricingTier {
 }
 
 export const PRICING_TIERS: PricingTier[] = [
-  { minQty: 2, discountPercent: 35, label: '35% OFF' },
-  { minQty: 3, discountPercent: 55, label: '55% OFF' },
-  { minQty: 5, discountPercent: 60, label: '60% OFF' }
+  { minQty: 2, discountPercent: 56, label: '56% OFF' },
+  { minQty: 3, discountPercent: 80, label: '80% OFF' }
 ];
 
 export const PRICING_TIER_POSITIONS = [45, 65, 100];

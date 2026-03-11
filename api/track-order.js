@@ -57,6 +57,12 @@ export default async function handler(req, res) {
                   node {
                     title
                     quantity
+                    originalUnitPriceSet {
+                      shopMoney {
+                        amount
+                        currencyCode
+                      }
+                    }
                     variant {
                       image {
                         url
@@ -65,6 +71,15 @@ export default async function handler(req, res) {
                     }
                   }
                 }
+              }
+              shippingAddress {
+                name
+                address1
+                address2
+                city
+                province
+                zip
+                country
               }
               fulfillments(first: 1) {
                 status
@@ -107,23 +122,39 @@ export default async function handler(req, res) {
         // Transform data for frontend
         // Map Shopify status to frontend status
         let status = 'Processing';
-        let estimatedDelivery = 'Pending';
-        let steps = [];
+        let estimatedDelivery = 'Calculating...';
 
         // Basic status mapping logic
         if (order.displayFulfillmentStatus === 'FULFILLED') {
+            status = 'Delivered';
+        } else if (order.displayFulfillmentStatus === 'PARTIALLY_FULFILLED') {
             status = 'Shipped';
-            // In a real app, calculate estimated delivery based on shipping carrier
         } else if (order.displayFulfillmentStatus === 'IN_PROGRESS') {
-            status = 'In Progress';
+            status = 'Processing';
+        } else if (order.displayFulfillmentStatus === 'UNFULFILLED') {
+            status = 'Processing';
+        }
+
+        // Calculate estimated delivery (simplified - 3-5 business days from now)
+        if (status === 'Shipped' || status === 'Processing') {
+            const deliveryDate = new Date();
+            deliveryDate.setDate(deliveryDate.getDate() + 4); // Add 4 days as estimate
+            estimatedDelivery = deliveryDate.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+        } else if (status === 'Delivered') {
+            estimatedDelivery = 'Delivered';
         }
 
         return res.status(200).json({
             orderNumber: order.name,
             email: order.email,
             status: status,
+            estimatedDelivery: estimatedDelivery,
             // Add more transformed fields as needed
-            rawData: order // For debugging/development
+            rawData: order // For debugging/development - includes all order data
         });
 
     } catch (error) {

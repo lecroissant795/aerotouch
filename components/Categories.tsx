@@ -5,31 +5,26 @@ const categories = [
   {
     id: 'insoles',
     name: 'Insoles',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=800',
     description: 'Peak performance'
   },
   {
     id: 'footwear',
     name: 'Footwear',
-    image: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&q=80&w=800',
     description: 'Professional grade'
   },
   {
     id: 'tools',
     name: 'Tools',
-    image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&q=80&w=800',
     description: 'Advanced recovery'
   },
   {
     id: 'pads',
     name: 'Pads',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800',
     description: 'Targeted relief'
   },
   {
     id: 'socks',
     name: 'Socks',
-    image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?auto=format&fit=crop&q=80&w=800',
     description: 'Ultimate comfort'
   }
 ];
@@ -38,7 +33,6 @@ interface CategoriesProps {
   onCategoryClick?: (category: string) => void;
 }
 
-const CARD_WIDTH_MOBILE = 200;
 const GAP = 16;
 
 export const Categories: React.FC<CategoriesProps> = ({ onCategoryClick }) => {
@@ -49,7 +43,10 @@ export const Categories: React.FC<CategoriesProps> = ({ onCategoryClick }) => {
     const el = scrollRef.current;
     if (!el) return;
     const scrollLeft = el.scrollLeft;
-    const itemWidth = CARD_WIDTH_MOBILE + GAP;
+    // Calculate child width dynamically since it's vw now
+    const child = el.firstElementChild as HTMLElement;
+    const itemWidth = child ? child.offsetWidth + GAP : 200 + GAP;
+
     const index = Math.round(scrollLeft / itemWidth);
     const clamped = Math.min(Math.max(0, index), categories.length - 1);
     setActiveIndex(clamped);
@@ -58,7 +55,9 @@ export const Categories: React.FC<CategoriesProps> = ({ onCategoryClick }) => {
   const goToIndex = (index: number) => {
     const el = scrollRef.current;
     if (!el) return;
-    const itemWidth = CARD_WIDTH_MOBILE + GAP;
+    const child = el.firstElementChild as HTMLElement;
+    const itemWidth = child ? child.offsetWidth + GAP : 200 + GAP;
+    
     el.scrollTo({ left: index * itemWidth, behavior: 'smooth' });
     setActiveIndex(index);
   };
@@ -72,17 +71,13 @@ export const Categories: React.FC<CategoriesProps> = ({ onCategoryClick }) => {
           className="flex overflow-x-auto md:grid md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 pb-4 md:pb-0 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide"
         >
           {categories.map((cat) => (
-            <div 
+              <div 
               key={cat.id} 
-              className="flex-none w-[200px] md:w-auto group relative aspect-[3/4] md:aspect-[4/5] overflow-hidden rounded-2xl cursor-pointer snap-start"
+              className="flex-none w-[70vw] md:w-full group relative aspect-[3/4.41] md:aspect-[4/5.51] overflow-hidden rounded-2xl cursor-pointer snap-start bg-brand-dark border border-white/5 hover:border-brand-lime/30 transition-all duration-500"
               onClick={() => onCategoryClick?.(cat.name)}
             >
-              <img 
-                src={cat.image} 
-                alt={cat.name} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-dark via-brand-dark/95 to-[#1c2433] group-hover:bg-brand-dark/90 transition-all duration-500" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(193,241,29,0.05),transparent)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
               <div className="absolute bottom-0 left-0 p-6 w-full">
                 <p className="text-xs font-bold text-brand-lime uppercase tracking-wider mb-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">

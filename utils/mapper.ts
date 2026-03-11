@@ -16,7 +16,7 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
         tagline: shopifyProduct.description || '', // Use description or a metafield
         price: price,
         rating: 5.0, // Hardcoded for now, or fetch from metafields/app
-        reviews: 0,  // Hardcoded for now
+        reviews: 4823,  // Mock number below 5000
         image: image,
         images: images,
         features: [], // Needs to be extracted from description or metafields
@@ -38,7 +38,7 @@ export const mapShopifyLineItem = (lineItem: any): any => {
         // Mocking missing Product fields required by CartItem interface
         tagline: '',
         rating: 5.0,
-        reviews: 0,
+        reviews: 4823,
         features: [],
         description: ''
     };

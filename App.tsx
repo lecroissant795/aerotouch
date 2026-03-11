@@ -11,6 +11,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { SalesBanner } from './components/SalesBanner';
 import { DiscountPopup } from './components/DiscountPopup';
 import { ReferralPopup } from './components/ReferralPopup';
+import { LivePurchaseNotification } from './components/LivePurchaseNotification';
 import { Product, CartItem, Page, BlogPost, BundleKit } from './types';
 import { shopify } from './utils/shopify';
 import { mapShopifyLineItem } from './utils/mapper';
@@ -20,9 +21,43 @@ import { BestSellersPage } from './pages/BestSellersPage';
 import { CategoryPage } from './pages/CategoryPage';
 import { AccountPage } from './pages/AccountPage';
 import { TrackOrderPage } from './pages/TrackOrderPage';
+import { OrderStatusPage } from './pages/OrderStatusPage';
+import { ReturnsExchangePage } from './pages/ReturnsExchangePage';
+import { SizeGuidePage } from './pages/SizeGuidePage';
 import { BundleKitsPage } from './pages/BundleKitsPage';
 import { KitProductPage } from './pages/KitProductPage';
+import { AccessoriesPage } from './pages/AccessoriesPage';
+import { WarrantyPage } from './pages/WarrantyPage';
+import { SecondaryProductPage } from './pages/SecondaryProductPage';
 import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
+
+// Helper function to detect if a product is a secondary/accessory product
+const isSecondaryProduct = (product: Product): boolean => {
+  const nameLower = product.name.toLowerCase();
+  const idLower = product.id.toLowerCase();
+
+  // Primary products (use full ProductPage) - ALL INSOLES
+  const isPrimaryProduct =
+    nameLower.includes('insole') ||
+    nameLower.includes('insert') ||
+    nameLower.includes('orthotic') ||
+    idLower.includes('insole');
+
+  // If it's a primary product, return false (not secondary)
+  if (isPrimaryProduct) {
+    return false;
+  }
+
+  // Secondary product IDs (use SecondaryProductPage)
+  const secondaryIds = ['massage-roller', 'compression-socks', 'recovery-gel', 'massage-ball', 'foot-cream'];
+  if (secondaryIds.includes(idLower)) {
+    return true;
+  }
+
+  // Secondary product keywords (accessories/recovery items)
+  const secondaryKeywords = ['roller', 'compression', 'socks', 'gel', 'cream', 'ball', 'recovery'];
+  return secondaryKeywords.some(keyword => nameLower.includes(keyword));
+};
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>(Page.HOME);
@@ -278,8 +313,8 @@ function App() {
         onNavigate={handleNavigate}
         onSearch={setSearchQuery}
         searchQuery={searchQuery}
-        transparentMode={currentPage === Page.HOME || currentPage === Page.TECHNOLOGY}
-        forceWhite={currentPage === Page.SUPPORT}
+        transparentMode={currentPage === Page.HOME}
+        forceWhite={currentPage === Page.SUPPORT || currentPage === Page.ORDER_STATUS || currentPage === Page.RETURNS_EXCHANGE || currentPage === Page.SIZE_GUIDE || currentPage === Page.WARRANTY}
       />
       
       <SalesBanner />
@@ -301,18 +336,29 @@ function App() {
         )}
         
         {currentPage === Page.PRODUCT && selectedProduct && (
-          <ProductPage 
-            product={selectedProduct} 
-            onAddToCart={handleAddToCart}
-            onBack={() => handleNavigate(Page.SHOP)}
-            onProductSelect={handleProductSelect}
-            onNavigateToBlog={() => handleNavigate(Page.BLOG)}
-            isLoading={isCartLoading}
-            error={cartError}
-            onBuyNow={(prod, size, col, qty) => {
-                handleBuyNow(prod, size, col, qty);
-            }}
-          />
+          isSecondaryProduct(selectedProduct) ? (
+            <SecondaryProductPage
+              product={selectedProduct}
+              onAddToCart={handleAddToCart}
+              onBack={() => handleNavigate(Page.SHOP)}
+              onProductSelect={handleProductSelect}
+              isLoading={isCartLoading}
+              error={cartError}
+            />
+          ) : (
+            <ProductPage
+              product={selectedProduct}
+              onAddToCart={handleAddToCart}
+              onBack={() => handleNavigate(Page.SHOP)}
+              onProductSelect={handleProductSelect}
+              onNavigateToBlog={() => handleNavigate(Page.BLOG)}
+              isLoading={isCartLoading}
+              error={cartError}
+              onBuyNow={(prod, size, col, qty) => {
+                  handleBuyNow(prod, size, col, qty);
+              }}
+            />
+          )
         )}
 
         {currentPage === Page.SHOP && (
@@ -364,7 +410,7 @@ function App() {
         )}
 
         {currentPage === Page.SUPPORT && (
-          <SupportPage />
+          <SupportPage onNavigate={handleNavigate} />
         )}
 
         {currentPage === Page.ACCOUNT && (
@@ -373,6 +419,22 @@ function App() {
 
         {currentPage === Page.TRACK_ORDER && (
           <TrackOrderPage />
+        )}
+
+        {currentPage === Page.ORDER_STATUS && (
+          <OrderStatusPage />
+        )}
+
+        {currentPage === Page.RETURNS_EXCHANGE && (
+          <ReturnsExchangePage />
+        )}
+
+        {currentPage === Page.SIZE_GUIDE && (
+          <SizeGuidePage />
+        )}
+        
+        {currentPage === Page.WARRANTY && (
+          <WarrantyPage />
         )}
 
         {currentPage === Page.BUNDLE_KITS && (
@@ -397,6 +459,14 @@ function App() {
             onAddToCart={handleAddKitToCart}
           />
         )}
+
+        {currentPage === Page.ACCESSORIES && (
+          <AccessoriesPage
+            onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
+            onNavigateToBlog={() => handleNavigate(Page.BLOG)}
+          />
+        )}
       </main>
 
       <Footer />
@@ -418,6 +488,20 @@ function App() {
 
       <DiscountPopup />
       <ReferralPopup />
+      <LivePurchaseNotification onCtaClick={() => {
+        const mainProduct: Product = {
+          id: 'massage-insoles',
+          name: 'AeroTouch Massage Insoles',
+          tagline: 'Therapeutic acupressure with every step',
+          price: 34.00,
+          rating: 4.9,
+          reviews: 1540,
+          image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
+          features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'],
+          description: ''
+        };
+        handleProductSelect(mainProduct);
+      }} />
     </div>
   );
 }

@@ -73,10 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
   const isTransparentState = !isScrolled && transparentMode && !isShopHovered && !isMobileMenuOpen;
 
   const handleNavClick = (item: string) => {
-    if (item === 'Technology') {
-      onNavigate(Page.TECHNOLOGY);
-      setIsMobileMenuOpen(false);
-    } else if (item === 'Blog') {
+    if (item === 'Blog') {
       onNavigate(Page.BLOG);
       setIsMobileMenuOpen(false);
     } else if (item === 'Support') {
@@ -120,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                 </button>
             </div>
 
-            {['Technology', 'Blog', 'Support', 'Track Your Order'].map((item) => (
+            {['Blog', 'Support', 'Track Your Order'].map((item) => (
               <a 
                 key={item} 
                 href="#" 
@@ -202,10 +199,10 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                  <div className="col-span-3">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Categories</h3>
                     <ul className="space-y-3">
-                        {['Shop All', 'Bundle Kits', 'Insoles', 'Footwear', 'Tools', 'Pads', 'Socks', 'Gift Cards'].map(item => (
+                        {['Shop All', 'Bundle Kits', 'Insoles', 'Footwear', 'Tools', 'Pads', 'Socks', 'Accessories & Recovery', 'Gift Cards'].map(item => (
                             <li key={item}>
-                                <a 
-                                    href="#" 
+                                <a
+                                    href="#"
                                     className="text-slate-700 hover:text-brand-orange font-medium text-sm transition-colors block"
                                     onClick={(e) => {
                                         e.preventDefault();
@@ -214,6 +211,8 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                                         onNavigate(Page.SHOP);
                                     } else if (item === 'Bundle Kits') {
                                         onNavigate(Page.BUNDLE_KITS);
+                                    } else if (item === 'Accessories & Recovery') {
+                                        onNavigate(Page.ACCESSORIES);
                                     } else if (item === 'Gift Cards') {
                                         onNavigate(Page.CATEGORY, 'Gift Cards');
                                     } else {
@@ -320,7 +319,7 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                 <button type="submit" className="text-brand-orange font-medium text-sm">Search</button>
               </form>
               <ul className="space-y-0">
-                {['Technology', 'Blog', 'Support', 'Track Your Order'].map((label) => (
+                {['Blog', 'Support', 'Track Your Order'].map((label) => (
                   <li key={label}>
                     <a
                       href="#"
@@ -350,14 +349,18 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                     Bundle Kits
                   </a>
                 </li>
-                {['Insoles', 'Footwear', 'Tools', 'Socks'].map((subItem) => (
+                {['Insoles', 'Footwear', 'Tools', 'Socks', 'Accessories & Recovery'].map((subItem) => (
                   <li key={subItem}>
-                    <a 
-                      href="#" 
+                    <a
+                      href="#"
                       className="block py-3 text-slate-600 text-[15px] active:text-brand-dark"
                       onClick={(e) => {
                         e.preventDefault();
-                        onNavigate(Page.CATEGORY, subItem);
+                        if (subItem === 'Accessories & Recovery') {
+                          onNavigate(Page.ACCESSORIES);
+                        } else {
+                          onNavigate(Page.CATEGORY, subItem);
+                        }
                         setIsMobileMenuOpen(false);
                       }}
                     >

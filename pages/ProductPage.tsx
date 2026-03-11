@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Product } from '../types';
 import { Button } from '../components/Button';
-import { Star, Check, Truck, RotateCcw, ChevronLeft, ChevronDown, ChevronUp, Ruler, Users, Timer, ShieldCheck, Flame, CreditCard, Plus, Smile, Headphones, Wrench, Tag, Box, CircleDollarSign, Activity, BadgeCheck, ShoppingBag, MapPin, Play, X, Lock, Volume2, VolumeX } from 'lucide-react';
+import { Star, Check, Truck, RotateCcw, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Ruler, Users, Timer, ShieldCheck, Flame, CreditCard, Plus, Smile, Headphones, Wrench, Tag, Box, CircleDollarSign, Activity, BadgeCheck, ShoppingBag, MapPin, Play, X, Lock, Volume2, VolumeX } from 'lucide-react';
 import { ProductTechSpecs } from '../components/ProductTechSpecs';
 import { useSocialProof } from '../hooks/useSocialProof';
 import { getLinePricing } from '../utils/pricing';
@@ -69,6 +69,14 @@ const TESTIMONIALS = [
   }
 ];
 
+const BUILT_FOR_PURPOSES = [
+  { id: 'lifts', label: 'Heavy Lifts', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop' },
+  { id: 'extreme', label: 'Extreme Sports', image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&auto=format&fit=crop' },
+  { id: 'standout', label: 'Stand Out', image: 'https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=800&auto=format&fit=crop' },
+  { id: 'runs', label: 'Nature Runs', image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800&auto=format&fit=crop' },
+  { id: 'shifts', label: 'All-Day Comfort', image: 'https://images.unsplash.com/photo-1584432810601-6c7f27d2362b?w=800&auto=format&fit=crop' },
+];
+
 export const ProductPage: React.FC<ProductPageProps> = ({ 
   product: initialProduct, 
   onAddToCart, 
@@ -87,7 +95,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>('details');
   const [activeImgIndex, setActiveImgIndex] = useState(0);
-  const { viewers, reviewCount, rating } = useSocialProof(initialProduct.id);
+  const { viewers } = useSocialProof(initialProduct.id);
   const [activeFaq, setActiveFaq] = useState<string | null>(null);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 12, seconds: 45 });
@@ -96,8 +104,11 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const [expandedVideo, setExpandedVideo] = useState<{ id: number; src: string } | null>(null);
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
   const expandedVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [builtForIndex, setBuiltForIndex] = useState(0);
+  const builtForScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const testimonialsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchShopifyData = async () => {
@@ -118,7 +129,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
         }
       } catch (err) {
         console.warn("Could not fetch product from Shopify, using local data", err);
-      }
+      } 
     };
     fetchShopifyData();
   }, [initialProduct.id]);
@@ -139,6 +150,15 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   }, []);
 
   // Scroll to active image when index changes (e.g. via dots)
+  useEffect(() => {
+    if (builtForScrollRef.current) {
+        const el = builtForScrollRef.current;
+        const cardWidth = 320;
+        const gap = 24;
+        el.scrollTo({ left: builtForIndex * (cardWidth + gap), behavior: 'smooth' });
+    }
+  }, [builtForIndex]);
+
   useEffect(() => {
     if (scrollRef.current) {
         const width = scrollRef.current.clientWidth;
@@ -183,13 +203,18 @@ export const ProductPage: React.FC<ProductPageProps> = ({
     setOpenSection(openSection === section ? null : section);
   }
 
-  // Generate more stable mock images based on product ID to simulate a gallery
-  const images = [
-    product.image,
-    `https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=800&auto=format&fit=crop`, // Sole closeup
-    `https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop`, // Lifestyle
-    `https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop` // Detail
-  ];
+  // Product gallery: use product imagery only (no stock-photo fallback tiles).
+  const fallbackGalleryImage = product.image || '/images/IMG_4813-removebg-preview.png';
+  const images = Array.from(
+    new Set([...(product.images || []), fallbackGalleryImage].filter((img) => Boolean(img && img.trim())))
+  );
+  const secondaryImages = images.slice(1, 5);
+
+  useEffect(() => {
+    if (activeImgIndex >= images.length) {
+      setActiveImgIndex(0);
+    }
+  }, [activeImgIndex, images.length]);
 
   // Bundles for dropshipping vibe
   const [bundle, setBundle] = useState(1); // 1 = 1 pair, 2 = 2 pairs, 3 = 3 pairs
@@ -251,7 +276,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
           <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm max-w-5xl mx-auto flex flex-col md:flex-row gap-8 md:gap-16">
             <div className="md:w-1/2">
               <div className="aspect-square bg-slate-50 rounded-2xl border border-slate-100 p-8 flex items-center justify-center">
-                <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover object-center" />
               </div>
             </div>
             <div className="md:w-1/2 flex flex-col justify-center">
@@ -267,15 +292,6 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                 >
                   Add to Cart
                 </Button>
-                {onBuyNow && (
-                  <Button
-                    size="lg"
-                    className="w-full h-14 text-lg font-bold bg-brand-orange text-white hover:bg-orange-600 transition-colors shadow-lg"
-                    onClick={() => onBuyNow(product, 'Standard', 'Default', 1)}
-                  >
-                    Buy Now
-                  </Button>
-                )}
               </div>
             </div>
           </div>
@@ -317,12 +333,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
         
         {/* Left Col: Image Gallery - Sticky on Desktop */}
         <div className="lg:w-3/5">
-             <div className="lg:sticky lg:top-40 space-y-4">
+             <div className="lg:sticky lg:top-40 space-y-4 md:max-w-[504px] mx-auto">
 
 
                 {/* --- MOBILE: Carousel View --- */}
                 <div className="md:hidden">
-                    <div className="aspect-[1/0.95] bg-slate-50 rounded-2xl overflow-hidden shadow-sm relative border border-slate-100 p-4">
+                    <div className="aspect-[10/9.92] md:aspect-square bg-slate-50 rounded-2xl overflow-hidden shadow-sm relative border border-slate-100">
                         <div 
                             ref={scrollRef}
                             onScroll={handleScroll}
@@ -332,20 +348,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                 <img 
                                     key={idx} 
                                     src={img} 
-                                    className="w-full h-full object-contain mix-blend-multiply flex-shrink-0 snap-center" 
-                                    alt={product.name} 
+                                    className="w-full h-full object-cover object-center flex-shrink-0 snap-center" 
+                                    alt={`${product.name} view ${idx + 1}`} 
                                 />
                             ))}
                         </div>
 
-                        <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
-                            <span className="bg-brand-orange text-white text-xs font-bold px-3 py-1.5 uppercase tracking-widest rounded shadow-lg shadow-brand-orange/20">
-                                Save {selectedSavingsPercent}%
-                            </span>
-                            <span className="bg-brand-lime text-brand-dark text-xs font-bold px-3 py-1.5 uppercase tracking-widest rounded shadow-lg">
-                                Best Seller
-                            </span>
-                        </div>
 
                         {/* Dots - inside image, bottom */}
                         <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
@@ -363,41 +371,33 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     </div>
                 </div>
 
-                {/* --- DESKTOP: Bento Grid View (3 Images) --- */}
+                {/* --- DESKTOP: Bento Grid View --- */}
                 <div className="hidden md:grid grid-cols-2 gap-4">
                     {/* Main Large Image (Top) */}
-                    <div className="col-span-2 aspect-[16/9.5] bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative group p-8 flex items-center justify-center shadow-sm">
+                    <div className="col-span-2 aspect-square bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative group flex items-center justify-center shadow-sm">
                         <img 
                             src={images[0]} 
                             alt={product.name} 
-                            className="w-full h-full object-contain mix-blend-multiply"
+                            className="w-full h-full object-cover object-center"
                         />
                         <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
-                             <span className="bg-brand-orange text-white text-sm font-black px-4 py-2 uppercase tracking-widest rounded-lg shadow-xl shadow-brand-orange/20">
-                                Save {selectedSavingsPercent}%
-                             </span>
                         </div>
                     </div>
 
-                    {/* Secondary Image 1 (Bottom Left) */}
-                    <div className="aspect-square bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative group p-6 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
-                        <img 
-                            src={images[1]} 
-                            alt="Detail view" 
-                            className="w-full h-full object-contain mix-blend-multiply"
-                        />
-
-                    </div>
-
-                    {/* Secondary Image 2 (Bottom Right) */}
-                    <div className="aspect-square bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative group p-6 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
-                        <img 
-                            src={images[2]} 
-                            alt="Lifestyle view" 
-                            className="w-full h-full object-contain mix-blend-multiply"
-                        />
-
-                    </div>
+                    {secondaryImages.map((img, idx) => (
+                        <div
+                            key={`${img}-${idx}`}
+                            className={`bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative group flex items-center justify-center shadow-sm hover:shadow-md transition-shadow ${
+                                secondaryImages.length === 1 ? 'col-span-2 aspect-square' : 'aspect-square'
+                            }`}
+                        >
+                            <img
+                                src={img}
+                                alt={`${product.name} detail ${idx + 2}`}
+                                className="w-full h-full object-cover object-center"
+                            />
+                        </div>
+                    ))}
                 </div>
              </div>
         </div>
@@ -413,7 +413,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                          <Star key={i} className="w-4 h-4 fill-current" />
                       ))}
                     </div>
-                    <span className="text-sm text-slate-500 font-bold underline decoration-slate-300 underline-offset-4 cursor-pointer hover:text-brand-orange">{reviewCount} Verified Reviews</span>
+                    <span
+                      className="text-sm text-slate-500 font-bold underline decoration-slate-300 underline-offset-4 cursor-pointer hover:text-brand-orange"
+                      onClick={() => testimonialsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                    >
+                      4000+ Verified Reviews
+                    </span>
                 </div>
                 
                 <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight leading-none mb-4">{product.name}</h1>
@@ -666,6 +671,32 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     </div>
                 </div>
 
+                {/* Promo marquee strip */}
+                <div className="py-3.5 mb-6 rounded-2xl overflow-hidden border border-[#a5c918]" style={{ backgroundColor: '#C1F11D' }}>
+                  <div className="flex animate-marquee whitespace-nowrap w-max" style={{ willChange: 'transform' }}>
+                    {[...Array(2)].map((_, copy) => (
+                      <div key={copy} className="flex items-center gap-8 md:gap-12 px-8 md:px-12">
+                        <span className="flex items-center gap-2 text-brand-dark text-[11px] font-black uppercase tracking-wider">
+                          <span className="text-sm" aria-hidden>🛡️</span>
+                          60-day money-back guarantee
+                        </span>
+                        <span className="flex items-center gap-2 text-brand-dark text-[11px] font-black uppercase tracking-wider">
+                          <span className="text-sm" aria-hidden>🌍</span>
+                          Global shipping
+                        </span>
+                        <span className="flex items-center gap-2 text-brand-dark text-[11px] font-black uppercase tracking-wider">
+                          <span className="text-sm" aria-hidden>✈️</span>
+                          Tracked insured shipping
+                        </span>
+                        <span className="flex items-center gap-2 text-brand-dark text-[11px] font-black uppercase tracking-wider">
+                          <span className="text-sm" aria-hidden>😊</span>
+                          10,000+ Happy Customer
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Error Message */}
                 {error && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm animate-fadeIn">
@@ -674,27 +705,25 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     </div>
                 )}
 
-                {/* Main Action - Buy Now */}
-                {onBuyNow && (
-                    <Button
-                        fullWidth
-                        size="lg"
-                        className={`h-16 text-xl shadow-xl relative overflow-hidden group bg-black text-white hover:bg-[#C1F11D] hover:text-white transition-all duration-300 ${isLoading ? 'opacity-90 cursor-wait' : ''}`}
-                        onClick={() => {
-                            if (selectedSize) {
-                                onBuyNow(product, selectedSize, selectedColor, bundle);
-                            }
-                        }}
-                        disabled={!selectedSize || isLoading}
-                    >
-                       <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
-                           {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
-                           {isLoading ? 'PROCESSING...' : (selectedSize ? 'BUY NOW' : 'SELECT SIZE')}
-                       </span>
+                {/* Main Action - Add to Cart */}
+                <Button
+                    fullWidth
+                    size="lg"
+                    className={`h-16 text-xl shadow-xl relative overflow-hidden group bg-black text-white hover:bg-[#C1F11D] hover:text-white transition-all duration-300 ${isLoading ? 'opacity-90 cursor-wait' : ''}`}
+                    onClick={() => {
+                        if (selectedSize) {
+                            onAddToCart(product, selectedSize, selectedColor, bundle);
+                        }
+                    }}
+                    disabled={!selectedSize || isLoading}
+                >
+                   <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
+                       {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
+                       {isLoading ? 'PROCESSING...' : (selectedSize ? 'ADD TO CART' : 'SELECT SIZE')}
+                   </span>
                        {/* Shine effect */}
                        {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
                     </Button>
-                )}
 
                 {/* Payment methods under buy button - link opens popup */}
                 <div className="mt-4 flex justify-center">
@@ -962,7 +991,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     })()}
 
                     {/* Testimonial Card */}
-                    <div 
+                    <div
+                        ref={testimonialsRef}
                         className="mt-8 rounded-2xl p-5 border border-slate-200 relative bg-gradient-to-br from-slate-50 to-white overflow-hidden"
                         onMouseEnter={() => setIsTestimonialHovered(true)}
                         onMouseLeave={() => setIsTestimonialHovered(false)}
@@ -1241,8 +1271,97 @@ export const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       )}
       
+      {/* Built for All Purposes - Carousel (above reviews) - full width */}
+      <section className="py-16 md:py-20 bg-white border-t border-slate-100 w-full overflow-hidden">
+        <div className="w-full px-4 md:px-6 mb-8">
+          <h2 className="text-center text-2xl md:text-4xl font-black text-slate-900">
+            Built for <span className="text-brand-orange">All Purposes</span>
+          </h2>
+        </div>
+        <div className="relative w-full">
+          <div
+            ref={builtForScrollRef}
+            className="flex gap-6 overflow-x-auto overflow-y-hidden scroll-smooth scrollbar-hide py-2 px-4 md:px-8"
+            style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {BUILT_FOR_PURPOSES.map((item) => (
+              <div
+                key={item.id}
+                className="flex-shrink-0 w-[280px] md:w-[320px] rounded-2xl overflow-hidden bg-slate-100 shadow-lg"
+                style={{ scrollSnapAlign: 'start' }}
+              >
+                <div className="relative aspect-[3/4] overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.label}
+                    className="w-full h-full object-cover"
+                  />
+
+                </div>
+                <div className="bg-black py-4 px-4">
+                  <span className="text-white text-base font-bold uppercase tracking-wide">{item.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            aria-label="Previous"
+            onClick={() => setBuiltForIndex((i) => Math.max(0, i - 1))}
+            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button
+            type="button"
+            aria-label="Next"
+            onClick={() => setBuiltForIndex((i) => Math.min(BUILT_FOR_PURPOSES.length - 1, i + 1))}
+            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="flex justify-center gap-2 mt-6">
+          {BUILT_FOR_PURPOSES.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => setBuiltForIndex(i)}
+              className={`transition-all rounded-full ${i === builtForIndex ? 'w-5 h-1.5 bg-brand-dark' : 'w-1.5 h-1.5 bg-slate-300 hover:bg-slate-400'}`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Running banner - trust strip */}
+      <section className="py-4 overflow-hidden border-y border-[#a5c918]" style={{ backgroundColor: '#C1F11D' }}>
+        <div className="flex animate-marquee whitespace-nowrap w-max" style={{ willChange: 'transform' }}>
+          {[...Array(2)].map((_, copy) => (
+            <div key={copy} className="flex items-center gap-8 md:gap-12 px-8 md:px-12">
+              <span className="flex items-center gap-2.5 text-slate-900 text-sm md:text-base font-bold tracking-wide">
+                <span className="text-lg leading-none" aria-hidden>🛡️</span>
+                60-day money-back guarantee
+              </span>
+              <span className="flex items-center gap-2.5 text-slate-900 text-sm md:text-base font-bold tracking-wide">
+                <span className="text-lg leading-none" aria-hidden>🌍</span>
+                Global shipping
+              </span>
+              <span className="flex items-center gap-2.5 text-slate-900 text-sm md:text-base font-bold tracking-wide">
+                <span className="text-lg leading-none" aria-hidden>✈️</span>
+                Tracked insured shipping
+              </span>
+              <span className="flex items-center gap-2.5 text-slate-900 text-sm md:text-base font-bold tracking-wide">
+                <span className="text-lg leading-none" aria-hidden>😊</span>
+                10,000+ Happy Customer
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Kit Combo Promotion */}
-      <section className="pb-20">
+      <section className="py-20">
         <div className="container mx-auto px-4 md:px-6">
 
           {/* Section Header */}
@@ -1280,7 +1399,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                   <div className="relative z-10 group/insole cursor-pointer w-full">
                     <div className="bg-white rounded-2xl p-3 md:p-4 shadow-2xl shadow-black/30 transition-all duration-500 group-hover/insole:translate-y-[-4px] group-hover/insole:shadow-brand-lime/20 flex items-center gap-4">
                       <div className="w-[74px] h-[74px] md:w-[99px] md:h-[99px] flex-shrink-0 bg-slate-50 rounded-xl overflow-hidden flex items-center justify-center">
-                        <img src={images[0]} alt="AeroTouch Insoles" className="w-full h-full object-contain" />
+                        <img src={images[0]} alt="AeroTouch Insoles" className="w-full h-full object-cover object-center" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs md:text-sm font-black text-slate-900 uppercase tracking-wider">AeroTouch Insoles</p>

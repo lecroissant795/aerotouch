@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../components/Button';
+import { Page } from '../types';
 import { 
   Search, 
   Package, 
@@ -49,7 +50,11 @@ const FAQS = [
   }
 ];
 
-export const SupportPage: React.FC = () => {
+interface SupportPageProps {
+  onNavigate?: (page: Page) => void;
+}
+
+export const SupportPage: React.FC<SupportPageProps> = ({ onNavigate }) => {
   const [openFaq, setOpenFaq] = useState<string | null>('0-0'); // Default open first one
 
   const toggleFaq = (idx: string) => {
@@ -97,23 +102,65 @@ export const SupportPage: React.FC = () => {
       <section className="relative z-20 -mt-16 pb-20">
         <div className="container mx-auto px-4 md:px-6 max-w-6xl">
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { icon: <Package className="w-6 h-6"/>, label: 'Order Status', desc: 'Track your shipment', link: '#' },
-                { icon: <RefreshCcw className="w-6 h-6"/>, label: 'Returns & Exchanges', desc: 'Start a return request', link: '#' },
-                { icon: <Ruler className="w-6 h-6"/>, label: 'Size Guide', desc: 'Find your perfect fit', link: '#' },
-                { icon: <Shield className="w-6 h-6"/>, label: 'Warranty Claim', desc: 'File a warranty claim', link: '#' },
-              ].map((item, i) => (
-                  <a key={i} href={item.link} className="group bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 border border-slate-100 hover:border-brand-lime/20 hover:shadow-2xl hover:shadow-brand-lime/5 hover:-translate-y-1 transition-all duration-300">
-                     <div className="flex items-start justify-between mb-8">
-                        <div className="w-12 h-12 bg-slate-50 text-slate-900 group-hover:bg-brand-dark group-hover:text-brand-lime rounded-xl flex items-center justify-center transition-colors duration-300">
-                           {item.icon}
-                        </div>
-                        <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all" />
-                     </div>
-                     <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-dark transition-colors">{item.label}</h3>
-                     <p className="text-sm text-slate-500 font-medium">{item.desc}</p>
-                  </a>
-              ))}
+              {/* Order Status - Interactive */}
+              <button 
+                onClick={() => onNavigate?.(Page.ORDER_STATUS)}
+                className="group bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 border border-slate-100 hover:border-brand-lime/20 hover:shadow-2xl hover:shadow-brand-lime/5 hover:-translate-y-1 transition-all duration-300 text-left cursor-pointer"
+              >
+                 <div className="flex items-start justify-between mb-8">
+                    <div className="w-12 h-12 bg-slate-50 text-slate-900 group-hover:bg-brand-dark group-hover:text-brand-lime rounded-xl flex items-center justify-center transition-colors duration-300">
+                       <Package className="w-6 h-6"/>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all" />
+                 </div>
+                 <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-dark transition-colors">Order Status</h3>
+                 <p className="text-sm text-slate-500 font-medium">Track your shipment</p>
+              </button>
+
+              {/* Returns & Exchanges - Interactive */}
+              <button 
+                onClick={() => onNavigate?.(Page.RETURNS_EXCHANGE)}
+                className="group bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 border border-slate-100 hover:border-brand-lime/20 hover:shadow-2xl hover:shadow-brand-lime/5 hover:-translate-y-1 transition-all duration-300 text-left cursor-pointer"
+              >
+                 <div className="flex items-start justify-between mb-8">
+                    <div className="w-12 h-12 bg-slate-50 text-slate-900 group-hover:bg-brand-dark group-hover:text-brand-lime rounded-xl flex items-center justify-center transition-colors duration-300">
+                       <RefreshCcw className="w-6 h-6"/>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all" />
+                 </div>
+                 <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-dark transition-colors">Returns & Exchanges</h3>
+                 <p className="text-sm text-slate-500 font-medium">Start a return request</p>
+              </button>
+
+              {/* Size Guide - Interactive */}
+              <button 
+                onClick={() => onNavigate?.(Page.SIZE_GUIDE)}
+                className="group bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 border border-slate-100 hover:border-brand-lime/20 hover:shadow-2xl hover:shadow-brand-lime/5 hover:-translate-y-1 transition-all duration-300 text-left cursor-pointer"
+              >
+                 <div className="flex items-start justify-between mb-8">
+                    <div className="w-12 h-12 bg-slate-50 text-slate-900 group-hover:bg-brand-dark group-hover:text-brand-lime rounded-xl flex items-center justify-center transition-colors duration-300">
+                       <Ruler className="w-6 h-6"/>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all" />
+                 </div>
+                 <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-dark transition-colors">Size Guide</h3>
+                 <p className="text-sm text-slate-500 font-medium">Find your perfect fit</p>
+              </button>
+
+              {/* Warranty Claim - Interactive */}
+              <button 
+                onClick={() => onNavigate?.(Page.WARRANTY)}
+                className="group bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 border border-slate-100 hover:border-brand-lime/20 hover:shadow-2xl hover:shadow-brand-lime/5 hover:-translate-y-1 transition-all duration-300 text-left cursor-pointer"
+              >
+                 <div className="flex items-start justify-between mb-8">
+                    <div className="w-12 h-12 bg-slate-50 text-slate-900 group-hover:bg-brand-dark group-hover:text-brand-lime rounded-xl flex items-center justify-center transition-colors duration-300">
+                       <Shield className="w-6 h-6"/>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all" />
+                 </div>
+                 <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-dark transition-colors">Warranty Claim</h3>
+                 <p className="text-sm text-slate-500 font-medium">File a warranty claim</p>
+              </button>
            </div>
         </div>
       </section>

@@ -45,8 +45,16 @@
       background: #f1f5f9;
       /* Slate-100 */
       border-radius: 3px;
-      margin: 0 20%;
-      /* Inset track slightly */
+      margin-left: 16px;
+      /* matches px-4 (mobile left padding of carousel) */
+      margin-right: 0;
+    }
+
+    @media (min-width: 768px) {
+      .best-seller-scroll::-webkit-scrollbar-track {
+        margin-left: 10vw;
+        /* matches md:px-[10vw] */
+      }
     }
 
     .best-seller-scroll::-webkit-scrollbar-thumb {

@@ -151,10 +151,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
               Select the perfect insole for your activity from our top-rated collection.
             </p>
           </div>
-          
-          <div className="flex overflow-x-auto gap-5 pb-8 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0 best-seller-scroll">
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex overflow-x-auto gap-5 pb-8 snap-x snap-mandatory px-4 md:px-[10vw] best-seller-scroll">
             {products.map(product => (
-              <div key={product.id} className="flex-none w-[260px] md:w-[280px] snap-center">
+              <div key={product.id} className="flex-none w-[280px] md:w-[320px] snap-center">
                 <ProductCard
                   product={product}
                   onClick={onProductSelect}

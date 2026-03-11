@@ -32,9 +32,9 @@ export const SalesBanner: React.FC = () => {
   );
 
   return (
-    <div 
+    <div
       className={`fixed left-0 right-0 top-[64px] z-40 transition-all duration-300 ease-out transform ${
-        isVisible ? 'translate-y-0 opacity-100 shadow-md' : '-translate-y-2 opacity-0 pointer-events-none'
+        isVisible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0 pointer-events-none'
       }`}
     >
       <div className="bg-brand-lime text-brand-dark py-2.5 overflow-hidden whitespace-nowrap">
