@@ -38,8 +38,7 @@ const DEFAULT_SIZES = [
 const DEFAULT_COLORS = [
   { name: 'Orange', value: '#FF5722', label: 'Signature Orange' },
   { name: 'Grey', value: '#6B7280', label: 'Grey' },
-  { name: 'Black', value: '#1E293B', label: 'Stealth Black' },
-  { name: 'Camo', value: '#4A5D23', label: 'Camo' }
+  { name: 'Black', value: '#1E293B', label: 'Stealth Black' }
 ];
 
 const TESTIMONIALS = [

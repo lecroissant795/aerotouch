@@ -1,0 +1,443 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Product } from '../types';
+import { Check, ShieldCheck, Zap, Wind, Thermometer, Heart, Leaf, Award, Clock, Users, Star, Truck, Image } from 'lucide-react';
+
+interface ProductDescriptionProps {
+  product: Product;
+}
+
+// Animated counter hook
+const useCountUp = (end: number, duration: number = 2000, start: number = 0) => {
+  const [count, setCount] = useState(start);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let startTime: number;
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      setCount(Math.floor(progress * (end - start) + start));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+    requestAnimationFrame(step);
+  }, [isVisible, end, duration, start]);
+
+  return { count, ref };
+};
+
+const StatCard = ({ icon: Icon, value, suffix, label, delay }: { icon: any; value: number; suffix?: string; label: string; delay: number }) => {
+  const { count, ref } = useCountUp(value, 2000);
+
+  return (
+    <div
+      ref={ref}
+      className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-center shadow-2xl overflow-hidden group"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="absolute inset-0 bg-brand-orange/0 group-hover:bg-brand-orange/10 transition-colors duration-500" />
+      <div className="absolute -top-8 -right-8 w-24 h-24 bg-brand-lime/10 rounded-full blur-2xl" />
+      <div className="relative z-10">
+        <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
+          <Icon className="w-6 h-6 text-brand-lime" strokeWidth={1.5} />
+        </div>
+        <div className="text-4xl font-black text-white leading-none mb-1">
+          {count.toLocaleString()}{suffix}
+        </div>
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</div>
+      </div>
+    </div>
+  );
+};
+
+const FeatureCard = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
+  <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-100 hover:border-brand-orange/30 overflow-hidden">
+    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-brand-orange/5 to-transparent rounded-bl-full" />
+    <div className="relative z-10">
+      <div className="w-14 h-14 bg-brand-orange/10 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-brand-orange group-hover:scale-110 transition-all duration-300">
+        <Icon className="w-7 h-7 text-brand-orange group-hover:text-white transition-colors" strokeWidth={1.5} />
+      </div>
+      <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-2">{title}</h4>
+      <p className="text-sm text-slate-600 leading-relaxed">{description}</p>
+    </div>
+  </div>
+);
+
+export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
+  const features = [
+    {
+      icon: Zap,
+      title: 'Instant Relief',
+      description: 'Magnetic therapy targets pressure points to reduce foot pain within minutes of wear.'
+    },
+    {
+      icon: Wind,
+      title: 'Breathable Design',
+      description: 'Advanced airflow technology keeps feet cool and dry, even in closed shoes.'
+    },
+    {
+      icon: Thermometer,
+      title: 'Temperature Regulating',
+      description: 'Adapts to your body temperature for consistent comfort in any climate.'
+    },
+    {
+      icon: Heart,
+      title: 'Heart-Healthy',
+      description: 'Improved circulation from acupressure points supports overall foot health.'
+    },
+    {
+      icon: Leaf,
+      title: 'Eco Materials',
+      description: 'Made with sustainable, non-toxic materials that are safe for you and the planet.'
+    },
+    {
+      icon: Award,
+      title: 'Premium Quality',
+      description: 'Engineered with aerospace-grade components for unmatched durability.'
+    }
+  ];
+
+  return (
+    <section className="py-16 md:py-24 bg-slate-50 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-30" style={{
+        backgroundImage: `radial-gradient(circle at 2px 2px, #e2e8f0 1px, transparent 0)`,
+        backgroundSize: '32px 32px'
+      }} />
+
+      {/* Section Header */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 mb-16">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-brand-dark text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse" />
+            Why Choose AeroTouch
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tight leading-none mb-4">
+            Engineered for <span className="text-brand-orange">Performance</span>
+          </h2>
+          <p className="text-lg text-slate-600 leading-relaxed">
+            Every pair is designed with precision technology to deliver maximum comfort and support.
+          </p>
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard icon={Users} value={50000} suffix="+" label="Happy Customers" delay={0} />
+          <StatCard icon={Star} value={4000} suffix="+" label="5-Star Reviews" delay={100} />
+          <StatCard icon={Clock} value={98} suffix="%" label="Pain Relief Rate" delay={200} />
+          <StatCard icon={Award} value={60} suffix="-Day" label="Guarantee" delay={300} />
+        </div>
+      </div>
+
+      {/* Feature Cards Grid */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, index) => (
+            <FeatureCard key={index} icon={feature.icon} title={feature.title} description={feature.description} />
+          ))}
+        </div>
+      </div>
+
+      {/* Product Detail - Alternating Layout */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 mt-20">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+
+          {/* Left Side - Image */}
+          <div className="w-full lg:w-1/2 relative order-2 lg:order-1">
+            <div className="absolute inset-0 bg-brand-orange/20 rounded-[3rem] rotate-3 transform scale-105 origin-center -z-10" />
+            <div className="rounded-[2.5rem] overflow-hidden shadow-2xl relative aspect-[4/5] md:aspect-square">
+              <img
+                src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop'}
+                alt={`${product.name} detail`}
+                className="w-full h-full object-cover object-center"
+              />
+
+              {/* Floating Badge */}
+              <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl flex items-center gap-4">
+                <div className="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-brand-lime">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Premium Quality</p>
+                  <p className="text-sm font-black text-slate-900">Engineered for Comfort</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Content */}
+          <div className="w-full lg:w-1/2 order-1 lg:order-2">
+            <h3 className="text-2xl md:text-4xl font-black text-slate-900 uppercase tracking-tight leading-none mb-6">
+              Technology Meets <span className="text-brand-orange">Comfort</span>
+            </h3>
+
+            {product.descriptionHtml ? (
+              <div
+                className="text-base text-slate-600 leading-relaxed mb-8 prose prose-slate max-w-none prose-p:mb-4 prose-ul:list-disc prose-ul:pl-5 prose-li:mb-2 prose-strong:text-slate-900"
+                dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+              />
+            ) : (
+              <p className="text-base text-slate-600 leading-relaxed mb-8">
+                {product.description || "Our products are designed with cutting-edge technology and premium materials to provide you with the ultimate support, comfort, and performance all day long."}
+              </p>
+            )}
+
+            {/* Key Benefits */}
+            {product.features && product.features.length > 0 && (
+              <div className="pt-6 border-t border-slate-200">
+                <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">What's Included</h4>
+                <ul className="space-y-3">
+                  {product.features.slice(0, 4).map((feature, idx) => {
+                    const parts = feature.split(':');
+                    const label = parts[0];
+                    const val = parts.slice(1).join(':');
+                    return (
+                      <li key={idx} className="flex items-start gap-3">
+                        <div className="mt-0.5 bg-brand-dark rounded-full p-1 flex-shrink-0">
+                          <Check className="w-3 h-3 text-brand-lime" strokeWidth={3} />
+                        </div>
+                        <span className="text-sm text-slate-700">
+                          {val ? (
+                            <><span className="font-bold">{label}:</span>{val}</>
+                          ) : (
+                            <span className="font-medium">{feature}</span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* CTA Button */}
+            <div className="mt-8">
+              <button className="inline-flex items-center justify-center bg-brand-orange text-white font-black uppercase tracking-wider py-4 px-8 rounded-xl shadow-lg shadow-brand-orange/25 hover:shadow-xl hover:shadow-brand-orange/40 hover:scale-105 transition-all duration-300">
+                Shop Now
+                <Zap className="w-4 h-4 ml-2" />
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Trust Badges Strip */}
+      <div className="mt-20 py-8 bg-brand-dark">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+            {[
+              { icon: ShieldCheck, label: '60-Day Guarantee' },
+              { icon: Truck, label: 'Free Shipping' },
+              { icon: Heart, label: 'Doctor Recommended' },
+              { icon: Leaf, label: 'Eco-Friendly' }
+            ].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3 text-white">
+                <item.icon className="w-6 h-6 text-brand-lime" strokeWidth={1.5} />
+                <span className="text-sm font-bold uppercase tracking-wide">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Customer Reviews with Photos */}
+      <section className="py-16 md:py-24 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-brand-orange/10 text-brand-orange text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-4">
+              <Star className="w-3 h-3 fill-current" />
+              Real Results
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tight mb-4">
+              What Our <span className="text-brand-orange">Customers Say</span>
+            </h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              See what real customers are saying about their experience with AeroTouch.
+            </p>
+          </div>
+
+          {/* Reviews with Photos Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                name: 'Sarah M.',
+                location: 'Austin, TX',
+                rating: 5,
+                title: 'Finally pain-free after years!',
+                text: "I've struggled with plantar fasciitis for 3 years. After just 2 weeks of wearing these insoles, the pain is completely gone. I can finally run again!",
+                image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop',
+                photos: [
+                  'https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=300&auto=format&fit=crop',
+                  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=300&auto=format&fit=crop'
+                ]
+              },
+              {
+                name: 'Michael T.',
+                location: 'Seattle, WA',
+                rating: 5,
+                title: 'Worth every penny',
+                text: "As a nurse working 12-hour shifts, my feet used to kill me. These insoles have been game-changing. No more pain after long days on my feet.",
+                image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=150&auto=format&fit=crop',
+                photos: [
+                  'https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop'
+                ]
+              },
+              {
+                name: 'Jennifer K.',
+                location: 'Denver, CO',
+                rating: 5,
+                title: 'Best investment for running',
+                text: "Training for my first marathon and these insoles have made all the difference. My recovery time has improved dramatically.",
+                image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
+                photos: [
+                  'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=300&auto=format&fit=crop',
+                  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=300&auto=format&fit=crop'
+                ]
+              },
+              {
+                name: 'David R.',
+                location: 'Miami, FL',
+                rating: 4,
+                title: 'Great for work boots',
+                text: "I work in construction and these insoles fit perfectly in my work boots. Much better than the generic ones I was using before.",
+                image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop',
+                photos: []
+              },
+              {
+                name: 'Amanda L.',
+                location: 'Portland, OR',
+                rating: 5,
+                title: 'Gift that keeps on giving',
+                text: "Bought these for my husband who has flat feet. He absolutely loves them! Ordered more for his work shoes and running shoes.",
+                image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
+                photos: [
+                  'https://images.unsplash.com/photo-1556227848-4f87e2429c09?q=80&w=300&auto=format&fit=crop'
+                ]
+              },
+              {
+                name: 'Carlos M.',
+                location: 'Chicago, IL',
+                rating: 5,
+                title: 'Amazing support',
+                text: "The arch support is perfect for my high arches. I've tried many insoles and this is hands down the best one I've found.",
+                image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
+                photos: [
+                  'https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop',
+                  'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=300&auto=format&fit=crop'
+                ]
+              }
+            ].map((review, idx) => (
+              <div key={idx} className="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-shadow">
+                {/* Header */}
+                <div className="flex items-center gap-4 mb-4">
+                  <img
+                    src={review.image}
+                    alt={review.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div>
+                    <h4 className="font-black text-slate-900">{review.name}</h4>
+                    <p className="text-xs text-slate-500">{review.location}</p>
+                  </div>
+                </div>
+
+                {/* Rating */}
+                <div className="flex items-center gap-1 mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${i < review.rating ? 'text-brand-orange fill-current' : 'text-slate-300'}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Title */}
+                <h5 className="font-bold text-slate-900 mb-2">{review.title}</h5>
+
+                {/* Text */}
+                <p className="text-sm text-slate-600 leading-relaxed mb-4">{review.text}</p>
+
+                {/* Customer Photos */}
+                {review.photos.length > 0 && (
+                  <div className="flex gap-3">
+                    {review.photos.map((photo, photoIdx) => (
+                      <div
+                        key={photoIdx}
+                        className="relative w-28 h-28 rounded-xl overflow-hidden cursor-pointer group"
+                      >
+                        <img
+                          src={photo}
+                          alt={`Customer photo ${photoIdx + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Verified Badge */}
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase">Verified Purchase</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats Row */}
+          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-6 bg-slate-50 rounded-2xl">
+              <div className="text-3xl font-black text-brand-orange mb-1">4.9</div>
+              <div className="flex justify-center mb-2">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-brand-orange fill-current" />
+                ))}
+              </div>
+              <div className="text-sm font-bold text-slate-600">Average Rating</div>
+            </div>
+            <div className="text-center p-6 bg-slate-50 rounded-2xl">
+              <div className="text-3xl font-black text-brand-orange mb-1">4,000+</div>
+              <div className="text-sm font-bold text-slate-600">Reviews</div>
+            </div>
+            <div className="text-center p-6 bg-slate-50 rounded-2xl">
+              <div className="text-3xl font-black text-brand-orange mb-1">98%</div>
+              <div className="text-sm font-bold text-slate-600">Would Recommend</div>
+            </div>
+            <div className="text-center p-6 bg-slate-50 rounded-2xl">
+              <div className="text-3xl font-black text-brand-orange mb-1">50,000+</div>
+              <div className="text-sm font-bold text-slate-600">Happy Customers</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  );
+};

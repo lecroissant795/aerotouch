@@ -6,6 +6,9 @@ import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { ProductCard } from '../components/ProductCard';
 import { getLinePricing } from '../utils/pricing';
+import { SplitTestimonials } from '../components/SplitTestimonials';
+import { StaggeredTestimonials } from '../components/StaggeredTestimonials';
+import { ProductDescription } from '../components/ProductDescription';
 
 interface SecondaryProductPageProps {
   product: Product;
@@ -643,9 +646,39 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
         </div>
       </div>
 
+      {/* Running banner - trust strip */}
+      <section className="py-4 overflow-hidden border-y border-[#a5c918]" style={{ backgroundColor: '#C1F11D' }}>
+        <div className="flex animate-marquee whitespace-nowrap w-max" style={{ willChange: 'transform' }}>
+          {[...Array(2)].map((_, copy) => (
+            <div key={copy} className="flex items-center gap-8 md:gap-12 px-8 md:px-12">
+              <span className="flex items-center gap-2.5 text-slate-900 text-sm md:text-base font-bold tracking-wide">
+                <span className="text-lg leading-none" aria-hidden>🛡️</span>
+                60-day money-back guarantee
+              </span>
+              <span className="flex items-center gap-2.5 text-slate-900 text-sm md:text-base font-bold tracking-wide">
+                <span className="text-lg leading-none" aria-hidden>🌍</span>
+                Global shipping
+              </span>
+              <span className="flex items-center gap-2.5 text-slate-900 text-sm md:text-base font-bold tracking-wide">
+                <span className="text-lg leading-none" aria-hidden>✈️</span>
+                Tracked insured shipping
+              </span>
+              <span className="flex items-center gap-2.5 text-slate-900 text-sm md:text-base font-bold tracking-wide">
+                <span className="text-lg leading-none" aria-hidden>😊</span>
+                10,000+ Happy Customer
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <StaggeredTestimonials />
+
+      <ProductDescription product={product} />
+
       {/* Related Products */}
       {relatedProducts.length > 0 && onProductSelect && (
-        <div className="container mx-auto px-4 md:px-6 mb-24 max-w-7xl">
+        <div className="container mx-auto px-4 md:px-6 mb-24 max-w-7xl pt-16">
           <h2 className="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tight text-center md:text-left">You May Also Like</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {relatedProducts.map((relatedProduct) => (

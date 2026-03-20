@@ -30,34 +30,7 @@ import { AccessoriesPage } from './pages/AccessoriesPage';
 import { WarrantyPage } from './pages/WarrantyPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
 import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
-
-// Helper function to detect if a product is a secondary/accessory product
-const isSecondaryProduct = (product: Product): boolean => {
-  const nameLower = product.name.toLowerCase();
-  const idLower = product.id.toLowerCase();
-
-  // Primary products (use full ProductPage) - ALL INSOLES
-  const isPrimaryProduct =
-    nameLower.includes('insole') ||
-    nameLower.includes('insert') ||
-    nameLower.includes('orthotic') ||
-    idLower.includes('insole');
-
-  // If it's a primary product, return false (not secondary)
-  if (isPrimaryProduct) {
-    return false;
-  }
-
-  // Secondary product IDs (use SecondaryProductPage)
-  const secondaryIds = ['massage-roller', 'compression-socks', 'recovery-gel', 'massage-ball', 'foot-cream'];
-  if (secondaryIds.includes(idLower)) {
-    return true;
-  }
-
-  // Secondary product keywords (accessories/recovery items)
-  const secondaryKeywords = ['roller', 'compression', 'socks', 'gel', 'cream', 'ball', 'recovery'];
-  return secondaryKeywords.some(keyword => nameLower.includes(keyword));
-};
+import { isSecondaryProduct } from './utils/productDetection';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>(Page.HOME);

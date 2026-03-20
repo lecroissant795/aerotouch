@@ -9,6 +9,8 @@ export interface Product {
   images?: string[];
   features: string[];
   description: string;
+  descriptionHtml?: string;
+  tags?: string[];
 }
 
 export interface CartItem extends Product {
