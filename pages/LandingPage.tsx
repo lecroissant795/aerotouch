@@ -15,6 +15,7 @@ import { ComparisonTable } from '../components/ComparisonTable';
 import { Star, Play, BadgeCheck, Globe, MoreHorizontal, ThumbsUp, Heart, Smile, MessageSquare, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { reviewVideos } from '../utils/mediaUrls';
 import { FAQSection } from '../components/FAQSection';
+import { ReferralSection } from '../components/ReferralSection';
 
 const VIDEO_REVIEWS = [
   {
@@ -473,6 +474,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
         </div>
       </section>
 
+      <ReferralSection />
       <Newsletter />
     </div>
   );

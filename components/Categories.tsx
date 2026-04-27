@@ -5,7 +5,7 @@ const categories = [
   {
     id: 'insoles',
     name: 'Insoles',
-    description: 'Peak performance'
+    description: 'Peak comfort'
   },
   {
     id: 'footwear',
@@ -25,7 +25,7 @@ const categories = [
   {
     id: 'socks',
     name: 'Socks',
-    description: 'Ultimate comfort'
+    description: 'Everyday support'
   }
 ];
 
