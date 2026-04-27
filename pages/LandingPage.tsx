@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Hero } from '../components/Hero';
 import { Categories } from '../components/Categories';
-import { FlashSale } from '../components/FlashSale';
 import { Features } from '../components/Features';
 import { ProductCard } from '../components/ProductCard';
 import { Newsletter } from '../components/Newsletter';
@@ -11,8 +10,11 @@ import { Product, BundleKit } from '../types';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { LimitedTimeKits } from '../components/LimitedTimeKits';
+import { ValueProps } from '../components/ValueProps';
+import { ComparisonTable } from '../components/ComparisonTable';
 import { Star, Play, BadgeCheck, Globe, MoreHorizontal, ThumbsUp, Heart, Smile, MessageSquare, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { reviewVideos } from '../utils/mediaUrls';
+import { FAQSection } from '../components/FAQSection';
 
 const VIDEO_REVIEWS = [
   {
@@ -233,10 +235,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
   return (
     <div className="animate-in fade-in duration-500">
       <Hero onPrimaryCtaClick={handleHeroPrimaryCta} />
-      <Categories onCategoryClick={onCategorySelect} />
-      <LimitedTimeKits onKitSelect={onKitSelect} onAddKitToCart={onAddKitToCart} />
-      <FlashSale onShopSaleClick={onShopSaleClick} />
-      
       {/* Best Seller Section with Rolling Text */}
       <section
         ref={bestSellerSectionRef}
@@ -278,6 +276,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
           </div>
         </div>
       </section>
+
+      <LimitedTimeKits onKitSelect={onKitSelect} onAddKitToCart={onAddKitToCart} />
+      <Categories onCategoryClick={onCategorySelect} />
+      <ValueProps />
 
       <Features />
       <PressLogos />
@@ -456,6 +458,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <ComparisonTable onShopNow={handleHeroPrimaryCta} />
+
+      {/* FAQ Section */}
+      <section className="py-24 bg-white border-t border-slate-100 relative">
+        <div className="container mx-auto px-4 md:px-6 max-w-3xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Got Questions? We've Got Answers</h2>
+          </div>
+          <FAQSection />
         </div>
       </section>
 

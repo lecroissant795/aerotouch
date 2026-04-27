@@ -30,7 +30,8 @@ import { AccessoriesPage } from './pages/AccessoriesPage';
 import { WarrantyPage } from './pages/WarrantyPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
 import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
-import { isSecondaryProduct } from './utils/productDetection';
+import { isSecondaryProduct, isMainProduct } from './utils/productDetection';
+import { SizeSelectorModal } from './components/SizeSelectorModal';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>(Page.HOME);
@@ -45,6 +46,7 @@ function App() {
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [isCartLoading, setIsCartLoading] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
+  const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     initGA();
@@ -101,22 +103,49 @@ function App() {
   };
 
   const handleQuickAddToCart = async (product: Product) => {
-    let size = 'Standard';
-    let color = 'One Size';
-
-    if (shopify) {
-      try {
-        const shopifyProduct = (await shopify.product.fetchByHandle(product.id)) || (await shopify.product.fetch(product.id));
-        const firstVariant = shopifyProduct?.variants?.[0];
-        const selectedOptions = firstVariant?.selectedOptions || [];
-        size = selectedOptions.find((o: any) => o.name === 'Size')?.value || size;
-        color = selectedOptions.find((o: any) => o.name === 'Color')?.value || color;
-      } catch (e) {
-        console.warn('Failed to resolve default variant for quick add, using fallback values.', e);
-      }
+    // For insole/main products, show the size selector modal
+    if (isMainProduct(product)) {
+      setQuickAddProduct(product);
+      return;
     }
 
-    await handleAddToCart(product, size, color, 1);
+    // For accessories/secondary products, add directly to cart using first variant
+    if (!checkoutId || !shopify) return;
+    setIsCartLoading(true);
+    setCartError(null);
+
+    try {
+      const shopifyProduct =
+        (await shopify.product.fetchByHandle(product.id)) ||
+        (await shopify.product.fetch(product.id));
+
+      if (!shopifyProduct?.variants?.length) {
+        console.error('No variants found for product', product.id);
+        setCartError('Product not available.');
+        setIsCartLoading(false);
+        return;
+      }
+
+      const firstVariant = shopifyProduct.variants[0];
+      const checkout = await shopify.checkout.addLineItems(checkoutId, [
+        { variantId: firstVariant.id, quantity: 1 },
+      ]);
+
+      setCartItems(checkout.lineItems.map(mapShopifyLineItem));
+      setCheckoutUrl(checkout.webUrl);
+      logAddToCart(product.name, product.price);
+      setIsCartOpen(true);
+    } catch (e) {
+      console.error('Quick add to cart failed', e);
+      setCartError('Failed to add to cart. Please try again.');
+    } finally {
+      setIsCartLoading(false);
+    }
+  };
+
+  const handleSizeSelectConfirm = async (product: Product, size: string, color: string, quantity: number) => {
+    setQuickAddProduct(null);
+    await handleAddToCart(product, size, color, quantity);
   };
 
   const handleAddToCart = async (product: Product, size: string, color: string, quantity = 1, openCart = true): Promise<string | null> => {
@@ -475,6 +504,16 @@ function App() {
         };
         handleProductSelect(mainProduct);
       }} />
+
+      {quickAddProduct && (
+        <SizeSelectorModal
+          product={quickAddProduct}
+          isOpen={!!quickAddProduct}
+          onClose={() => setQuickAddProduct(null)}
+          onConfirm={handleSizeSelectConfirm}
+          isLoading={isCartLoading}
+        />
+      )}
     </div>
   );
 }

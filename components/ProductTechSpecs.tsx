@@ -939,75 +939,50 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
         </div>
       </section>
 
-      {/* 3.6 Future Is Foot Pain-Free + Promo strip */}
-      <section className="bg-white border-t border-slate-100 overflow-hidden">
-        <div className="container mx-auto px-4 md:px-6 pt-10 md:pt-14 pb-20 md:pb-28">
-          <div className="max-w-6xl mx-auto rounded-[2rem] border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/80 to-orange-50/40 p-6 md:p-10 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.25)]">
-            <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-start">
-              {/* Left content */}
-              <div>
-                <span className="inline-flex items-center gap-2 bg-white border border-brand-orange/20 text-brand-orange text-[10px] font-black uppercase tracking-[0.22em] px-3 py-1.5 rounded-full mb-6 shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Clinical Results
-                </span>
-                <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-[0.95] mb-5">
-                  The Future Is
-                  <br />
-                  <span className="text-brand-orange">Foot Pain-Free</span>
-                </h2>
-                <p className="text-slate-600 leading-relaxed max-w-md mb-8">
-                  Backed by clinical and consumer studies, AeroTouch insoles deliver measurable support so you can move with less pain and more confidence every day.
-                </p>
-                <div className="flex flex-wrap items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                    className="bg-brand-orange text-white font-black uppercase tracking-wider text-sm px-8 py-4 rounded-xl hover:bg-orange-600 transition-colors shadow-lg shadow-brand-orange/25"
-                  >
-                    Claim Offer
-                  </button>
-                  <p className="text-slate-400 text-xs">* Results according to clinical/consumer studies.</p>
+      {/* 3.6 Benefits Grid + Promo strip */}
+      <section className="bg-[#f8f9fa] border-t border-slate-100 overflow-hidden">
+        <div className="container mx-auto px-4 md:px-6 pt-16 md:pt-24 pb-16 md:pb-24">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 lg:gap-x-12 gap-y-12 md:gap-y-16 text-center">
+            {[
+              {
+                icon: '🦶',
+                title: 'Foot pain relief',
+                desc: 'Arch support and cushioning foam alleviate Plantar Fasciitis, Metatarsalgia, and general pain'
+              },
+              {
+                icon: '🙌',
+                title: 'Knee, back, & hip pain reduction',
+                desc: 'End overpronation and align your body to ease chronic pain'
+              },
+              {
+                icon: '☁️',
+                title: 'All day comfort',
+                desc: 'Perfect for long shifts; stand or walk for hours, pain-free.'
+              },
+              {
+                icon: '💸',
+                title: 'No more expensive orthotics',
+                desc: 'Custom arch support at a fraction of the price'
+              },
+              {
+                icon: '👟',
+                title: 'Upgrade any shoe',
+                desc: 'Integrating proper support into your daily routine is a critical component of overall wellness.'
+              },
+              {
+                icon: '🏃',
+                title: 'Reduce fatigue & protect joints',
+                desc: 'Shock absorbing materials means less stress on your body and more energy throughout the day.'
+              }
+            ].map((item, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div className="w-[4.5rem] h-[4.5rem] bg-white rounded-full flex items-center justify-center text-[2rem] mb-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+                  <span aria-hidden="true">{item.icon}</span>
                 </div>
+                <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">{item.title}</h3>
+                <p className="text-slate-600 leading-relaxed font-medium">{item.desc}</p>
               </div>
-
-              {/* Right stats */}
-              <div className="space-y-4">
-                {[
-                  { pct: 95, title: 'Reduced Foot Pain', desc: 'Arch support & cushioning significantly help foot pain.' },
-                  { pct: 94, title: 'Improved Comfort', desc: 'Comfort with every step, minimizing fatigue & discomfort.' },
-                  { pct: 90, title: 'Reduce Injury Risk', desc: 'Cushioning & support helps reduce the risk of foot injuries.' },
-                ].map((item, idx) => (
-                  <div
-                    key={item.pct}
-                    className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5 flex items-start gap-4 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="relative w-14 h-14 flex-shrink-0">
-                      <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                        <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="3" className="text-slate-200" />
-                        <circle
-                          cx="18"
-                          cy="18"
-                          r="15.5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeDasharray={`${item.pct} ${100 - item.pct}`}
-                          className={idx === 1 ? 'text-brand-lime' : 'text-brand-orange'}
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-slate-900">
-                        {item.pct}%
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-black text-slate-900 text-sm uppercase tracking-wide mb-1">{item.title}</h3>
-                      <p className="text-slate-600 text-sm leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
