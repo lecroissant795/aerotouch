@@ -127,26 +127,29 @@ export const LivePurchaseNotification: React.FC<LivePurchaseNotificationProps> =
       aria-live="polite"
       aria-atomic="true"
     >
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl shadow-[0_14px_40px_rgba(15,23,42,0.18)] p-4">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-lime via-emerald-300 to-brand-lime" />
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200">
+      <div className="relative overflow-hidden rounded-2xl border border-white/40 bg-white/60 backdrop-blur-2xl shadow-[0_15px_35px_rgba(15,23,42,0.1)] p-4">
+        <div className="flex items-start gap-4">
+          <div className="mt-1 flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-100/50">
             <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
           </div>
           <div className="flex-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Live Purchase</p>
+            <div className="flex items-center gap-2 mb-1.5">
+               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Live Purchase</p>
+               <div className="h-1 w-1 rounded-full bg-slate-200" />
+               <p className="text-[10px] font-bold text-emerald-600">Verified</p>
+            </div>
             <p className="text-[13px] md:text-sm text-slate-800 leading-snug">
-              <span className="font-bold">{notification.customer}</span> in <span className="font-semibold">{notification.city}</span> just bought{' '}
-              <span className="font-bold text-brand-orange">{notification.product}</span>.
+              <span className="font-extrabold text-slate-900">{notification.customer}</span> <span className="text-slate-600">in</span> <span className="font-semibold text-slate-700">{notification.city}</span> <span className="text-slate-600">just bought</span>{' '}
+              <span className="font-extrabold text-brand-orange">{notification.product}</span>.
             </p>
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <p className="text-[11px] font-semibold text-slate-500">{notification.minutesAgo} min ago</p>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] font-medium text-slate-400">{notification.minutesAgo} min ago</p>
               <button
                 type="button"
                 onClick={onCtaClick}
-                className="inline-flex items-center rounded-full bg-brand-lime px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-brand-dark hover:brightness-95 transition"
+                className="inline-flex items-center rounded-lg bg-slate-900/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-900/10 border border-slate-200/50 transition backdrop-blur-md"
               >
-                Shop Now
+                View Product
               </button>
             </div>
           </div>

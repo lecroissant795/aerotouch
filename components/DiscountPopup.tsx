@@ -79,8 +79,7 @@ export const DiscountPopup: React.FC = () => {
             ✕
           </button>
 
-          {/* Top accent bar */}
-          <div className="h-1.5" style={{ background: 'linear-gradient(to right, #C1F11D, #a5d916, #C1F11D)' }} />
+
 
           <div className="px-6 pt-8 pb-8 md:px-8">
             {!submitted ? (

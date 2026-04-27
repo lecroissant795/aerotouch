@@ -114,8 +114,7 @@ export const ReferralPopup: React.FC = () => {
             <X className="w-4 h-4" />
           </button>
 
-          {/* Top accent - orange to match referral CTA */}
-          <div className="h-1.5 bg-brand-orange" />
+
 
           <div className="px-6 pt-8 pb-8 md:px-8">
             <div className="flex items-center justify-center gap-2 text-brand-orange mb-4">

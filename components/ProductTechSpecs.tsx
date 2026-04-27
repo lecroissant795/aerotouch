@@ -764,11 +764,11 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
             </div>
         </div>
 
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="w-full overflow-hidden">
             <div
               ref={textReviewScrollRef}
               onScroll={handleTextReviewScroll}
-              className="flex gap-6 overflow-x-auto pb-2 scrollbar-hide max-w-6xl mx-auto snap-x snap-mandatory"
+              className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide px-4 md:px-12 lg:px-24 snap-x snap-mandatory"
             >
                 {/* Review 1 – Michael T. */}
                 <div ref={(el) => { textReviewCardRefs.current[0] = el; }} className="flex-shrink-0 w-[min(100%,367px)] md:w-[389px] snap-center bg-white p-7 rounded-2xl border border-slate-200 flex flex-col shadow-sm hover:shadow-lg transition-shadow duration-300">

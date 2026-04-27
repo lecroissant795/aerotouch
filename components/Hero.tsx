@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from './Button';
+import { Star } from 'lucide-react';
 
 interface HeroProps {
   onPrimaryCtaClick?: () => void;
@@ -38,6 +39,15 @@ export const Hero: React.FC<HeroProps> = ({ onPrimaryCtaClick }) => {
 
         <div className="container mx-auto px-4 md:px-6 relative z-10 fade-in-up">
           <div className="max-w-5xl">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="flex items-center">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className="w-4 h-4 md:w-5 md:h-5 fill-[#FFCA28] text-[#FFCA28]" />
+                ))}
+              </div>
+              <span className="text-white font-bold ml-1 text-sm md:text-base tracking-wide uppercase">500,000+ customers</span>
+            </div>
+
             <p className="text-brand-lime font-bold tracking-[0.2em] uppercase mb-4 text-sm md:text-base">
               MADE FOR PERFORMANCE & COMFORT
             </p>

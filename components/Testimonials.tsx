@@ -54,8 +54,7 @@ export const Testimonials: React.FC = () => {
                Real Stories. Real Relief.
              </h2>
              <p className="text-xl text-slate-600">
-               Join the athletes who trust their feet to AeroTouch.
-             </p>
+               Real comfort for real life—see why people choose AeroTouch             </p>
         </div>
 
         {/* Featured Review - Carousel Layout */}
