@@ -175,7 +175,7 @@ interface ProductTechSpecsProps {
 }
 
 export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProductId, onProductSelect, onNavigateToBlog }) => {
-  const [activeFeature, setActiveFeature] = useState(0);
+  const [activeFeature, setActiveFeature] = useState(-1);
   const [builtForIndex, setBuiltForIndex] = useState(0);
   const [splitPos, setSplitPos] = useState(50);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
@@ -349,76 +349,93 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
 
   return (
     <div className="w-full animate-in fade-in slide-in-from-bottom-8 duration-700">
-      {/* 1. Engineered Section - 5% less vertical padding on mobile */}
-      <section id="engineered-for-everyone" className="py-[5.2rem] md:py-20 bg-[#f8f9fa] overflow-hidden">
+      {/* 1. Engineered Section */}
+      <section id="engineered-for-everyone" className="pt-12 pb-20 md:pt-16 md:pb-32 bg-[#f8f9fa] overflow-hidden">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="text-center mb-16">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Performance Tech</span>
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mt-2 uppercase tracking-tight">ENGINEERED FOR EVERYONE AT ANYTIME</h2>
-            <p className="mt-4 text-slate-600 max-w-2xl mx-auto">
-              AeroTouch insoles deliver biomechanically shaped support so you can train stronger and recover quicker.
+          <div className="text-center mb-16 md:mb-24 max-w-3xl mx-auto">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Targeted Relief</span>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mt-4 uppercase tracking-tight">ENGINEERED FOR COMFORT</h2>
+            <p className="mt-5 text-slate-600 text-lg">
+              Click the points below to see how our insoles provide all-day pain relief and support.
             </p>
           </div>
 
-          <div className="relative flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24">
-             {/* Visual with Hotspots - shorter aspect so text below is visible */}
-             <div className="relative w-full max-w-2xl aspect-[5/4] flex items-center justify-center scale-[0.78] md:scale-[0.72]">
-                {/* Simulated Insole Image using CSS/SVG or Placeholder */}
-                <div className="w-full h-full rounded-[30px] overflow-hidden shadow-2xl">
-                  <img 
-                    src={reviewPhotos.productClose} 
-                    alt="Insole Tech View" 
-                    className="w-full h-full object-contain p-10"
-                  />
-                </div>
-                
-                {/* Hotspots */}
-                {features.map((f, i) => {
-                   const pos = isMobile && 'mobilePosition' in f ? f.mobilePosition : (isTablet && 'tabletPosition' in f ? f.tabletPosition : f.position);
-                   return (
-                   <button
-                     key={i}
-                     onClick={() => setActiveFeature(i)}
-                     style={{
-                       top: pos.top,
-                       left: pos.left,
-                       transform: `translate(-50%, -50%)${activeFeature === i ? ' scale(1.25)' : ''}`
-                     }}
-                     className={`absolute w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${activeFeature === i ? 'bg-brand-orange border-white shadow-lg z-20' : 'bg-[#1A202C]/40 border-white/80 hover:border-brand-orange/60 z-10'}`}
-                   >
-                     <div className="w-3 h-3 rounded-full bg-white"></div>
-                     {activeFeature === i && (
-                        <div className="absolute w-full h-full rounded-full border-2 border-brand-orange animate-ping opacity-75"></div>
-                     )}
-                   </button>
-                );})}
-             </div>
+        <div className="relative w-full max-w-[1600px] mx-auto">
+          {/* The base image */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-40">
+            <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.08)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none"></div>
+          </div>
+          
+          <img 
+             src="/images/performance-tech.jpeg" 
+             alt="AeroTouch Insole Tech" 
+             className="w-full h-auto rounded-[3rem] border border-slate-100/50 drop-shadow-[0_30px_40px_rgba(0,0,0,0.15)] relative z-10"
+          />
+          
+            {/* Hotspots overlay */}
+            {[
+              {
+                id: "shock",
+                title: "Shock Absorbing Base",
+                desc: "Reduces fatigue and protects your joints from daily impact.",
+                icon: "☁️",
+                position: isMobile ? { top: '35%', left: '72%' } : { top: '35%', left: '75%' }, // Heel
+              },
+              {
+                id: "arch",
+                title: "Firm Arch Support",
+                desc: "Aligns your body naturally to ease chronic back and knee pain.",
+                icon: "🦶",
+                position: isMobile ? { top: '45%', left: '50%' } : { top: '50%', left: '50%' }, // Arch
+              },
+              {
+                id: "pressure",
+                title: "Pressure Relief",
+                desc: "Evenly distributes your weight to alleviate foot discomfort.",
+                icon: "🩹",
+                position: isMobile ? { top: '55%', left: '25%' } : { top: '55%', left: '25%' }, // Metatarsal
+              },
+              {
+                id: "custom",
+                title: "Custom Fit",
+                desc: "Molds perfectly to your unique foot shape over time.",
+                icon: "✨",
+                position: isMobile ? { top: '75%', left: '75%' } : { top: '75%', left: '75%' }, // Toe
+              }
+            ].map((f, i) => (
+               <div
+                 key={i}
+                 className="absolute z-30"
+                 style={{ top: f.position.top, left: f.position.left, transform: 'translate(-50%, -50%)' }}
+               >
+                 {/* Tooltip Card */}
+                 <div className={`absolute bottom-[calc(100%+16px)] left-1/2 -translate-x-1/2 mb-2 w-[280px] bg-white rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] border border-slate-100/50 p-6 transition-all duration-400 origin-bottom z-40 ${activeFeature === i ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 translate-y-4 scale-95 pointer-events-none'}`}>
+                   <div className="text-3xl mb-4">{f.icon}</div>
+                   <h4 className="font-bold text-slate-900 text-[17px] mb-2">{f.title}</h4>
+                   <p className="text-[15px] text-slate-600 leading-relaxed font-medium">{f.desc}</p>
+                   {/* Triangle pointer */}
+                   <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1.5 w-4 h-4 bg-white rotate-45 border-r border-b border-slate-100/50"></div>
+                 </div>
 
-             {/* Feature Text Info */}
-             <div className="lg:w-1/3 flex flex-col justify-center items-start">
-                <div className="mb-8 min-h-[180px] transition-all duration-500 ease-out">
-                    <div className="mb-4">
-                        <Activity className="w-12 h-12 text-brand-orange mb-4" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">{features[activeFeature].title}</h3>
-                    <p className="text-slate-600 leading-relaxed">
-                        {features[activeFeature].desc}
-                    </p>
-                </div>
-
-                {/* Controls */}
-                <div className="flex items-center gap-4 border-t border-slate-200 pt-6 w-full">
-                    <button onClick={prevFeature} className="p-3 rounded-full hover:bg-slate-200 transition-colors group">
-                        <ChevronLeft className="w-6 h-6 text-slate-400 group-hover:text-brand-dark" />
-                    </button>
-                    <span className="font-mono font-bold text-slate-400 select-none">
-                        0{activeFeature + 1} / 0{features.length}
-                    </span>
-                    <button onClick={nextFeature} className="p-3 rounded-full hover:bg-slate-200 transition-colors group">
-                        <ChevronRight className="w-6 h-6 text-slate-400 group-hover:text-brand-dark" />
-                    </button>
-                </div>
-             </div>
+                 {/* Hotspot Button */}
+                 <button
+                   onClick={() => setActiveFeature(activeFeature === i ? -1 : i)}
+                   className="relative w-14 h-14 flex items-center justify-center rounded-full group outline-none"
+                   aria-label={`View ${f.title} details`}
+                 >
+                   {/* Outer Ping Ring */}
+                   <div className={`absolute inset-0 rounded-full border-[2.5px] transition-all duration-300 ${activeFeature === i ? 'border-[#0f3c31] scale-110 bg-[#0f3c31]/10' : 'border-white bg-white/20 group-hover:scale-110 shadow-[0_0_15px_rgba(0,0,0,0.1)]'}`}></div>
+                   {activeFeature !== i && (
+                     <div className="absolute inset-0 rounded-full border-[2.5px] border-white animate-ping opacity-40"></div>
+                   )}
+                   
+                   {/* Inner Circle */}
+                   <div className="relative w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                     <span className={`text-[#0f3c31] font-medium text-2xl leading-none transition-transform duration-300 transform ${activeFeature === i ? 'rotate-45' : ''}`}>+</span>
+                   </div>
+                 </button>
+               </div>
+            ))}
           </div>
         </div>
       </section>
