@@ -77,7 +77,6 @@ const FEATURED_PRODUCTS: Product[] = [
   }
 ];
 
-import { PageHero } from '../components/PageHero';
 
 // ... (existing imports and FEATURED_PRODUCTS)
 
@@ -108,15 +107,29 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ category, onProductS
     // ... (existing fetch logic)
     const fetchProducts = async () => {
       setLoading(true);
+      const catLower = category.toLowerCase();
+
       try {
-        const shopifyProducts = await shopify.product.fetchAll(20);
+        const shopifyProducts = await shopify.product.fetchAll(50);
         if (shopifyProducts && shopifyProducts.length > 0) {
            const mapped = shopifyProducts.map(mapShopifyProduct);
-           setProducts(mapped);
+           const filtered = mapped.filter(p => {
+               const nameMatches = p.name.toLowerCase().includes(catLower);
+               const tagMatches = p.tags?.some(tag => tag.toLowerCase().includes(catLower));
+               return nameMatches || tagMatches;
+           });
+           setProducts(filtered);
         }
       } catch (err) {
         console.warn('Failed to fetch Shopify products, using local data:', err);
-        setProducts(FEATURED_PRODUCTS);
+        const filteredLocal = FEATURED_PRODUCTS.filter(p => {
+            const nameMatches = p.name.toLowerCase().includes(catLower);
+            const tagMatches = p.tags?.some(tag => tag.toLowerCase().includes(catLower));
+            const featureMatches = p.features?.some(f => f.toLowerCase().includes(catLower));
+            const idMatches = p.id.toLowerCase().includes(catLower);
+            return nameMatches || tagMatches || featureMatches || idMatches;
+        });
+        setProducts(filteredLocal);
       } finally {
         setLoading(false);
       }
@@ -125,15 +138,9 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ category, onProductS
     fetchProducts();
   }, [category]);
 
-  const heroImage = CATEGORY_IMAGES[category] || CATEGORY_IMAGES['default'];
 
   return (
     <div className="animate-in fade-in duration-500 pt-24">
-      <PageHero 
-        title={category}
-        description={`Explore our premium selection of ${category.toLowerCase()}. Designed for performance and comfort.`}
-        image={heroImage}
-      />
       
       <div className="container mx-auto px-4 md:px-6 py-12">
         {loading ? (

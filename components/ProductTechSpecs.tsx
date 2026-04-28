@@ -1213,6 +1213,98 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
         </div>
       </section>
 
+      {/* Bundle & Save Redesign */}
+      <section className="bg-slate-50 border-t border-slate-100 py-16 md:py-24">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="max-w-5xl mx-auto bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xl shadow-slate-200/50 p-8 md:p-12 lg:p-16 relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-orange/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-lime/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+            
+            <div className="text-center mb-12 relative z-10">
+              <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight uppercase mb-4">Complete Foot Recovery System</h2>
+              <p className="text-xl md:text-2xl text-slate-600 font-medium tracking-tight">Recover faster. Move better. Feel zero pain.</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-10 lg:gap-16 items-center relative z-10">
+              {/* VISUAL KIT */}
+              <div className="relative aspect-square bg-slate-50 rounded-[2rem] border border-slate-100 flex items-center justify-center p-8 group overflow-hidden">
+                <div className="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-black uppercase px-3 py-1 rounded-full z-10 tracking-widest shadow-md">
+                  3 products &rarr; 1 system
+                </div>
+                
+                <div className="relative w-full h-full flex flex-col items-center justify-center">
+                  <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=600" className="absolute top-0 right-0 w-[65%] h-[65%] object-contain z-10 hover:scale-[1.03] transition-transform origin-bottom-left mix-blend-multiply drop-shadow-xl" alt="Insoles" />
+                  <img src="https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=400" className="absolute bottom-4 left-0 w-[55%] h-[55%] object-contain z-20 hover:scale-[1.03] transition-transform mix-blend-multiply drop-shadow-lg" alt="Socks" />
+                  <img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=400" className="absolute top-1/2 left-1/4 -translate-x-1/4 -translate-y-1/2 w-[45%] h-[45%] object-contain z-30 hover:scale-[1.03] transition-transform rounded-xl border-[6px] border-white shadow-2xl" alt="Gel" />
+                </div>
+              </div>
+
+              {/* DETAILS & CTA */}
+              <div className="flex flex-col justify-center">
+                {/* BENEFITS ROW */}
+                <div className="grid grid-cols-3 gap-3 mb-10 pb-10 border-b border-slate-100">
+                  <div className="text-center group">
+                     <div className="w-14 h-14 rounded-full bg-slate-100 group-hover:bg-brand-lime/20 flex items-center justify-center mx-auto mb-3 transition-colors outline flex-shrink-0 outline-4 outline-slate-50 shadow-sm">
+                       <span className="text-2xl" aria-hidden>👣</span>
+                     </div>
+                     <span className="text-[11px] md:text-xs font-black uppercase tracking-wider text-slate-800 break-words">Support</span>
+                  </div>
+                  <div className="text-center group">
+                     <div className="w-14 h-14 rounded-full bg-slate-100 group-hover:bg-brand-lime/20 flex items-center justify-center mx-auto mb-3 transition-colors outline outline-4 outline-slate-50 shadow-sm">
+                       <span className="text-2xl" aria-hidden>❤️</span>
+                     </div>
+                     <span className="text-[11px] md:text-xs font-black uppercase tracking-wider text-slate-800 break-words">Circulation</span>
+                  </div>
+                  <div className="text-center group">
+                     <div className="w-14 h-14 rounded-full bg-slate-100 group-hover:bg-brand-lime/20 flex items-center justify-center mx-auto mb-3 transition-colors outline outline-4 outline-slate-50 shadow-sm">
+                       <span className="text-2xl" aria-hidden>⚡</span>
+                     </div>
+                     <span className="text-[11px] md:text-xs font-black uppercase tracking-wider text-slate-800 break-words">Recovery</span>
+                  </div>
+                </div>
+
+                {/* PRICE */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-4 mb-2">
+                    <span className="text-5xl md:text-6xl font-black text-brand-orange tracking-tighter">$39.98</span>
+                    <span className="bg-emerald-100 text-emerald-800 text-[11px] font-black uppercase px-3 py-1.5 rounded tracking-widest border border-emerald-200 shadow-sm animate-pulse">Save 35%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 font-bold line-through decoration-slate-300 decoration-2 text-lg">$61.50</span>
+                    <span className="text-slate-500 font-black tracking-widest text-sm">&rarr;</span>
+                    <span className="text-slate-600 font-bold text-lg border-b-2 border-brand-lime">$39.98</span>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <button
+                  className="relative w-full overflow-hidden bg-black text-white hover:bg-brand-lime hover:text-black hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 py-5 rounded-2xl font-black text-xl md:text-2xl uppercase tracking-tight mb-5 group"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    Get the Complete Recovery Kit <ChevronRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform" />
+                  </span>
+                  <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
+                </button>
+
+                {/* TRUST + URGENCY */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm font-bold mt-2">
+                  <div className="flex items-center gap-1.5">
+                    <Star className="w-5 h-5 fill-brand-orange text-brand-orange" />
+                    <span className="text-slate-700 tracking-tight text-base font-black">4.8 rating</span>
+                  </div>
+                  <span className="hidden sm:inline text-slate-300">|</span>
+                  <div className="flex items-center gap-1.5 text-red-500 bg-red-50 px-4 py-1.5 rounded-full border border-red-100">
+                    <Flame className="w-4 h-4 fill-current animate-pulse" />
+                    <span className="tracking-widest uppercase text-xs font-black">Only 17 left</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* You May Also Like Section */}
       {suggestedProducts.length > 0 && (
         <section className="bg-white py-24 border-t border-slate-100">

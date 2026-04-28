@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Menu, X, Search, ChevronDown } from 'lucide-react';
 import { Page } from '../types';
+import { MegaMenuTestimonials } from './MegaMenuTestimonials';
 
 interface NavbarProps {
   cartCount: number;
@@ -66,7 +67,8 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
     if (isShopHovered) return 'bg-white shadow-sm py-4'; 
     if (forceWhite) return 'bg-white shadow-sm py-4';
     if (isScrolled) return 'bg-white/90 backdrop-blur-md shadow-sm py-4';
-    return 'bg-transparent py-6';
+    if (transparentMode) return 'bg-gradient-to-b from-black/60 via-black/20 to-transparent py-6';
+    return 'bg-white shadow-sm py-4';
   };
 
   const textColorClass = getTextColor();
@@ -269,24 +271,9 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                     </div>
                 </div>
 
-                <div className="col-span-4 col-start-8">
-                    <div className="group cursor-pointer" onClick={() => { onNavigate(Page.BEST_SELLERS); setIsShopHovered(false); }}>
-                        <div className="aspect-[16/10] rounded-xl overflow-hidden mb-4 relative bg-slate-100">
-                            <img 
-                                src="https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=800&auto=format&fit=crop" 
-                                alt="Best Sellers" 
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                            <div className="absolute top-4 left-4">
-                                <span className="bg-brand-lime text-brand-dark text-xs font-bold px-2 py-1 uppercase tracking-wider rounded-sm">
-                                    Best Sellers
-                                </span>
-                            </div>
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-brand-orange transition-colors">Shop Best Sellers</h3>
-                        <p className="text-sm text-slate-500">Discover the insoles trusted by pros.</p>
-                    </div>
+                {/* Testimonial Carousel */}
+                <div className="col-span-5 col-start-8 border-l border-slate-100 pl-8">
+                    <MegaMenuTestimonials />
                 </div>
             </div>
          </div>

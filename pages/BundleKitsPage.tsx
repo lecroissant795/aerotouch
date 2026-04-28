@@ -1,5 +1,4 @@
 import React from 'react';
-import { PageHero } from '../components/PageHero';
 import { Zap, ShoppingCart, ShieldCheck } from 'lucide-react';
 import { BundleKit } from '../types';
 
@@ -42,7 +41,6 @@ const BUNDLE_KITS: BundleKit[] = [
   },
 ];
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop';
 
 interface BundleKitsPageProps {
   onBack?: () => void;
@@ -52,12 +50,7 @@ interface BundleKitsPageProps {
 
 export const BundleKitsPage: React.FC<BundleKitsPageProps> = ({ onBack, onAddKitToCart, onKitSelect }) => {
   return (
-    <div className="min-h-screen bg-brand-light">
-      <PageHero
-        title="Bundle Kits"
-        description="Professional-grade orthotics and recovery tools bundled for maximum performance. Save more when you bundle."
-        image={HERO_IMAGE}
-      />
+    <div className="min-h-screen bg-brand-light pt-24">
 
       <div className="container mx-auto px-4 md:px-6 py-16">
         {/* Intro */}

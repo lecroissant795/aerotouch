@@ -75,7 +75,6 @@ const FEATURED_PRODUCTS: Product[] = [
   }
 ];
 
-import { PageHero } from '../components/PageHero';
 
 // ... (existing imports and FEATURED_PRODUCTS)
 
@@ -107,11 +106,6 @@ export const ShopPage: React.FC<ShopPageProps> = ({ onProductSelect, onQuickAddT
 
   return (
     <div className="animate-in fade-in duration-500 pt-24">
-      <PageHero 
-        title="Shop All Products"
-        description="Explore our full range of performance insoles and recovery tools, designed to keep you moving pain-free."
-        image="https://images.unsplash.com/photo-1519415387722-a1c3bbef716c?q=80&w=1920&auto=format&fit=crop"
-      />
       
       <div className="container mx-auto px-4 md:px-6 py-12">
 
