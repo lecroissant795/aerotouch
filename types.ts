@@ -11,6 +11,8 @@ export interface Product {
   description: string;
   descriptionHtml?: string;
   tags?: string[];
+  /** Shopify product handle for SEO-friendly URLs (optional, falls back to id) */
+  handle?: string;
 }
 
 export interface CartItem extends Product {
@@ -70,5 +72,6 @@ export enum Page {
   RETURNS_EXCHANGE = 'RETURNS_EXCHANGE',
   SIZE_GUIDE = 'SIZE_GUIDE',
   WARRANTY = 'WARRANTY',
-  ACCESSORIES = 'ACCESSORIES'
+  ACCESSORIES = 'ACCESSORIES',
+  NOT_FOUND = 'NOT_FOUND'
 }

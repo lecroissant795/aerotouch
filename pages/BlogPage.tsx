@@ -3,7 +3,7 @@ import { Clock, User } from 'lucide-react';
 import { Button } from '../components/Button';
 import type { BlogPost } from '../types';
 
-const BLOG_POSTS: BlogPost[] = [
+export const BLOG_POSTS: BlogPost[] = [
   {
     id: '1',
     title: '5 Signs You Need To Replace Your Insoles',

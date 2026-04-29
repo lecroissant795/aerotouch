@@ -1,0 +1,177 @@
+import { useEffect, useState, useCallback } from 'react';
+import { Page } from '../types';
+
+// URL pattern definitions
+const ROUTES = {
+  HOME: '/',
+  PRODUCT: '/product/:handle',
+  SHOP: '/shop',
+  CATEGORY: '/category/:category',
+  BEST_SELLERS: '/best-sellers',
+  TECHNOLOGY: '/technology',
+  BLOG: '/blog',
+  BLOG_POST: '/blog/:slug',
+  SUPPORT: '/support',
+  TRACK_ORDER: '/track-order',
+  ORDER_STATUS: '/order-status',
+  RETURNS: '/returns',
+  SIZE_GUIDE: '/size-guide',
+  WARRANTY: '/warranty',
+  BUNDLES: '/bundles',
+  KIT_PRODUCT: '/bundle/:kitId',
+  ACCESSORIES: '/accessories',
+  SEARCH: '/search',
+  NOT_FOUND: '*',
+};
+
+// Convert a route pattern to a regex
+const patternToRegex = (pattern: string): { regex: RegExp; paramNames: string[] } => {
+  const paramNames: string[] = [];
+  const escaped = pattern.replace(/\*/g, '.*').replace(/:([a-zA-Z]+)/g, (_, paramName) => {
+    paramNames.push(paramName);
+    return '([^/]+)';
+  });
+  return {
+    regex: new RegExp(`^${escaped}$`),
+    paramNames,
+  };
+};
+
+// Pre-compile route patterns
+const routePatterns: Record<string, { regex: RegExp; paramNames: string[] }> = {};
+for (const [key, pattern] of Object.entries(ROUTES)) {
+  routePatterns[key] = patternToRegex(pattern);
+}
+
+interface RouterState {
+  page: Page;
+  params: Record<string, string>;
+  query: Record<string, string>;
+}
+
+// Parse the current URL and return page, params, and query
+export const parseUrl = (url: string = window.location.href): RouterState => {
+  try {
+    const { pathname, search } = new URL(url, window.location.origin);
+
+    // Extract query parameters
+    const queryParams = new URLSearchParams(search);
+    const query: Record<string, string> = {};
+    queryParams.forEach((value, key) => {
+      query[key] = value;
+    });
+
+    // Try to match path against routes (excluding query)
+    for (const [page, { regex, paramNames }] of Object.entries(routePatterns)) {
+      if (page === 'NOT_FOUND') continue;
+      const match = pathname.match(regex);
+      if (match) {
+        const params: Record<string, string> = {};
+        paramNames.forEach((name, index) => {
+          params[name] = match[index + 1];
+        });
+        return {
+          page: page as Page,
+          params,
+          query,
+        };
+      }
+    }
+
+    // No route matched
+    return {
+      page: Page.NOT_FOUND,
+      params: {},
+      query,
+    };
+  } catch (error) {
+    console.error('Error parsing URL:', error);
+    return {
+      page: Page.HOME,
+      params: {},
+      query: {},
+    };
+  }
+};
+
+// Create a URL string for a given page and params
+export const createUrl = (
+  page: Page,
+  params: Record<string, string> = {},
+  query: Record<string, string> = {}
+): string => {
+  const pattern = ROUTES[page];
+  if (!pattern) {
+    console.warn(`Unknown page: ${page}`);
+    return window.location.origin;
+  }
+
+  let url = pattern;
+  // Replace path parameters
+  Object.entries(params).forEach(([key, value]) => {
+    url = url.replace(`:${key}`, encodeURIComponent(value));
+  });
+
+  // Remove any remaining parameters (optional ones not provided)
+  url = url.replace(/:[a-zA-Z]+/g, '');
+
+  // Add query string if present
+  const queryString = new URLSearchParams(query).toString();
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+
+  return url;
+};
+
+// useRouter hook
+export const useRouter = () => {
+  const [state, setState] = useState<RouterState>(() => parseUrl());
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setState(parseUrl());
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigate = useCallback((
+    page: Page,
+    params: Record<string, string> = {},
+    query: Record<string, string> = {}
+  ) => {
+    const url = createUrl(page, params, query);
+    window.history.pushState({ page, params, query }, '', url);
+    setState({ page, params, query });
+  }, []);
+
+  const replace = useCallback((
+    page: Page,
+    params: Record<string, string> = {},
+    query: Record<string, string> = {}
+  ) => {
+    const url = createUrl(page, params, query);
+    window.history.replaceState({ page, params, query }, '', url);
+    setState({ page, params, query });
+  }, []);
+
+  const back = useCallback(() => {
+    window.history.back();
+  }, []);
+
+  const forward = useCallback(() => {
+    window.history.forward();
+  }, []);
+
+  return {
+    page: state.page,
+    params: state.params,
+    query: state.query,
+    navigate,
+    replace,
+    back,
+    forward,
+  };
+};

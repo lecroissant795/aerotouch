@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Menu, X, Search, ChevronDown } from 'lucide-react';
 import { Page } from '../types';
 import { MegaMenuTestimonials } from './MegaMenuTestimonials';
+import { createUrl } from '../utils/router';
 
 interface NavbarProps {
   cartCount: number;
@@ -95,40 +96,53 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div 
+          <a
+            href={createUrl(Page.HOME)}
             className="flex items-center cursor-pointer group"
-            onClick={() => onNavigate(Page.HOME)}
+            onClick={(e) => { e.preventDefault(); onNavigate(Page.HOME); }}
           >
             <span className={`text-2xl font-bold tracking-tight ${textColorClass}`}>
               Aero<span className={isTransparentState ? 'text-brand-lime' : 'text-brand-orange'}>Touch</span>
             </span>
-          </div>
+          </a>
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center space-x-8 h-full">
-            <div 
+            <div
                 className="h-full flex items-center"
                 onMouseEnter={() => setIsShopHovered(true)}
             >
-                <button 
+                <a
+                    href={createUrl(Page.SHOP)}
                     className={`text-sm font-medium transition-colors flex items-center gap-1 py-2 ${textColorClass} ${isTransparentState ? 'hover:text-brand-lime' : 'hover:text-brand-orange'}`}
-                    onClick={() => { onSearch?.(''); onNavigate(Page.SHOP); }}
+                    onClick={(e) => { e.preventDefault(); onSearch?.(''); onNavigate(Page.SHOP); }}
                 >
                     Shop
                     <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isShopHovered ? 'rotate-180' : ''}`} />
-                </button>
+                </a>
             </div>
 
-            {['Blog', 'Support', 'Track Your Order'].map((item) => (
-              <a 
-                key={item} 
-                href="#" 
-                className={`text-sm font-medium transition-colors ${textColorClass} ${isTransparentState ? 'hover:text-brand-lime' : 'hover:text-brand-orange'}`}
-                onClick={(e) => { e.preventDefault(); handleNavClick(item); }}
-              >
-                {item}
-              </a>
-            ))}
+            {['Blog', 'Support', 'Track Your Order'].map((item) => {
+              const getHref = () => {
+                if (item === 'Blog') return createUrl(Page.BLOG);
+                if (item === 'Support') return createUrl(Page.SUPPORT);
+                if (item === 'Track Your Order') return createUrl(Page.TRACK_ORDER);
+                return '#';
+              };
+              return (
+                <a
+                  key={item}
+                  href={getHref()}
+                  className={`text-sm font-medium transition-colors ${textColorClass} ${isTransparentState ? 'hover:text-brand-lime' : 'hover:text-brand-orange'}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(item);
+                  }}
+                >
+                  {item}
+                </a>
+              );
+            })}
           </div>
 
           {/* Actions */}
@@ -201,72 +215,88 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                  <div className="col-span-3">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Categories</h3>
                     <ul className="space-y-3">
-                        {['Shop All', 'Bundle Kits', 'Insoles', 'Footwear', 'Tools', 'Pads', 'Socks', 'Accessories & Recovery', 'Gift Cards'].map(item => (
+                        {['Shop All', 'Bundle Kits', 'Insoles', 'Footwear', 'Tools', 'Pads', 'Socks', 'Accessories & Recovery', 'Gift Cards'].map(item => {
+                          const getHref = () => {
+                            if (item === 'Shop All') return createUrl(Page.SHOP);
+                            if (item === 'Bundle Kits') return createUrl(Page.BUNDLE_KITS);
+                            if (item === 'Accessories & Recovery') return createUrl(Page.ACCESSORIES);
+                            if (item === 'Gift Cards') return createUrl(Page.CATEGORY, { category: 'Gift Cards' });
+                            return createUrl(Page.CATEGORY, { category: item });
+                          };
+                          const handleClick = (e: React.MouseEvent) => {
+                            e.preventDefault();
+                            if (item === 'Shop All') {
+                              onSearch?.('');
+                              onNavigate(Page.SHOP);
+                            } else if (item === 'Bundle Kits') {
+                              onNavigate(Page.BUNDLE_KITS);
+                            } else if (item === 'Accessories & Recovery') {
+                              onNavigate(Page.ACCESSORIES);
+                            } else if (item === 'Gift Cards') {
+                              onNavigate(Page.CATEGORY, 'Gift Cards');
+                            } else {
+                              onNavigate(Page.CATEGORY, item);
+                            }
+                            setIsShopHovered(false);
+                          };
+                          return (
                             <li key={item}>
-                                <a
-                                    href="#"
-                                    className="text-slate-700 hover:text-brand-orange font-medium text-sm transition-colors block"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        if (item === 'Shop All') {
-                                        onSearch?.('');
-                                        onNavigate(Page.SHOP);
-                                    } else if (item === 'Bundle Kits') {
-                                        onNavigate(Page.BUNDLE_KITS);
-                                    } else if (item === 'Accessories & Recovery') {
-                                        onNavigate(Page.ACCESSORIES);
-                                    } else if (item === 'Gift Cards') {
-                                        onNavigate(Page.CATEGORY, 'Gift Cards');
-                                    } else {
-                                        onNavigate(Page.CATEGORY, item);
-                                    }
-                                    setIsShopHovered(false);
-                                    }}
-                                >
-                                    {item}
-                                </a>
+                              <a
+                                href={getHref()}
+                                className="text-slate-700 hover:text-brand-orange font-medium text-sm transition-colors block"
+                                onClick={handleClick}
+                              >
+                                {item}
+                              </a>
                             </li>
-                        ))}
+                          );
+                        })}
                     </ul>
                 </div>
 
                 <div className="col-span-3">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Everyday</h3>
                     <ul className="space-y-3 mb-8">
-                        {['All Purpose', 'Casual & Dress', 'Work'].map(item => (
+                        {['All Purpose', 'Casual & Dress', 'Work'].map(item => {
+                          const href = createUrl(Page.CATEGORY, { category: item });
+                          return (
                             <li key={item}>
-                                <a 
-                                    href="#" 
-                                    className="text-slate-700 hover:text-brand-orange font-medium text-sm transition-colors block"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        onNavigate(Page.CATEGORY, item);
-                                        setIsShopHovered(false);
-                                    }}
-                                >
-                                    {item}
-                                </a>
+                              <a
+                                href={href}
+                                className="text-slate-700 hover:text-brand-orange font-medium text-sm transition-colors block"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  onNavigate(Page.CATEGORY, item);
+                                  setIsShopHovered(false);
+                                }}
+                              >
+                                {item}
+                              </a>
                             </li>
-                        ))}
+                          );
+                        })}
                     </ul>
                     
                     <div className="group cursor-pointer">
                         <h3 className="text-sm font-bold text-slate-900 mb-1 group-hover:text-brand-orange transition-colors">Pain Relief</h3>
                         <div className="flex flex-col gap-1">
-                            {['Plantar Fasciitis', 'High Arches', 'Flat Feet', 'Metatarsalgia'].map(condition => (
-                                <a 
-                                    key={condition}
-                                    href="#"
-                                    className="text-xs text-slate-500 hover:text-brand-orange transition-colors block"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        onNavigate(Page.CATEGORY, condition);
-                                        setIsShopHovered(false);
-                                    }}
+                            {['Plantar Fasciitis', 'High Arches', 'Flat Feet', 'Metatarsalgia'].map(condition => {
+                              const href = createUrl(Page.CATEGORY, { category: condition });
+                              return (
+                                <a
+                                  key={condition}
+                                  href={href}
+                                  className="text-xs text-slate-500 hover:text-brand-orange transition-colors block"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    onNavigate(Page.CATEGORY, condition);
+                                    setIsShopHovered(false);
+                                  }}
                                 >
-                                    {condition}
+                                  {condition}
                                 </a>
-                            ))}
+                              );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -306,26 +336,35 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                 <button type="submit" className="text-brand-orange font-medium text-sm">Search</button>
               </form>
               <ul className="space-y-0">
-                {['Blog', 'Support', 'Track Your Order'].map((label) => (
-                  <li key={label}>
-                    <a
-                      href="#"
-                      className="block py-3.5 text-brand-dark font-medium text-[15px] tracking-tight active:text-brand-orange"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleNavClick(label);
-                      }}
-                    >
-                      {label}
-                    </a>
-                  </li>
-                ))}
+                {['Blog', 'Support', 'Track Your Order'].map((label) => {
+                  const getHref = () => {
+                    if (label === 'Blog') return createUrl(Page.BLOG);
+                    if (label === 'Support') return createUrl(Page.SUPPORT);
+                    if (label === 'Track Your Order') return createUrl(Page.TRACK_ORDER);
+                    return '#';
+                  };
+                  return (
+                    <li key={label}>
+                      <a
+                        href={getHref()}
+                        className="block py-3.5 text-brand-dark font-medium text-[15px] tracking-tight active:text-brand-orange"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavClick(label);
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
+                        {label}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
               <div className="h-px bg-slate-100 my-5" />
               <ul className="space-y-0">
                 <li>
                   <a
-                    href="#"
+                    href={createUrl(Page.BUNDLE_KITS)}
                     className="block py-3 text-brand-orange text-[15px] font-medium"
                     onClick={(e) => {
                       e.preventDefault();
@@ -336,28 +375,35 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                     Bundle Kits
                   </a>
                 </li>
-                {['Insoles', 'Footwear', 'Tools', 'Socks', 'Accessories & Recovery'].map((subItem) => (
-                  <li key={subItem}>
-                    <a
-                      href="#"
-                      className="block py-3 text-slate-600 text-[15px] active:text-brand-dark"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (subItem === 'Accessories & Recovery') {
-                          onNavigate(Page.ACCESSORIES);
-                        } else {
-                          onNavigate(Page.CATEGORY, subItem);
-                        }
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      {subItem}
-                    </a>
-                  </li>
-                ))}
+                {['Insoles', 'Footwear', 'Tools', 'Socks', 'Accessories & Recovery'].map((subItem) => {
+                  const getHref = () => {
+                    if (subItem === 'Accessories & Recovery') return createUrl(Page.ACCESSORIES);
+                    return createUrl(Page.CATEGORY, { category: subItem });
+                  };
+                  const handleClick = (e: React.MouseEvent) => {
+                    e.preventDefault();
+                    if (subItem === 'Accessories & Recovery') {
+                      onNavigate(Page.ACCESSORIES);
+                    } else {
+                      onNavigate(Page.CATEGORY, subItem);
+                    }
+                    setIsMobileMenuOpen(false);
+                  };
+                  return (
+                    <li key={subItem}>
+                      <a
+                        href={getHref()}
+                        className="block py-3 text-slate-600 text-[15px] active:text-brand-dark"
+                        onClick={handleClick}
+                      >
+                        {subItem}
+                      </a>
+                    </li>
+                  );
+                })}
                 <li>
-                  <a 
-                    href="#" 
+                  <a
+                    href={createUrl(Page.SHOP)}
                     className="block py-3 text-brand-orange text-[15px] font-medium"
                     onClick={(e) => {
                       e.preventDefault();

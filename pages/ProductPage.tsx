@@ -1133,7 +1133,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
             {BUILT_FOR_PURPOSES.map((item) => (
               <div
                 key={item.id}
-                className="flex-shrink-0 w-[280px] md:w-[320px] rounded-2xl overflow-hidden bg-slate-100 shadow-lg"
+                className="flex-shrink-0 w-[280px] md:w-[320px] rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-lg transition-shadow"
                 style={{ scrollSnapAlign: 'start' }}
               >
                 <div className="relative aspect-[3/4] overflow-hidden">
@@ -1142,9 +1142,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     alt={item.label}
                     className="w-full h-full object-cover"
                   />
-
                 </div>
-                <div className="bg-black py-4 px-4">
+                <div className="bg-slate-900 py-4 px-4">
                   <span className="text-white text-base font-bold uppercase tracking-wide">{item.label}</span>
                 </div>
               </div>
