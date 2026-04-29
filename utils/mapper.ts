@@ -30,6 +30,7 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
 
     return {
         id: shopifyProduct.id,
+        handle: shopifyProduct.handle,  // SEO-friendly URL handle
         name: shopifyProduct.title,
         tagline: shopifyProduct.description || '', // Use description or a metafield
         price: price,

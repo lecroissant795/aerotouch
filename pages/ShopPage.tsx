@@ -9,6 +9,7 @@ import { mapShopifyProduct } from '../utils/mapper';
 const FEATURED_PRODUCTS: Product[] = [
   {
     id: 'massage-insoles',
+    handle: 'aero-touch-massage-insoles',
     name: 'AeroTouch Massage Insoles',
     tagline: 'Therapeutic acupressure with every step',
     price: 34.00,
@@ -20,6 +21,7 @@ const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: 'massage-roller',
+    handle: 'massage-roller',
     name: 'Massage Roller',
     tagline: 'Deep tissue recovery for sore feet',
     price: 19.00,
@@ -31,6 +33,7 @@ const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: 'heel-cushion-pad',
+    handle: 'heel-cushion-pad',
     name: 'Heel Cushion Pad',
     tagline: 'Instant impact protection for heels',
     price: 24.00,
@@ -42,6 +45,7 @@ const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: 'compression-socks',
+    handle: 'compression-socks',
     name: 'Compression Socks',
     tagline: 'Boost circulation and reduce swelling',
     price: 29.00,
@@ -53,6 +57,7 @@ const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: 'fascilites-relief',
+    handle: 'fascilites-relief',
     name: 'Fascilites Relief Kit',
     tagline: 'Complete recovery system',
     price: 48.00,
@@ -64,6 +69,7 @@ const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: 'height-insoles',
+    handle: 'height-insoles',
     name: 'Height Insoles',
     tagline: 'Discreet elevation with maximum comfort',
     price: 39.00,

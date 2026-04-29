@@ -11,6 +11,7 @@ import { PageHero } from '../components/PageHero';
 const SECONDARY_PRODUCTS: Product[] = [
   {
     id: 'massage-roller',
+    handle: 'massage-roller',
     name: 'Massage Roller',
     tagline: 'Deep tissue recovery for sore feet',
     price: 19.00,
@@ -22,6 +23,7 @@ const SECONDARY_PRODUCTS: Product[] = [
   },
   {
     id: 'compression-socks',
+    handle: 'compression-socks',
     name: 'Compression Socks',
     tagline: 'Boost circulation and reduce swelling',
     price: 29.00,
@@ -33,6 +35,7 @@ const SECONDARY_PRODUCTS: Product[] = [
   },
   {
     id: 'recovery-gel',
+    handle: 'recovery-gel',
     name: 'Recovery Gel',
     tagline: 'Soothing relief for tired muscles',
     price: 24.00,

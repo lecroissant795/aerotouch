@@ -214,7 +214,10 @@ function App() {
         if (shopifyProduct) {
           // Build complete product with both ID (Shopify ID) and handle
           const product = buildProductFromShopify(shopifyProduct, productHandle);
-          console.log('[App] ✅ Product loaded from Shopify:', product.name, '| ID:', product.id, '| handle:', product.handle);
+          console.log('[App] ✅ Product loaded from Shopify:', product.name);
+          console.log('[App]   → product.id:', product.id);
+          console.log('[App]   → product.handle:', product.handle);
+          console.log('[App]   → productHandle (URL param):', productHandle);
           setSelectedProduct(product);
         } else {
           // Fallback to local data

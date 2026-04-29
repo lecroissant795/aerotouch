@@ -333,7 +333,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
         
         {/* Left Col: Image Gallery - Sticky on Desktop */}
         <div className="lg:w-3/5">
-             <div className="lg:sticky lg:top-40 space-y-4 md:max-w-[504px] mx-auto">
+             <div className="lg:sticky lg:top-40 space-y-4 md:max-w-[550px] lg:max-w-none mx-auto">
 
 
                 {/* --- MOBILE: Carousel View --- */}
@@ -371,33 +371,37 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     </div>
                 </div>
 
-                {/* --- DESKTOP: Bento Grid View --- */}
-                <div className="hidden md:grid grid-cols-2 gap-4">
-                    {/* Main Large Image (Top) */}
-                    <div className="col-span-2 aspect-square bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative group flex items-center justify-center shadow-sm">
-                        <img 
-                            src={images[0]} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover object-center"
-                        />
-                        <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
-                        </div>
+                {/* --- DESKTOP: Side-by-side Vertical Thumbnails View --- */}
+                <div className="hidden md:flex gap-4">
+                    {/* Thumbnails (Left) */}
+                    <div className="flex flex-col gap-3 w-20 lg:w-[100px] flex-shrink-0 max-h-[600px] overflow-y-auto scrollbar-hide py-1">
+                        {images.map((img, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setActiveImgIndex(idx)}
+                                className={`w-full aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
+                                    activeImgIndex === idx
+                                    ? 'border-brand-dark shadow-md ring-2 ring-brand-dark/20 ring-offset-1'
+                                    : 'border-transparent hover:border-slate-300 opacity-60 hover:opacity-100'
+                                } bg-white`}
+                            >
+                                <img
+                                    src={img}
+                                    alt={`${product.name} thumbnail ${idx + 1}`}
+                                    className="w-full h-full object-cover object-center mix-blend-multiply"
+                                />
+                            </button>
+                        ))}
                     </div>
 
-                    {secondaryImages.map((img, idx) => (
-                        <div
-                            key={`${img}-${idx}`}
-                            className={`bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative group flex items-center justify-center shadow-sm hover:shadow-md transition-shadow ${
-                                secondaryImages.length === 1 ? 'col-span-2 aspect-square' : 'aspect-square'
-                            }`}
-                        >
-                            <img
-                                src={img}
-                                alt={`${product.name} detail ${idx + 2}`}
-                                className="w-full h-full object-cover object-center"
-                            />
-                        </div>
-                    ))}
+                    {/* Main Image (Right) */}
+                    <div className="flex-1 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative items-center justify-center aspect-[4/5] md:aspect-square object-cover shadow-sm">
+                        <img
+                            src={images[activeImgIndex] || images[0]}
+                            alt={product.name}
+                            className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-300"
+                        />
+                    </div>
                 </div>
              </div>
         </div>

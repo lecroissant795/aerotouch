@@ -34,7 +34,7 @@ interface ShopifyProductInfo {
 export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
   'massage-insoles': {
     shopifyId: '13909372927915', // <-- Your actual Shopify product ID from diagnostic
-    handle: 'aero-touch-massage-insoles', // <-- Your actual Shopify handle from diagnostic
+    handle: 'massage-insoles', // <-- Your actual Shopify handle from diagnostic
     product: {
       name: 'AeroTouch Massage Insoles',
       tagline: 'Therapeutic acupressure with every step',
@@ -109,7 +109,7 @@ export const buildProductFromShopify = (shopifyProduct: any, identifier: string)
   const handle = info?.handle || shopifyProduct.handle || identifier;
   const shopifyId = info?.shopifyId || shopifyProduct.id;
 
-  return {
+  const product: Product = {
     id: shopifyId,
     handle: handle,
     name: shopifyProduct.title,
@@ -123,6 +123,17 @@ export const buildProductFromShopify = (shopifyProduct: any, identifier: string)
     description: shopifyProduct.description || '',
     tags: shopifyProduct.tags?.filter(Boolean) || [],
   };
+
+  // Debug: log what we're building
+  if (import.meta.env.DEV) {
+    console.log('[buildProductFromShopify] identifier:', identifier);
+    console.log('[buildProductFromShopify] info?.handle:', info?.handle);
+    console.log('[buildProductFromShopify] shopifyProduct.handle:', shopifyProduct.handle);
+    console.log('[buildProductFromShopify] final handle:', handle);
+    console.log('[buildProductFromShopify] final id:', shopifyId);
+  }
+
+  return product;
 };
 
 /**
