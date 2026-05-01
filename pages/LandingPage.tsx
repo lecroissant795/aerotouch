@@ -12,7 +12,6 @@ import { mapShopifyProduct } from '../utils/mapper';
 import { LimitedTimeKits } from '../components/LimitedTimeKits';
 import { ValueProps } from '../components/ValueProps';
 import { ComparisonTable } from '../components/ComparisonTable';
-import SearchBox from '../components/SearchBox';
 import { Star, Play, BadgeCheck, Globe, MoreHorizontal, ThumbsUp, Heart, Smile, MessageSquare, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { reviewVideos } from '../utils/mediaUrls';
 import { FAQSection } from '../components/FAQSection';

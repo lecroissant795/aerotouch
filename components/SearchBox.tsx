@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface SearchBoxProps {
   onSearch: (query: string) => void;
@@ -10,17 +10,14 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ onSearch, placeholder = 'S
   const [query, setQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
     if (debounceMs > 0) {
-      // Clear previous timeout
-      if (window._searchTimeout) {
-        clearTimeout(window._searchTimeout);
-      }
-      // Set new timeout
-      window._searchTimeout = setTimeout(() => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
         onSearch(value);
       }, debounceMs);
     } else {
@@ -30,14 +27,12 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ onSearch, placeholder = 'S
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmed = query.trim();
+    if (!trimmed) return;
     setIsSubmitting(true);
     setError(null);
     try {
-      onSearch(query.trim());
-      if (query.trim()) {
-        // Perform search
-        onSearch(query.trim());
-      }
+      onSearch(trimmed);
     } catch (err) {
       setError('Search failed');
     } finally {
@@ -84,7 +79,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ onSearch, placeholder = 'S
         >
           <span className="w-4 h-4" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 6H6m18 18L6 18" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </span>
         </button>

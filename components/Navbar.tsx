@@ -3,6 +3,17 @@ import { ShoppingBag, Menu, X, Search, ChevronDown } from 'lucide-react';
 import { Page } from '../types';
 import { MegaMenuTestimonials } from './MegaMenuTestimonials';
 import { createUrl } from '../utils/router';
+import { shopify } from '../utils/shopify';
+import { mapShopifyProduct } from '../utils/mapper';
+
+const FALLBACK_SUGGESTIONS = [
+  { id: 'massage-insoles', name: 'AeroTouch Massage Insoles' },
+  { id: 'massage-roller', name: 'Massage Roller' },
+  { id: 'heel-cushion-pad', name: 'Heel Cushion Pad' },
+  { id: 'compression-socks', name: 'Compression Socks' },
+  { id: 'fascilites-relief', name: 'Fascilites Relief Kit' },
+  { id: 'height-insoles', name: 'Height Insoles' },
+];
 
 interface NavbarProps {
   cartCount: number;
@@ -21,6 +32,11 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(searchQuery);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  const [allProductNames, setAllProductNames] = useState<{ id: string; name: string }[]>(FALLBACK_SUGGESTIONS);
+  const [suggestions, setSuggestions] = useState<{ id: string; name: string }[]>([]);
+  const [highlightedIdx, setHighlightedIdx] = useState(-1);
 
   useEffect(() => {
     setSearchInput(searchQuery);
@@ -29,20 +45,53 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
   useEffect(() => {
     if (isSearchOpen) {
       searchInputRef.current?.focus();
+      if (shopify) {
+        shopify.product.fetchAll(100).then((products) => {
+          if (products?.length) {
+            setAllProductNames(products.map(mapShopifyProduct).map((p) => ({ id: p.id, name: p.name })));
+          }
+        }).catch(() => {});
+      }
+    } else {
+      setSuggestions([]);
+      setHighlightedIdx(-1);
     }
   }, [isSearchOpen]);
 
-  const handleSearchSubmit = (e?: React.FormEvent) => {
+  useEffect(() => {
+    const q = searchInput.trim().toLowerCase();
+    if (q.length >= 1) {
+      setSuggestions(allProductNames.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 5));
+    } else {
+      setSuggestions([]);
+    }
+    setHighlightedIdx(-1);
+  }, [searchInput, allProductNames]);
+
+  const handleSearchSubmit = (e?: React.FormEvent, overrideQuery?: string) => {
     e?.preventDefault();
-    const q = searchInput.trim();
-    if (onSearch && q) {
-      onSearch(q);
-      onNavigate(Page.SEARCH);
+    const q = (overrideQuery ?? searchInput).trim();
+    if (q) {
+      setSuggestions([]);
+      onSearch?.(q);
       setIsSearchOpen(false);
       setIsMobileMenuOpen(false);
-    } else if (q) {
-      onNavigate(Page.SEARCH);
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIdx((i) => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIdx((i) => Math.max(i - 1, -1));
+    } else if (e.key === 'Enter' && highlightedIdx >= 0) {
+      e.preventDefault();
+      handleSearchSubmit(undefined, suggestions[highlightedIdx].name);
+    } else if (e.key === 'Escape') {
       setIsSearchOpen(false);
+      searchInputRef.current?.blur();
     }
   };
 
@@ -150,22 +199,41 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
             {/* Desktop search: expandable bar */}
             <div className="hidden md:flex items-center">
               {isSearchOpen ? (
-                <form onSubmit={handleSearchSubmit} className="flex items-center gap-1 bg-white/90 rounded-full pl-4 pr-2 py-1.5 min-w-[200px] shadow-sm border border-slate-200">
-                  <input
-                    ref={searchInputRef}
-                    type="search"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onBlur={() => { if (!searchInput.trim()) setIsSearchOpen(false); }}
-                    onKeyDown={(e) => e.key === 'Escape' && (setIsSearchOpen(false), searchInputRef.current?.blur())}
-                    placeholder="Search products..."
-                    className="bg-transparent border-0 outline-none text-brand-dark text-sm w-full placeholder:text-slate-400"
-                    aria-label="Search products"
-                  />
-                  <button type="submit" className={`p-1.5 rounded-full ${isTransparentState ? 'hover:bg-brand-lime/20 text-brand-lime' : 'hover:bg-brand-orange/20 text-brand-orange'}`} aria-label="Submit search">
-                    <Search className="w-4 h-4" />
-                  </button>
-                </form>
+                <div className="relative" ref={suggestionsRef}>
+                  <form onSubmit={handleSearchSubmit} className="flex items-center gap-1 bg-white/90 rounded-full pl-4 pr-2 py-1.5 min-w-[200px] shadow-sm border border-slate-200">
+                    <input
+                      ref={searchInputRef}
+                      type="search"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onBlur={() => { if (!searchInput.trim()) setTimeout(() => setIsSearchOpen(false), 150); }}
+                      onKeyDown={handleSearchKeyDown}
+                      placeholder="Search products..."
+                      className="bg-transparent border-0 outline-none text-brand-dark text-sm w-full placeholder:text-slate-400"
+                      aria-label="Search products"
+                      autoComplete="off"
+                    />
+                    <button type="submit" className={`p-1.5 rounded-full ${isTransparentState ? 'hover:bg-brand-lime/20 text-brand-lime' : 'hover:bg-brand-orange/20 text-brand-orange'}`} aria-label="Submit search">
+                      <Search className="w-4 h-4" />
+                    </button>
+                  </form>
+                  {suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onMouseDown={(e) => { e.preventDefault(); handleSearchSubmit(undefined, s.name); }}
+                          onMouseEnter={() => setHighlightedIdx(i)}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2 ${i === highlightedIdx ? 'bg-slate-100 text-brand-orange' : 'text-slate-700 hover:bg-slate-50'}`}
+                        >
+                          <Search className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                          {s.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <button
                   type="button"
@@ -323,18 +391,38 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
         <div className="absolute top-full left-0 right-0 z-50 md:hidden overflow-hidden">
           <div className="bg-white overflow-y-auto max-h-[calc(100vh-4rem)] animate-in slide-in-from-top-2 duration-300">
             <nav className="px-5 py-8">
-              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-slate-100 rounded-xl px-4 py-3 mb-6">
-                <Search className="w-5 h-5 text-slate-400 shrink-0" />
-                <input
-                  type="search"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Search products..."
-                  className="flex-1 bg-transparent border-0 outline-none text-brand-dark placeholder:text-slate-400"
-                  aria-label="Search products"
-                />
-                <button type="submit" className="text-brand-orange font-medium text-sm">Search</button>
-              </form>
+              <div className="relative mb-6">
+                <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-slate-100 rounded-xl px-4 py-3">
+                  <Search className="w-5 h-5 text-slate-400 shrink-0" />
+                  <input
+                    type="search"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    placeholder="Search products..."
+                    className="flex-1 bg-transparent border-0 outline-none text-brand-dark placeholder:text-slate-400"
+                    aria-label="Search products"
+                    autoComplete="off"
+                  />
+                  <button type="submit" className="text-brand-orange font-medium text-sm">Search</button>
+                </form>
+                {suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); handleSearchSubmit(undefined, s.name); }}
+                        onMouseEnter={() => setHighlightedIdx(i)}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2 ${i === highlightedIdx ? 'bg-slate-100 text-brand-orange' : 'text-slate-700 hover:bg-slate-50'}`}
+                      >
+                        <Search className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <ul className="space-y-0">
                 {['Blog', 'Support', 'Track Your Order'].map((label) => {
                   const getHref = () => {
