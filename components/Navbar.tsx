@@ -1,26 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ShoppingBag, Menu, X, Search, ChevronDown } from 'lucide-react';
-import { Page } from '../types';
+import { Page, Product } from '../types';
 import { MegaMenuTestimonials } from './MegaMenuTestimonials';
 import { createUrl } from '../utils/router';
+import { getSearchSuggestions } from '../utils/search';
 
 interface NavbarProps {
   cartCount: number;
   onCartClick: () => void;
   onNavigate: (page: Page, category?: string) => void;
   onSearch?: (query: string) => void;
+  onProductSelect?: (product: Product) => void;
   searchQuery?: string;
+  products?: Product[];
   transparentMode?: boolean;
   forceWhite?: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNavigate, onSearch, searchQuery = '', transparentMode = false, forceWhite = false }) => {
+export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNavigate, onSearch, onProductSelect, searchQuery = '', products = [], transparentMode = false, forceWhite = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShopHovered, setIsShopHovered] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(searchQuery);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  const suggestions = useMemo(() => {
+    if (!searchInput.trim() || products.length === 0) return [];
+    return getSearchSuggestions(products, searchInput, 5);
+  }, [searchInput, products]);
 
   useEffect(() => {
     setSearchInput(searchQuery);
@@ -32,8 +44,26 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
     }
   }, [isSearchOpen]);
 
+  useEffect(() => {
+    setSelectedSuggestionIndex(-1);
+    setShowSuggestions(suggestions.length > 0);
+  }, [suggestions]);
+
+  const handleSuggestionClick = (product: Product) => {
+    setShowSuggestions(false);
+    setIsSearchOpen(false);
+    setIsMobileMenuOpen(false);
+    setSearchInput('');
+    onProductSelect?.(product);
+  };
+
   const handleSearchSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
+    setShowSuggestions(false);
+    if (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex]) {
+      handleSuggestionClick(suggestions[selectedSuggestionIndex]);
+      return;
+    }
     const q = searchInput.trim();
     if (onSearch && q) {
       onSearch(q);
@@ -43,6 +73,27 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
     } else if (q) {
       onNavigate(Page.SEARCH);
       setIsSearchOpen(false);
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === 'Escape') {
+        setIsSearchOpen(false);
+        searchInputRef.current?.blur();
+      }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedSuggestionIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setIsSearchOpen(false);
+      searchInputRef.current?.blur();
     }
   };
 
@@ -148,24 +199,63 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
           {/* Actions */}
           <div className={`flex items-center space-x-4 ${textColorClass}`}>
             {/* Desktop search: expandable bar */}
-            <div className="hidden md:flex items-center">
+            <div className="hidden md:flex items-center relative">
               {isSearchOpen ? (
-                <form onSubmit={handleSearchSubmit} className="flex items-center gap-1 bg-white/90 rounded-full pl-4 pr-2 py-1.5 min-w-[200px] shadow-sm border border-slate-200">
-                  <input
-                    ref={searchInputRef}
-                    type="search"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onBlur={() => { if (!searchInput.trim()) setIsSearchOpen(false); }}
-                    onKeyDown={(e) => e.key === 'Escape' && (setIsSearchOpen(false), searchInputRef.current?.blur())}
-                    placeholder="Search products..."
-                    className="bg-transparent border-0 outline-none text-brand-dark text-sm w-full placeholder:text-slate-400"
-                    aria-label="Search products"
-                  />
-                  <button type="submit" className={`p-1.5 rounded-full ${isTransparentState ? 'hover:bg-brand-lime/20 text-brand-lime' : 'hover:bg-brand-orange/20 text-brand-orange'}`} aria-label="Submit search">
-                    <Search className="w-4 h-4" />
-                  </button>
-                </form>
+                <div className="relative">
+                  <form onSubmit={handleSearchSubmit} className="flex items-center gap-1 bg-white/90 rounded-full pl-4 pr-2 py-1.5 min-w-[280px] shadow-sm border border-slate-200">
+                    <input
+                      ref={searchInputRef}
+                      type="search"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onBlur={() => { setTimeout(() => { setShowSuggestions(false); if (!searchInput.trim()) setIsSearchOpen(false); }, 150); }}
+                      onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                      onKeyDown={handleSearchKeyDown}
+                      placeholder="Search products..."
+                      className="bg-transparent border-0 outline-none text-brand-dark text-sm w-full placeholder:text-slate-400"
+                      aria-label="Search products"
+                      autoComplete="off"
+                      role="combobox"
+                      aria-expanded={showSuggestions}
+                      aria-controls="search-suggestions"
+                      aria-activedescendant={selectedSuggestionIndex >= 0 ? `suggestion-${selectedSuggestionIndex}` : undefined}
+                    />
+                    <button type="submit" className={`p-1.5 rounded-full ${isTransparentState ? 'hover:bg-brand-lime/20 text-brand-lime' : 'hover:bg-brand-orange/20 text-brand-orange'}`} aria-label="Submit search">
+                      <Search className="w-4 h-4" />
+                    </button>
+                  </form>
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div
+                      ref={suggestionsRef}
+                      id="search-suggestions"
+                      role="listbox"
+                      className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-[60]"
+                    >
+                      {suggestions.map((product, idx) => (
+                        <button
+                          key={product.id}
+                          id={`suggestion-${idx}`}
+                          role="option"
+                          aria-selected={idx === selectedSuggestionIndex}
+                          className={`flex items-center gap-3 w-full px-4 py-2.5 text-left transition-colors ${idx === selectedSuggestionIndex ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
+                          onMouseDown={(e) => { e.preventDefault(); handleSuggestionClick(product); }}
+                        >
+                          <img src={product.image} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-slate-900 truncate">{product.name}</p>
+                            <p className="text-xs text-slate-500">${product.price.toFixed(2)}</p>
+                          </div>
+                        </button>
+                      ))}
+                      <button
+                        className="w-full px-4 py-2.5 text-sm text-brand-orange font-medium text-left hover:bg-slate-50 border-t border-slate-100"
+                        onMouseDown={(e) => { e.preventDefault(); handleSearchSubmit(); }}
+                      >
+                        View all results for "{searchInput.trim()}"
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <button
                   type="button"
@@ -323,18 +413,42 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
         <div className="absolute top-full left-0 right-0 z-50 md:hidden overflow-hidden">
           <div className="bg-white overflow-y-auto max-h-[calc(100vh-4rem)] animate-in slide-in-from-top-2 duration-300">
             <nav className="px-5 py-8">
-              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-slate-100 rounded-xl px-4 py-3 mb-6">
-                <Search className="w-5 h-5 text-slate-400 shrink-0" />
-                <input
-                  type="search"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Search products..."
-                  className="flex-1 bg-transparent border-0 outline-none text-brand-dark placeholder:text-slate-400"
-                  aria-label="Search products"
-                />
-                <button type="submit" className="text-brand-orange font-medium text-sm">Search</button>
-              </form>
+              <div className="relative mb-6">
+                <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-slate-100 rounded-xl px-4 py-3">
+                  <Search className="w-5 h-5 text-slate-400 shrink-0" />
+                  <input
+                    ref={mobileSearchInputRef}
+                    type="search"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                    onKeyDown={handleSearchKeyDown}
+                    placeholder="Search products..."
+                    className="flex-1 bg-transparent border-0 outline-none text-brand-dark placeholder:text-slate-400"
+                    aria-label="Search products"
+                    autoComplete="off"
+                  />
+                  <button type="submit" className="text-brand-orange font-medium text-sm">Search</button>
+                </form>
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-[60]">
+                    {suggestions.map((product, idx) => (
+                      <button
+                        key={product.id}
+                        className={`flex items-center gap-3 w-full px-4 py-2.5 text-left transition-colors ${idx === selectedSuggestionIndex ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
+                        onMouseDown={(e) => { e.preventDefault(); handleSuggestionClick(product); }}
+                      >
+                        <img src={product.image} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-900 truncate">{product.name}</p>
+                          <p className="text-xs text-slate-500">${product.price.toFixed(2)}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <ul className="space-y-0">
                 {['Blog', 'Support', 'Track Your Order'].map((label) => {
                   const getHref = () => {

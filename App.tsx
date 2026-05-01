@@ -14,7 +14,7 @@ import { ReferralPopup } from './components/ReferralPopup';
 import { LivePurchaseNotification } from './components/LivePurchaseNotification';
 import { Product, CartItem, Page, BlogPost, BundleKit } from './types';
 import { shopify } from './utils/shopify';
-import { mapShopifyLineItem } from './utils/mapper';
+import { mapShopifyLineItem, mapShopifyProduct } from './utils/mapper';
 import { ShopPage } from './pages/ShopPage';
 import { SearchResultsPage } from './pages/SearchResultsPage';
 import { BestSellersPage } from './pages/BestSellersPage';
@@ -31,6 +31,7 @@ import { WarrantyPage } from './pages/WarrantyPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
 import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
 import { isSecondaryProduct } from './utils/productDetection';
+import { FALLBACK_PRODUCTS as SEARCH_FALLBACK_PRODUCTS } from './utils/search';
 import { SizeSelectorModal } from './components/SizeSelectorModal';
 import { useRouter } from './utils/router';
 import {
@@ -75,6 +76,9 @@ function App() {
   const [cartError, setCartError] = useState<string | null>(null);
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
 
+  // All products cache (for search autocomplete)
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
   // Page-specific data states
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductLoading, setIsProductLoading] = useState(false);
@@ -94,11 +98,12 @@ function App() {
     logPageView();
   }, [page]);
 
-  // Diagnostic: Log all Shopify products on startup
+  // Fetch all Shopify products on startup (for search autocomplete + diagnostics)
   useEffect(() => {
-    const logShopifyProducts = async () => {
+    const fetchAllProducts = async () => {
       if (!shopify) {
         console.warn('[Diagnostic] Shopify client not available');
+        setAllProducts(SEARCH_FALLBACK_PRODUCTS);
         return;
       }
       try {
@@ -108,12 +113,15 @@ function App() {
           console.log(`[Diagnostic] ID: ${p.id} | Handle: ${p.handle} | Title: ${p.title}`);
         });
         console.log('[Diagnostic] ====================================');
+        setAllProducts(products.length > 0 ? products.map(mapShopifyProduct) : SEARCH_FALLBACK_PRODUCTS);
       } catch (e) {
         console.error('[Diagnostic] Failed to fetch Shopify products:', e);
+        setAllProducts(SEARCH_FALLBACK_PRODUCTS);
       }
     };
-    logShopifyProducts();
+    fetchAllProducts();
   }, [shopify]);
+
 
   // Scroll to top on page change
   useEffect(() => {
@@ -474,7 +482,9 @@ function App() {
         onSearch={(query) => {
           navigate(Page.SEARCH, {}, { q: query });
         }}
+        onProductSelect={handleProductSelect}
         searchQuery={searchQuery}
+        products={allProducts}
         transparentMode={page === Page.HOME}
         forceWhite={page === Page.SUPPORT || page === Page.ORDER_STATUS || page === Page.RETURNS_EXCHANGE || page === Page.SIZE_GUIDE || page === Page.WARRANTY}
       />

@@ -1,30 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { ProductCard } from '../components/ProductCard';
 import { Product } from '../types';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { PageHero } from '../components/PageHero';
+import { SlidersHorizontal, ChevronDown, X } from 'lucide-react';
+import {
+  fuzzySearchProducts,
+  applyFilters,
+  extractCategories,
+  getPriceRange,
+  FALLBACK_PRODUCTS,
+  SearchFilters,
+  SortOption,
+} from '../utils/search';
 
-const FALLBACK_PRODUCTS: Product[] = [
-  { id: 'massage-insoles', name: 'AeroTouch Massage Insoles', tagline: 'Therapeutic acupressure with every step', price: 25, rating: 4.9, reviews: 1540, image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop', features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'], description: '' },
-  { id: 'massage-roller', name: 'Massage Roller', tagline: 'Deep tissue recovery for sore feet', price: 19, rating: 4.8, reviews: 820, image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop', features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'], description: '' },
-  { id: 'heel-cushion-pad', name: 'Heel Cushion Pad', tagline: 'Instant impact protection for heels', price: 24, rating: 4.9, reviews: 2100, image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop', features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'], description: '' },
-  { id: 'compression-socks', name: 'Compression Socks', tagline: 'Boost circulation and reduce swelling', price: 29, rating: 4.7, reviews: 940, image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=800&auto=format&fit=crop', features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'], description: '' },
-  { id: 'fascilites-relief', name: 'Fascilites Relief Kit', tagline: 'Complete recovery system', price: 48, rating: 5.0, reviews: 3200, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop', features: ['Elite Insoles', 'Massage Ball', 'Instructional Guide'], description: '' },
-  { id: 'height-insoles', name: 'Height Insoles', tagline: 'Discreet elevation with maximum comfort', price: 39, rating: 4.8, reviews: 1100, image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop', features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'], description: '' },
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'relevance', label: 'Relevance' },
+  { value: 'price-asc', label: 'Price: Low to High' },
+  { value: 'price-desc', label: 'Price: High to Low' },
+  { value: 'rating', label: 'Highest Rated' },
+  { value: 'reviews', label: 'Most Reviewed' },
 ];
-
-function filterProductsByQuery(products: Product[], query: string): Product[] {
-  if (!query.trim()) return products;
-  const q = query.trim().toLowerCase();
-  return products.filter((p) => {
-    const name = (p.name || '').toLowerCase();
-    const tagline = (p.tagline || '').toLowerCase();
-    const desc = (p.description || '').toLowerCase();
-    const features = (p.features || []).join(' ').toLowerCase();
-    return name.includes(q) || tagline.includes(q) || desc.includes(q) || features.includes(q);
-  });
-}
 
 interface SearchResultsPageProps {
   searchQuery: string;
@@ -33,48 +30,52 @@ interface SearchResultsPageProps {
 }
 
 export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuery, onProductSelect, onQuickAddToCart }) => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<SearchFilters>({ sortBy: 'relevance' });
 
   useEffect(() => {
-    const query = searchQuery.trim();
-    if (!query) {
-      setProducts([]);
-      setLoading(false);
-      return;
-    }
-
-    const fetchSearch = async () => {
+    const fetchProducts = async () => {
       setLoading(true);
       try {
-        try {
-          const shopifyProducts = await shopify.product.fetchQuery({ query, first: 20 });
-          if (shopifyProducts && shopifyProducts.length > 0) {
-            setProducts(shopifyProducts.map(mapShopifyProduct));
-            setLoading(false);
-            return;
-          }
-        } catch {
-          // fall through
-        }
-        const shopifyProducts = await shopify.product.fetchAll(20);
+        const shopifyProducts = await shopify.product.fetchAll(50);
         if (shopifyProducts && shopifyProducts.length > 0) {
-          setProducts(filterProductsByQuery(shopifyProducts.map(mapShopifyProduct), query));
+          setAllProducts(shopifyProducts.map(mapShopifyProduct));
         } else {
-          setProducts(filterProductsByQuery(FALLBACK_PRODUCTS, query));
+          setAllProducts(FALLBACK_PRODUCTS);
         }
-      } catch (err) {
-        console.warn('Search fallback to local data:', err);
-        setProducts(filterProductsByQuery(FALLBACK_PRODUCTS, query));
+      } catch {
+        setAllProducts(FALLBACK_PRODUCTS);
       } finally {
         setLoading(false);
       }
     };
+    fetchProducts();
+  }, []);
 
-    fetchSearch();
+  useEffect(() => {
+    setFilters((prev) => ({ ...prev, sortBy: 'relevance' }));
   }, [searchQuery]);
 
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return allProducts;
+    return fuzzySearchProducts(allProducts, searchQuery);
+  }, [allProducts, searchQuery]);
+
+  const filteredResults = useMemo(() => {
+    return applyFilters(searchResults, filters);
+  }, [searchResults, filters]);
+
+  const categories = useMemo(() => extractCategories(searchResults), [searchResults]);
+  const priceRange = useMemo(() => getPriceRange(allProducts), [allProducts]);
+
   const hasQuery = searchQuery.trim().length > 0;
+  const hasActiveFilters = filters.category || filters.minPrice !== undefined || filters.maxPrice !== undefined;
+
+  const clearFilters = () => {
+    setFilters({ sortBy: filters.sortBy });
+  };
 
   return (
     <div className="animate-in fade-in duration-500 pt-24">
@@ -84,8 +85,8 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuer
           hasQuery
             ? loading
               ? 'Finding products...'
-              : products.length > 0
-                ? `${products.length} product${products.length === 1 ? '' : 's'} found.`
+              : filteredResults.length > 0
+                ? `${filteredResults.length} product${filteredResults.length === 1 ? '' : 's'} found.`
                 : 'Try a different search or browse the shop.'
             : 'Enter a search term to find products.'
         }
@@ -103,19 +104,139 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuer
               <div key={i} className="bg-slate-100 rounded-2xl h-[400px] animate-pulse" />
             ))}
           </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-16 px-4">
-            <p className="text-slate-600 text-lg font-medium">No results</p>
-            <p className="text-slate-500 mt-2">
-              We couldn't find any products matching "{searchQuery.trim()}". Try different keywords or browse the shop.
-            </p>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} onClick={onProductSelect} onAddToCart={onQuickAddToCart} />
-            ))}
-          </div>
+          <>
+            {/* Toolbar: Sort + Filter toggle */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${showFilters ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'}`}
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filters
+                  {hasActiveFilters && (
+                    <span className="w-2 h-2 rounded-full bg-brand-orange" />
+                  )}
+                </button>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Clear filters
+                  </button>
+                )}
+              </div>
+
+              <div className="relative">
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value as SortOption }))}
+                  className="appearance-none bg-white border border-slate-200 rounded-xl pl-4 pr-10 py-2 text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Filter panel */}
+            {showFilters && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6 animate-in slide-in-from-top-2 duration-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Price range */}
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 mb-3">Price Range</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+                        <input
+                          type="number"
+                          placeholder={String(priceRange.min)}
+                          value={filters.minPrice ?? ''}
+                          onChange={(e) => setFilters((prev) => ({
+                            ...prev,
+                            minPrice: e.target.value ? Number(e.target.value) : undefined,
+                          }))}
+                          className="w-full border border-slate-200 rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
+                          min={0}
+                        />
+                      </div>
+                      <span className="text-slate-400 text-sm">to</span>
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+                        <input
+                          type="number"
+                          placeholder={String(priceRange.max)}
+                          value={filters.maxPrice ?? ''}
+                          onChange={(e) => setFilters((prev) => ({
+                            ...prev,
+                            maxPrice: e.target.value ? Number(e.target.value) : undefined,
+                          }))}
+                          className="w-full border border-slate-200 rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
+                          min={0}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category filter */}
+                  {categories.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-3">Category</h4>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setFilters((prev) => ({ ...prev, category: undefined }))}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${!filters.category ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                        >
+                          All
+                        </button>
+                        {categories.map((cat) => (
+                          <button
+                            key={cat}
+                            onClick={() => setFilters((prev) => ({ ...prev, category: prev.category === cat ? undefined : cat }))}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${filters.category === cat ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Results */}
+            {filteredResults.length === 0 ? (
+              <div className="text-center py-16 px-4">
+                <p className="text-slate-600 text-lg font-medium">No results</p>
+                <p className="text-slate-500 mt-2">
+                  {hasActiveFilters
+                    ? 'No products match your current filters. Try adjusting or clearing them.'
+                    : `We couldn't find any products matching "${searchQuery.trim()}". Try different keywords or browse the shop.`}
+                </p>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="mt-4 text-brand-orange font-medium text-sm hover:underline"
+                  >
+                    Clear all filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredResults.map((product) => (
+                  <ProductCard key={product.id} product={product} onClick={onProductSelect} onAddToCart={onQuickAddToCart} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
