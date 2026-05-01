@@ -72,22 +72,7 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuer
   const hasQuery = searchQuery.trim().length > 0;
 
   return (
-    <div className="animate-in fade-in duration-500 pt-24">
-      <PageHero
-        title={hasQuery ? `Search results for "${searchQuery.trim()}"` : 'Search'}
-        description={
-          hasQuery
-            ? loading
-              ? 'Finding products...'
-              : products.length > 0
-                ? `${products.length} product${products.length === 1 ? '' : 's'} found.`
-                : 'Try a different search or browse the shop.'
-            : 'Enter a search term to find products.'
-        }
-        image="https://images.unsplash.com/photo-1519415387722-a1c3bbef716c?q=80&w=1920&auto=format&fit=crop"
-      />
-
-      <div className="container mx-auto px-4 md:px-6 py-12">
+    <div className="container mx-auto px-4 md:px-6 py-12">
         {!hasQuery ? (
           <div className="text-center py-12 text-slate-600">
             <p>Enter a search term in the navbar to find products.</p>
