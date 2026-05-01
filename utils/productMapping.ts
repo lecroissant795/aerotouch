@@ -1,4 +1,4 @@
-import { Product } from './types';
+import { Product } from '../types';
 
 /**
  * Product mapping utility
@@ -24,17 +24,14 @@ interface ShopifyProductInfo {
 /**
  * Complete mapping of local product identifiers to Shopify data.
  *
- * IMPORTANT: Fill in the actual Shopify IDs and handles from your store.
- *
- * From your diagnostic screenshot, for "AeroTouch Massage Insoles":
- * - Shopify ID: gid://shopify.com/Products/13909372927915 (use: 13909372927915)
- * - Shopify Handle: aero-touch-massage-insoles
- * - Your current local ID: massage-insoles (from ProductCard product.id)
+ * Filled with actual Shopify data from diagnostic logs.
  */
+
 export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
+  // Main Products
   'massage-insoles': {
-    shopifyId: '13909372927915', // <-- Your actual Shopify product ID from diagnostic
-    handle: 'massage-insoles', // <-- Your actual Shopify handle from diagnostic
+    shopifyId: '9037334511873',
+    handle: 'massage-insoles',
     product: {
       name: 'AeroTouch Massage Insoles',
       tagline: 'Therapeutic acupressure with every step',
@@ -46,31 +43,175 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       description: 'Experience the healing power of acupressure with every step. Our massage insoles combine therapeutic magnetic fields with strategically placed pressure points to relieve tension and improve circulation.'
     }
   },
-  // Add other products here as you get their data:
-  // 'massage-roller': {
-  //   shopifyId: 'YOUR_SHOPIFY_NUMERIC_ID',
-  //   handle: 'your-shopify-handle',
-  //   product: {
-  //     name: 'Massage Roller',
-  //     tagline: 'Deep tissue recovery for sore feet',
-  //     price: 19.00,
-  //     rating: 4.8,
-  //     reviews: 820,
-  //     image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
-  //     features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
-  //     description: 'Target sore muscles and speed up recovery...'
-  //   }
-  // },
-  // 'heel-cushion-pad': { ... },
-  // 'compression-socks': { ... },
+  'massage-roller': {
+    shopifyId: '9037334577409',
+    handle: 'massage-roller',
+    product: {
+      name: 'Massage Roller',
+      tagline: 'Deep tissue recovery for sore feet',
+      price: 19.00,
+      rating: 4.8,
+      reviews: 820,
+      image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
+      features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
+      description: 'Professional-grade massage roller designed for targeted foot relief and recovery.'
+    }
+  },
+  'height-insoles': {
+    shopifyId: '9037334675713',
+    handle: 'height-insoles',
+    product: {
+      name: 'Height Boosters',
+      tagline: 'Discreet elevation with maximum comfort',
+      price: 39.00,
+      rating: 4.8,
+      reviews: 1100,
+      image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
+      features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
+      description: 'Add height without the bulk. These discreet insoles provide comfortable elevation while maintaining stability.'
+    }
+  },
+  // Secondary/Accessory Products
+  'grip-socks': {
+    shopifyId: '9134310031617',
+    handle: 'grip-socks',
+    product: {
+      name: 'Grip Socks',
+      tagline: 'Stay stable during your practice',
+      price: 24.00,
+      rating: 4.6,
+      reviews: 560,
+      image: 'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?q=80&w=800&auto=format&fit=crop',
+      features: ['Non-Slip Grip', 'Breathable Fabric', 'Arch Compression'],
+      description: 'High-performance grip socks for yoga, pilates, and home workouts.'
+    }
+  },
+  'cashmere-insoles': {
+    shopifyId: '9134310097153',
+    handle: 'cashmere-insoles',
+    product: {
+      name: 'Cashmere Insoles',
+      tagline: 'Luxurious comfort all day long',
+      price: 49.00,
+      rating: 4.9,
+      reviews: 720,
+      image: 'https://images.unsplash.com/photo-1596700888812-7bd3d9392bbc?q=80&w=800&auto=format&fit=crop',
+      features: ['Cashmere Lining', 'Memory Foam', 'Temperature Regulation'],
+      description: 'Premium insoles with cashmere-soft lining for ultimate everyday comfort.'
+    }
+  },
+  'toe-cushion-pds': {
+    shopifyId: '9134310162689',
+    handle: 'toe-cushion-pds',
+    product: {
+      name: 'Toe Cushion Pads',
+      tagline: 'Protect vulnerable toe areas',
+      price: 12.00,
+      rating: 4.7,
+      reviews: 890,
+      image: 'https://images.unsplash.com/photo-1517760444937-1e5390c95d0a?q=80&w=800&auto=format&fit=crop',
+      features: ['Gel Cushioning', 'Hypoallergenic', 'Reusable'],
+      description: 'Soft gel pads that protect toes from rubbing, corns, and calluses.'
+    }
+  },
+  'toe-spacers': {
+    shopifyId: '9134310195457',
+    handle: 'toe-spacers',
+    product: {
+      name: 'Toe Spacers',
+      tagline: 'Align toes and improve foot posture',
+      price: 15.00,
+      rating: 4.8,
+      reviews: 1100,
+      image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?q=80&w=800&auto=format&fit=crop',
+      features: ['Ergonomic Design', 'Medical-Grade Silicone', 'Pain Relief'],
+      description: 'Toe spacers help realign toes, improve balance, and reduce foot pain.'
+    }
+  },
+  'heel-cushion-pds': {
+    shopifyId: '9134310293761',
+    handle: 'heel-cushion-pds',
+    product: {
+      name: 'Heel Cushions',
+      tagline: 'Shock absorption for high-impact activities',
+      price: 22.00,
+      rating: 4.9,
+      reviews: 2100,
+      image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop',
+      features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'],
+      description: 'Premium heel cushions that absorb impact and provide all-day comfort.'
+    }
+  },
+  'massage-gun': {
+    shopifyId: '9134530461953',
+    handle: 'massage-gun',
+    product: {
+      name: 'Massage Gun',
+      tagline: 'Deep tissue percussion therapy',
+      price: 79.00,
+      rating: 4.8,
+      reviews: 650,
+      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800&auto=format&fit=crop',
+      features: ['Multiple Speed Settings', 'Long Battery Life', 'Quiet Motor'],
+      description: 'Professional-grade percussion massage gun for muscle recovery and relaxation.'
+    }
+  },
+  // Alternative height insoles (same product, different handle)
+  'height-insoles-1': {
+    shopifyId: '9134691254529',
+    handle: 'height-insoles-1',
+    product: {
+      name: 'Height Insoles',
+      tagline: 'Discreet elevation with maximum comfort',
+      price: 39.00,
+      rating: 4.8,
+      reviews: 1100,
+      image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
+      features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
+      description: 'Add height without the bulk. These discreet insoles provide comfortable elevation while maintaining stability.'
+    }
+  },
+  // Recovery/Accessory Products
+  'recovery-gel': {
+    shopifyId: '9134310097154', // TODO: Get actual ID from Shopify if exists
+    handle: 'recovery-gel', // TODO: Get actual handle if different
+    product: {
+      name: 'Recovery Gel',
+      tagline: 'Soothing relief for tired muscles',
+      price: 24.00,
+      rating: 4.9,
+      reviews: 1200,
+      image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop',
+      features: ['Natural Ingredients', 'Fast Absorption', 'Cooling Effect'],
+      description: 'Therapeutic gel formulated to relieve muscle tension and accelerate recovery.'
+    }
+  },
+  // Note: 'fascilites-relief' is a BUNDLE KIT, not a standalone Shopify product
+  // It's defined in BundleKitsPage.tsx as BUNDLE_KITS
 };
 
 /**
  * Get Shopify handle for a product identifier (local ID or existing handle)
  */
 export const getShopifyHandle = (identifier: string): string => {
+  // First, check if identifier is a key in the map (local ID)
   const info = PRODUCT_DATA_MAP[identifier];
-  return info?.handle || identifier; // If not in map, assume identifier IS the handle
+  if (info) {
+    return info.handle;
+  }
+
+  // If not found as a key, check if identifier matches a handle value
+  // (e.g., URL contains the actual Shopify handle like "aero-touch-massage-insoles")
+  for (const key in PRODUCT_DATA_MAP) {
+    const entry = PRODUCT_DATA_MAP[key];
+    if (entry.handle === identifier) {
+      return entry.handle;
+    }
+  }
+
+  // If not found anywhere, assume identifier IS the Shopify handle
+  // (for products not yet in the map)
+  return identifier;
 };
 
 /**

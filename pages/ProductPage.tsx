@@ -6,8 +6,9 @@ import { ProductTechSpecs } from '../components/ProductTechSpecs';
 import { FAQSection } from '../components/FAQSection';
 import { useSocialProof } from '../hooks/useSocialProof';
 import { getLinePricing } from '../utils/pricing';
-import { shopify } from '../utils/shopify';
+import { fetchProductByHandle } from '../utils/productFetcher';
 import { mapShopifyProduct } from '../utils/mapper';
+import { useProductMetafields } from '../utils/useProductMetafields';
 import { productVideos } from '../utils/mediaUrls';
 
 interface ProductPageProps {
@@ -88,6 +89,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   onBuyNow
 }) => {
   const [product, setProduct] = useState<Product>(initialProduct);
+  const meta = useProductMetafields(product);
   const [shopifyProduct, setShopifyProduct] = useState<any>(null);
   const [variants, setVariants] = useState<any[]>([]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -112,27 +114,49 @@ export const ProductPage: React.FC<ProductPageProps> = ({
 
   useEffect(() => {
     const fetchShopifyData = async () => {
-      // Assuming 'id' in local product might match a handle, or we need to fuzzy match
-      // For now, let's try to fetch by handle derived from ID or Name
-      // Ideally, the Product in 'types.ts' should store the Shopify Handle
-      const handle = initialProduct.id; // Using ID as handle for now
-      
+      // Use the product's handle if available, otherwise fall back to ID
+      // fetchProductByHandle will handle both formats correctly
+      const identifier = initialProduct.handle || initialProduct.id;
+
+      console.log('[ProductPage] Fetching Shopify data for identifier:', identifier);
+
       try {
-        const fetchedProduct = await shopify.product.fetchByHandle(handle);
+        const fetchedProduct = await fetchProductByHandle(identifier);
         if (fetchedProduct) {
+          console.log('[ProductPage] ✅ Shopify data fetched successfully');
+          console.log('[ProductPage] Raw fetchedProduct:', fetchedProduct);
           setShopifyProduct(fetchedProduct);
-          setVariants(fetchedProduct.variants);
-          setProduct(mapShopifyProduct(fetchedProduct));
-          
-          // Attempt to extract options
-          // Use fetched options if available, otherwise fallback
+          setVariants(fetchedProduct.variants || []);
+          // Merge Shopify data with initial product, only updating fields that have values
+          const shopifyMapped = mapShopifyProduct(fetchedProduct);
+          console.log('[ProductPage] Mapped from Shopify:', shopifyMapped);
+          setProduct((prev: Product) => {
+            const merged: Product = { ...prev };
+            // Only update fields that are defined in shopifyMapped
+            if (shopifyMapped.name) merged.name = shopifyMapped.name;
+            if (shopifyMapped.tagline) merged.tagline = shopifyMapped.tagline;
+            if (shopifyMapped.price > 0) merged.price = shopifyMapped.price;
+            if (shopifyMapped.image) merged.image = shopifyMapped.image;
+            if (shopifyMapped.images && shopifyMapped.images.length > 0) merged.images = shopifyMapped.images;
+            if (shopifyMapped.description) merged.description = shopifyMapped.description;
+            if (shopifyMapped.descriptionHtml) merged.descriptionHtml = shopifyMapped.descriptionHtml;
+            if (shopifyMapped.tags && shopifyMapped.tags.length > 0) merged.tags = shopifyMapped.tags;
+            if (shopifyMapped.metafields) merged.metafields = shopifyMapped.metafields;
+            // Keep original id/handle
+            merged.id = prev.id;
+            merged.handle = prev.handle;
+            console.log('[ProductPage] Merged product:', merged);
+            return merged;
+          });
+        } else {
+          console.log('[ProductPage] ⚠️ fetchProductByHandle returned null, using local data only');
         }
       } catch (err) {
-        console.warn("Could not fetch product from Shopify, using local data", err);
-      } 
+        console.warn('[ProductPage] Could not fetch product from Shopify, using local data:', err);
+      }
     };
     fetchShopifyData();
-  }, [initialProduct.id]);
+  }, [initialProduct.id, initialProduct.handle]);
 
   // Derived options from Shopify Variants or Fallback
   const availableSizes = shopifyProduct?.options?.find((o: any) => o.name === 'Size')?.values.map((v: any) => ({ label: v.value, detail: v.value })) || DEFAULT_SIZES;
@@ -205,8 +229,11 @@ export const ProductPage: React.FC<ProductPageProps> = ({
 
   // Product gallery: use product imagery only (no stock-photo fallback tiles).
   const fallbackGalleryImage = product.image || '/images/IMG_4813-removebg-preview.png';
+  const rawImages = product.images || [];
+  // Filter to only strings with content (Shopify may return objects in some formats)
+  const validImages: string[] = rawImages.filter((img): img is string => typeof img === 'string' && img.trim().length > 0);
   const images = Array.from(
-    new Set([...(product.images || []), fallbackGalleryImage].filter((img) => Boolean(img && img.trim())))
+    new Set([...validImages, fallbackGalleryImage].filter((img) => img && img.trim()))
   );
   const secondaryImages = images.slice(1, 5);
 
@@ -266,7 +293,11 @@ export const ProductPage: React.FC<ProductPageProps> = ({
       );
   }
 
-  if (product.id !== 'massage-insoles' && !product.name.toLowerCase().includes('massage insole')) {
+  // Guard against undefined product name during loading
+  const productName = product.name || '';
+  const isMainProductType = product.id === 'massage-insoles' || productName.toLowerCase().includes('massage insole');
+
+  if (!isMainProductType) {
     return (
       <div className="min-h-screen bg-slate-50 pt-28 pb-24">
         <div className="container mx-auto px-4 md:px-6">
@@ -441,7 +472,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                 <div className="flex items-center justify-between text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
                    <div className="flex items-center gap-2">
                        <Users className="w-4 h-4 text-brand-dark" />
-                       <span><span className="font-bold text-brand-dark">{viewers} people</span> are viewing this</span>
+                       <span><span className="font-bold text-brand-dark">{viewers} people</span> {meta.scarcity_message}</span>
                    </div>
                    <div className="flex items-center gap-2 text-red-500 font-bold animate-selling-fast">
                        <Flame className="w-4 h-4 fill-current flex-shrink-0" />
@@ -450,20 +481,31 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                 </div>
 
                 {/* Description Snippet */}
-                <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
-                   <li className="flex items-start gap-2">
+                {meta.custom_description_points && meta.custom_description_points.length > 0 ? (
+                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+                    {meta.custom_description_points.map((point: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+                    <li className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
                       <span><span className="font-bold text-slate-900">Fast pain relief:</span> Cushions impact and supports your arch to reduce daily foot, heel, and knee discomfort.</span>
-                   </li>
-                   <li className="flex items-start gap-2">
+                    </li>
+                    <li className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
                       <span><span className="font-bold text-slate-900">Better performance:</span> Improves stability and energy return so you can walk, train, and recover with less fatigue.</span>
-                   </li>
-                   <li className="flex items-start gap-2">
+                    </li>
+                    <li className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
                       <span><span className="font-bold text-slate-900">Zero-risk purchase:</span> Try them with a <span className="font-bold text-brand-dark">60-Day Risk-Free Guarantee</span>.</span>
-                   </li>
-                </ul>
+                    </li>
+                  </ul>
+                )}
 
                 {/* Bundle Selector - Dropshipping Style */}
                 <div className="space-y-3 mb-6">
@@ -630,8 +672,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                 <Timer className="w-5 h-5" />
                             </div>
                             <div>
-                                <h3 className="font-black text-brand-dark uppercase tracking-tighter leading-none text-lg">OFFER ENDS SOON</h3>
-                                <p className="text-[10px] font-bold text-brand-orange uppercase tracking-widest mt-0.5">Limited Time Discount</p>
+                                <h3 className="font-black text-brand-dark uppercase tracking-tighter leading-none text-lg">{meta.timer_title}</h3>
+                                <p className="text-[10px] font-bold text-brand-orange uppercase tracking-widest mt-0.5">{meta.timer_subtitle}</p>
                             </div>
                         </div>
                         <div className="flex gap-1.5">
@@ -723,7 +765,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                 >
                    <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
                        {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
-                       {isLoading ? 'PROCESSING...' : (selectedSize ? 'ADD TO CART' : 'SELECT SIZE')}
+                       {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || 'ADD TO CART') : (meta.secondary_cta_text || 'SELECT SIZE'))}
                    </span>
                        {/* Shine effect */}
                        {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
@@ -1210,11 +1252,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
       </section>
 
       {/* Kit Combo Promotion */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 md:px-6">
+      {meta.show_kit_combo && (
+        <section className="py-20">
+          <div className="container mx-auto px-4 md:px-6">
 
-          {/* Section Header */}
-          <div className="text-center mb-8">
+            {/* Section Header */}
+            <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 bg-brand-dark text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-4">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse" />
               Bundle & Save
@@ -1411,9 +1454,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
           </div>
         </div>
       </section>
+      )}
 
       {/* New Tech Specs Section */}
-      <ProductTechSpecs currentProductId={product.id} onProductSelect={onProductSelect} onNavigateToBlog={onNavigateToBlog} />
+      {meta.show_tech_specs && (
+        <ProductTechSpecs currentProductId={product.id} onProductSelect={onProductSelect} onNavigateToBlog={onNavigateToBlog} />
+      )}
       
     </div>
   );

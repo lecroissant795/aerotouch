@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { LandingPage } from './pages/LandingPage';
@@ -14,7 +14,8 @@ import { ReferralPopup } from './components/ReferralPopup';
 import { LivePurchaseNotification } from './components/LivePurchaseNotification';
 import { Product, CartItem, Page, BlogPost, BundleKit } from './types';
 import { shopify } from './utils/shopify';
-import { mapShopifyLineItem } from './utils/mapper';
+import { mapShopifyProduct, mapShopifyLineItem } from './utils/mapper';
+import { fetchProductByHandle, fetchAllProducts } from './utils/productFetcher';
 import { ShopPage } from './pages/ShopPage';
 import { SearchResultsPage } from './pages/SearchResultsPage';
 import { BestSellersPage } from './pages/BestSellersPage';
@@ -30,7 +31,7 @@ import { AccessoriesPage } from './pages/AccessoriesPage';
 import { WarrantyPage } from './pages/WarrantyPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
 import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
-import { isSecondaryProduct } from './utils/productDetection';
+import { isSecondaryProduct, getProductClassificationDebug } from './utils/productDetection';
 import { SizeSelectorModal } from './components/SizeSelectorModal';
 import { useRouter } from './utils/router';
 import {
@@ -38,8 +39,8 @@ import {
   getShopifyId,
   getFallbackProduct,
   hasShopifyMapping,
-  buildProductFromShopify,
-  KNOWN_PRODUCT_IDS
+  KNOWN_PRODUCT_IDS,
+  PRODUCT_DATA_MAP
 } from './utils/productMapping';
 
 // Import static data for blog posts and bundle kits
@@ -48,6 +49,66 @@ import { BUNDLE_KITS } from './pages/BundleKitsPage';
 
 function App() {
   const { page, params, query, navigate } = useRouter();
+
+  // Track previous page for smooth transitions during loading
+  const previousPageRef = useRef<Page>(Page.HOME);
+  const [previousPage, setPreviousPage] = useState<Page>(Page.HOME);
+
+  // Update previous page when page changes
+  useEffect(() => {
+    setPreviousPage(previousPageRef.current);
+    previousPageRef.current = page;
+  }, [page]);
+
+  // Render the previous page during loading to maintain visual continuity
+  const renderPreviousPage = () => {
+    switch (previousPage) {
+      case Page.HOME:
+        return (
+          <LandingPage
+            onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
+            onCategorySelect={(cat) => navigate(Page.CATEGORY, { category: cat })}
+            onShopSaleClick={() => navigate(Page.SHOP)}
+            onKitSelect={(kit) => navigate(Page.KIT_PRODUCT, { kitId: kit.id })}
+            onAddKitToCart={handleAddKitToCart}
+          />
+        );
+      case Page.SHOP:
+        return (
+          <ShopPage
+            onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
+          />
+        );
+      case Page.CATEGORY:
+        return (
+          <CategoryPage
+            category={category || 'All'}
+            onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
+            onNavigateToBlog={() => navigate(Page.BLOG)}
+          />
+        );
+      case Page.BEST_SELLERS:
+        return (
+          <BestSellersPage
+            onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
+          />
+        );
+      case Page.ACCESSORIES:
+        return (
+          <AccessoriesPage
+            onProductSelect={handleProductSelect}
+            onQuickAddToCart={handleQuickAddToCart}
+            onNavigateToBlog={() => navigate(Page.BLOG)}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   // Derived params
   const category = params.category;
@@ -158,91 +219,103 @@ function App() {
 
   // Fetch product when handle changes
   useEffect(() => {
+    let requestId = 0;
+    let isMounted = true;
+
+    console.log('[App] fetchProduct effect triggered with productHandle:', productHandle);
+
     const fetchProduct = async () => {
+      requestId++;
+      const currentRequestId = requestId;
       console.log('[App] ============ FETCH PRODUCT START ============');
       console.log('[App] URL param productHandle:', productHandle);
+      console.log('[App] Request ID:', currentRequestId);
 
       if (!productHandle) {
         console.log('[App] No product handle, clearing selectedProduct');
-        setSelectedProduct(null);
-        return;
-      }
-
-      // Check if Shopify client is available
-      if (!shopify) {
-        console.error('[App] Shopify client is not initialized. Check .env file.');
-        setProductError('Store configuration error. Please contact support.');
-        setIsProductLoading(false);
+        if (isMounted) setSelectedProduct(null);
         return;
       }
 
       setIsProductLoading(true);
-      setProductError(null);
+      if (isMounted) setProductError(null);
 
       try {
-        // Strategy 1: Use fetchByHandle with handle from mapping or direct
+        console.log('[App] Fetching product...');
         const shopifyHandle = getShopifyHandle(productHandle);
-        console.log('[App] Strategy 1: fetchByHandle with:', shopifyHandle);
-        let shopifyProduct = await shopify.product.fetchByHandle(shopifyHandle);
-        console.log('[App] fetchByHandle result:', shopifyProduct ? 'SUCCESS' : 'NULL');
+        console.log('[App] Using handle:', shopifyHandle);
 
-        // Strategy 2: If failed and we have a numeric Shopify ID, try fetch(ID)
-        if (!shopifyProduct) {
-          const shopifyId = getShopifyId(productHandle);
-          if (shopifyId) {
-            console.log('[App] Strategy 2: fetch with Shopify ID:', shopifyId);
-            try {
-              shopifyProduct = await shopify.product.fetch(shopifyId);
-              console.log('[App] fetch(ID) result:', shopifyProduct ? 'SUCCESS' : 'NULL');
-            } catch (e) {
-              console.log('[App] fetch(ID) threw error:', e);
-            }
-          }
+        const product = await fetchProductByHandle(shopifyHandle);
+
+        // Ignore if this request is not the latest
+        if (currentRequestId !== requestId) {
+          console.log('[App] ⚠️ Stale response, ignoring (expected:', requestId, 'got:', currentRequestId, ')');
+          return;
         }
 
-        // Strategy 3: Try direct fetch with the param (works if param IS the numeric ID)
-        if (!shopifyProduct) {
-          console.log('[App] Strategy 3: direct fetch with param:', productHandle);
-          try {
-            shopifyProduct = await shopify.product.fetch(productHandle);
-            console.log('[App] direct fetch result:', shopifyProduct ? 'SUCCESS' : 'NULL');
-          } catch (e) {
-            console.log('[App] direct fetch threw error:', e);
-          }
-        }
-
-        if (shopifyProduct) {
-          // Build complete product with both ID (Shopify ID) and handle
-          const product = buildProductFromShopify(shopifyProduct, productHandle);
-          console.log('[App] ✅ Product loaded from Shopify:', product.name);
-          console.log('[App]   → product.id:', product.id);
-          console.log('[App]   → product.handle:', product.handle);
+        if (product) {
+          console.log('[App] ✅ Product loaded from Shopify');
+          console.log('[App]   → product.id (raw):', product.id);
+          console.log('[App]   → product.handle (raw):', product.handle);
           console.log('[App]   → productHandle (URL param):', productHandle);
-          setSelectedProduct(product);
+
+          // Map Shopify product to our Product type
+          const mappedProduct = mapShopifyProduct(product);
+          console.log('[App]   → mapped product.name:', mappedProduct.name);
+          console.log('[App]   → mapped product.id:', mappedProduct.id);
+          console.log('[App]   → mapped product.handle:', mappedProduct.handle);
+
+          const debug = getProductClassificationDebug(mappedProduct);
+          console.log('[App]   → Classification:', debug.type);
+          console.log('[App]   → Tags:', mappedProduct.tags);
+          if (mappedProduct.metafields) {
+            console.log('[App]   → Metafields:', Object.keys(mappedProduct.metafields));
+          }
+
+          if (isMounted) setSelectedProduct(mappedProduct);
         } else {
-          // Fallback to local data
-          console.log('[App] ❌ All Shopify strategies failed, trying fallback...');
+          console.log('[App] ❌ Shopify fetch returned null');
+          console.log('[App] Attempting fallback for handle:', productHandle);
+          console.log('[App] Known fallback IDs:', Object.keys(PRODUCT_DATA_MAP));
           const fallbackProduct = getFallbackProduct(productHandle);
           if (fallbackProduct) {
             console.log('[App] ✅ Using fallback product:', fallbackProduct.name);
-            setSelectedProduct(fallbackProduct);
+            console.log('[App]   → product.id:', fallbackProduct.id);
+
+            const debug = getProductClassificationDebug(fallbackProduct);
+            console.log('[App]   → Classification:', debug.type);
+            console.log('[App]   → Tags:', fallbackProduct.tags);
+
+            if (isMounted) setSelectedProduct(fallbackProduct);
           } else {
-            console.log('[App] ❌ Product not found. Known IDs:', KNOWN_PRODUCT_IDS);
-            setProductError('Product not found');
-            setSelectedProduct(null);
+            console.log('[App] ❌ No fallback data available for:', productHandle);
+            console.log('[App] Available fallback products:', Object.keys(PRODUCT_DATA_MAP));
+            if (isMounted && currentRequestId === requestId) {
+              setProductError('Product not found');
+              setSelectedProduct(null);
+            }
           }
         }
       } catch (error) {
         console.error('[App] Failed to fetch product:', error);
-        setProductError('Failed to load product. Please try again.');
-        setSelectedProduct(null);
+        if (isMounted && currentRequestId === requestId) {
+          setProductError('Failed to load product. Please try again.');
+          setSelectedProduct(null);
+        }
       } finally {
-        setIsProductLoading(false);
-        console.log('[App] ============ FETCH PRODUCT END ============');
+        if (isMounted && currentRequestId === requestId) {
+          setIsProductLoading(false);
+          console.log('[App] ============ FETCH PRODUCT END ============');
+        }
       }
     };
 
     fetchProduct();
+
+    return () => {
+      isMounted = false;
+      console.log('[App] fetchProduct cleanup - isMounted set to false (requestId was:', requestId, ')');
+    };
   }, [productHandle]);
 
   // Fetch blog post when slug changes
@@ -516,18 +589,14 @@ function App() {
                 onBuyNow={handleBuyNow}
               />
             )
-          ) : (
-            isProductLoading ? (
-              <div className="min-h-screen flex items-center justify-center">Loading product...</div>
-            ) : productError ? (
-              <div className="min-h-screen flex flex-col items-center justify-center">
-                <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-                <button onClick={() => navigate(Page.SHOP)} className="btn btn-primary">
-                  Back to Shop
-                </button>
-              </div>
-            ) : null
-          )
+          ) : productError ? (
+            <div className="min-h-screen flex flex-col items-center justify-center">
+              <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+              <button onClick={() => navigate(Page.SHOP)} className="btn btn-primary">
+                Back to Shop
+              </button>
+            </div>
+          ) : renderPreviousPage()
         )}
 
         {page === Page.SHOP && (

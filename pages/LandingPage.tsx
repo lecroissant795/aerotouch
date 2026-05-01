@@ -12,6 +12,7 @@ import { mapShopifyProduct } from '../utils/mapper';
 import { LimitedTimeKits } from '../components/LimitedTimeKits';
 import { ValueProps } from '../components/ValueProps';
 import { ComparisonTable } from '../components/ComparisonTable';
+import SearchBox from '../components/SearchBox';
 import { Star, Play, BadgeCheck, Globe, MoreHorizontal, ThumbsUp, Heart, Smile, MessageSquare, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { reviewVideos } from '../utils/mediaUrls';
 import { FAQSection } from '../components/FAQSection';
@@ -109,7 +110,7 @@ interface LandingPageProps {
 const FEATURED_PRODUCTS: Product[] = [
   {
     id: 'massage-insoles',
-    handle: 'aero-touch-massage-insoles',
+    handle: 'massage-insoles',
     name: 'AeroTouch Massage Insoles',
     tagline: 'Therapeutic acupressure with every step',
     price: 34.00,
@@ -132,8 +133,8 @@ const FEATURED_PRODUCTS: Product[] = [
     description: ''
   },
   {
-    id: 'heel-cushion-pad',
-    handle: 'heel-cushion-pad',
+    id: 'heel-cushion-pds',
+    handle: 'heel-cushion-pds',
     name: 'Heel Cushion Pad',
     tagline: 'Instant impact protection for heels',
     price: 24.00,

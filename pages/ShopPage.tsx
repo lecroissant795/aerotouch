@@ -9,7 +9,7 @@ import { mapShopifyProduct } from '../utils/mapper';
 const FEATURED_PRODUCTS: Product[] = [
   {
     id: 'massage-insoles',
-    handle: 'aero-touch-massage-insoles',
+    handle: 'massage-insoles',
     name: 'AeroTouch Massage Insoles',
     tagline: 'Therapeutic acupressure with every step',
     price: 34.00,
@@ -32,8 +32,8 @@ const FEATURED_PRODUCTS: Product[] = [
     description: ''
   },
   {
-    id: 'heel-cushion-pad',
-    handle: 'heel-cushion-pad',
+    id: 'heel-cushion-pds',
+    handle: 'heel-cushion-pds',
     name: 'Heel Cushion Pad',
     tagline: 'Instant impact protection for heels',
     price: 24.00,

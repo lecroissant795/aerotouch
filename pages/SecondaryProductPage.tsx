@@ -4,6 +4,8 @@ import { Button } from '../components/Button';
 import { Star, ChevronLeft, Truck, RotateCcw, Check, ShoppingBag, ShieldCheck, Timer, Users, CreditCard, Lock, ChevronDown, ChevronUp, Flame, BadgeCheck, Smile, Headphones, X, Play, Volume2, VolumeX, MapPin, Box, CircleDollarSign, Activity, Wrench, Tag } from 'lucide-react';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
+import { fetchProductByHandle } from '../utils/productFetcher';
+import { useProductMetafields } from '../utils/useProductMetafields';
 import { ProductCard } from '../components/ProductCard';
 import { getLinePricing } from '../utils/pricing';
 import { SplitTestimonials } from '../components/SplitTestimonials';
@@ -67,6 +69,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   error = null
 }) => {
   const [product, setProduct] = useState<Product>(initialProduct);
+  const meta = useProductMetafields(product);
   const [shopifyProduct, setShopifyProduct] = useState<any>(null);
   const [selectedSize, setSelectedSize] = useState<string>('One Size');
   const [selectedColor, setSelectedColor] = useState<string>('Black');
@@ -86,12 +89,23 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   // Fetch product from Shopify
   useEffect(() => {
     const fetchShopifyData = async () => {
-      const handle = initialProduct.id;
+      // Use handle if available, otherwise fall back to id
+      const identifier = initialProduct.handle || initialProduct.id;
+
+      console.log('[SecondaryProductPage] Fetching Shopify data for identifier:', identifier);
+
       try {
-        const fetchedProduct = await shopify.product.fetchByHandle(handle);
+        const fetchedProduct = await fetchProductByHandle(identifier);
         if (fetchedProduct) {
+          console.log('[SecondaryProductPage] ✅ Shopify data fetched successfully');
           setShopifyProduct(fetchedProduct);
-          setProduct(mapShopifyProduct(fetchedProduct));
+          const shopifyMapped = mapShopifyProduct(fetchedProduct);
+          setProduct((prev: Product) => ({
+            ...prev,
+            ...shopifyMapped,
+            id: prev.id,
+            handle: prev.handle
+          }));
 
           const firstVariant = fetchedProduct.variants?.[0];
           if (firstVariant) {
@@ -100,13 +114,15 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
             if (sizeOption) setSelectedSize(sizeOption.value);
             if (colorOption) setSelectedColor(colorOption.value);
           }
+        } else {
+          console.log('[SecondaryProductPage] ⚠️ fetchProductByHandle returned null, using local data');
         }
       } catch (err) {
-        console.warn('Could not fetch product from Shopify, using local data', err);
+        console.warn('[SecondaryProductPage] Could not fetch product from Shopify, using local data:', err);
       }
     };
     fetchShopifyData();
-  }, [initialProduct.id]);
+  }, [initialProduct.id, initialProduct.handle]);
 
   // Fetch related products
   useEffect(() => {
@@ -340,15 +356,24 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 </div>
 
                 {/* Description Snippet */}
-                <p className="text-slate-600 leading-relaxed mb-6">{product.tagline || product.description}</p>
-                {product.features && product.features.length > 0 && (
+                <p className="text-slate-600 leading-relaxed mb-6">{meta.custom_description || product.tagline || product.description}</p>
+                {meta.custom_description_points && meta.custom_description_points.length > 0 ? (
                   <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
-                     {product.features.map((feature, idx) => (
-                       <li key={idx} className="flex items-start gap-2">
-                          <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                          <span><span className="font-bold text-slate-900">{feature.split(':')[0]}:</span> {feature.split(':').slice(1).join(':')}</span>
-                       </li>
-                     ))}
+                    {meta.custom_description_points.map((point: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : product.features && product.features.length > 0 && (
+                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+                    {product.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                        <span><span className="font-bold text-slate-900">{feature.split(':')[0]}:</span> {feature.split(':').slice(1).join(':')}</span>
+                      </li>
+                    ))}
                   </ul>
                 )}
 
@@ -463,8 +488,8 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                 <Timer className="w-5 h-5" />
                             </div>
                             <div>
-                                <h3 className="font-black text-brand-dark uppercase tracking-tighter leading-none text-lg">OFFER ENDS SOON</h3>
-                                <p className="text-[10px] font-bold text-brand-orange uppercase tracking-widest mt-0.5">Limited Time Discount</p>
+                                <h3 className="font-black text-brand-dark uppercase tracking-tighter leading-none text-lg">{meta.timer_title}</h3>
+                                <p className="text-[10px] font-bold text-brand-orange uppercase tracking-widest mt-0.5">{meta.timer_subtitle}</p>
                             </div>
                         </div>
                         <div className="flex gap-1.5">
@@ -502,7 +527,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 >
                    <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
                        {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
-                       {isLoading ? 'PROCESSING...' : (selectedSize ? `ADD TO CART - $${selectedBundlePricing.total.toFixed(2)}` : 'SELECT SIZE')}
+                       {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || `ADD TO CART - $${selectedBundlePricing.total.toFixed(2)}`) : (meta.secondary_cta_text || 'SELECT SIZE'))}
                    </span>
                    {/* Shine effect */}
                    {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}

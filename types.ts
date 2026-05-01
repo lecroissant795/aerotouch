@@ -13,6 +13,36 @@ export interface Product {
   tags?: string[];
   /** Shopify product handle for SEO-friendly URLs (optional, falls back to id) */
   handle?: string;
+  /** Custom metafields for product page customization */
+  metafields?: {
+    custom_description?: string;
+    custom_description_points?: string[];
+    custom_features?: Array<{ label: string; value: string }>;
+    page_layout?: 'primary' | 'secondary' | 'auto';
+    show_kit_combo?: boolean;
+    show_tech_specs?: boolean;
+    show_videos?: boolean;
+    show_expert_section?: boolean;
+    show_trust_badges?: boolean;
+    show_faq?: boolean;
+    show_testimonials?: boolean;
+    timer_title?: string;
+    timer_subtitle?: string;
+    scarcity_message?: string;
+    bundle_options_override?: Array<{
+      quantity: number;
+      label: string;
+      savings_text?: string;
+      highlight?: 'none' | 'popular' | 'best-value';
+    }>;
+    trust_badges_override?: Array<{
+      icon: 'truck' | 'shield' | 'headphones' | 'refresh' | 'star' | 'clock';
+      label: string;
+    }>;
+    faq_override?: Array<{ question: string; answer: string }>;
+    primary_cta_text?: string;
+    secondary_cta_text?: string;
+  };
 }
 
 export interface CartItem extends Product {

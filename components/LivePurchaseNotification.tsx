@@ -9,27 +9,33 @@ type PurchaseNotification = {
 };
 
 const CUSTOMER_NAMES = [
-  'Emma',
-  'Noah',
-  'Olivia',
-  'Liam',
-  'Ava',
-  'Mason',
-  'Sophia',
-  'Ethan',
-  'Mia',
-  'Lucas'
+  // USA
+  'Emma', 'Noah', 'Olivia', 'Liam', 'Ava', 'Mason', 'Sophia', 'Ethan', 'Mia', 'Lucas', 'Isabella', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn', 'Abigail', 'Emily', 'Elizabeth', 'Sofia',
+  // UK
+  'Oliver', 'George', 'Arthur', 'Charlie', 'Harry', 'Freddie', 'Alfie', 'Arlo', 'Theodore', 'Oscar', 'Jack', 'Henry', 'Thomas', 'James', 'William', 'Alexander', 'Max', 'Luca', 'Jacob', 'Leo',
+  // Canada
+  'Liam', 'Emma', 'Noah', 'Olivia', 'Ava', 'Ethan', 'Sophia', 'Lucas', 'Mia', 'Aria', 'Avery', 'Caleb', 'Chloe', 'Emily', 'Ella', 'Grace', 'Jackson', 'Nora', 'Zoe', 'Hannah',
+  // Australia
+  'Oliver', 'Charlotte', 'William', 'Olivia', 'Liam', 'Amelia', 'Ethan', 'Ava', 'Mason', 'Isla', 'Lucas', ' Mia', 'Harper', 'Evelyn', 'Levi', 'Aria', 'Noah', 'Chloe', 'Zoe', 'Lincoln',
+  // Europe (mixed)
+  'Luca', 'Emma', 'Noah', 'Sophie', 'Liam', 'Hannah', 'Jonas', 'Lina', 'Mia', 'Leon', 'Anna', 'Elias', 'Julia', 'Finn', 'Emily', 'Theo', 'Ella', 'Ben', 'Sarah', 'David',
+  // Additional diverse names
+  'Mateo', 'Sofia', 'Diego', 'Valentina', 'Miguel', 'Isabella', 'Javier', 'Camila', 'Carlos', 'Elena', 'Antonio', 'Lucia', 'Francisco', 'Martina', 'Jose', 'Sara', 'Andres', 'Paula', 'Daniel', 'Natalia'
 ];
 
 const CITIES = [
-  'Austin, TX',
-  'Miami, FL',
-  'Denver, CO',
-  'Seattle, WA',
-  'Phoenix, AZ',
-  'Nashville, TN',
-  'Chicago, IL',
-  'San Diego, CA'
+  // USA
+  'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA',
+  'Austin, TX', 'Jacksonville, FL', 'Fort Worth, TX', 'Columbus, OH', 'Charlotte, NC', 'San Francisco, CA', 'Indianapolis, IN', 'Seattle, WA', 'Denver, CO', 'Washington, DC',
+  // UK
+  'London, UK', 'Manchester, UK', 'Birmingham, UK', 'Liverpool, UK', 'Leeds, UK', 'Glasgow, UK', 'Edinburgh, UK', 'Bristol, UK',
+  // Canada
+  'Toronto, ON', 'Vancouver, BC', 'Montreal, QC', 'Calgary, AB', 'Ottawa, ON', 'Edmonton, AB', 'Winnipeg, MB', 'Quebec City, QC',
+  // Australia
+  'Sydney, NSW', 'Melbourne, VIC', 'Brisbane, QLD', 'Perth, WA', 'Adelaide, SA', 'Gold Coast, QLD', 'Newcastle, NSW',
+  // Europe
+  'Paris, France', 'Berlin, Germany', 'Madrid, Spain', 'Rome, Italy', 'Amsterdam, Netherlands', 'Barcelona, Spain', 'Munich, Germany', 'Milan, Italy',
+  'Stockholm, Sweden', 'Oslo, Norway', 'Copenhagen, Denmark', 'Zurich, Switzerland', 'Vienna, Austria', 'Brussels, Belgium', 'Dublin, Ireland'
 ];
 
 const MAIN_PRODUCT = 'Massage Insoles';
@@ -73,7 +79,7 @@ const createNotification = (): PurchaseNotification => ({
   customer: randomItem(CUSTOMER_NAMES),
   city: randomItem(CITIES),
   product: pickWeightedProduct(),
-  minutesAgo: Math.floor(Math.random() * 8) + 1
+  minutesAgo: Math.floor(Math.random() * 15) + 1 // 1-15 minutes
 });
 
 type LivePurchaseNotificationProps = {
@@ -143,7 +149,7 @@ export const LivePurchaseNotification: React.FC<LivePurchaseNotificationProps> =
               <span className="font-extrabold text-brand-orange">{notification.product}</span>.
             </p>
             <div className="mt-3 flex items-center justify-between gap-3">
-              <p className="text-[11px] font-medium text-slate-400">{notification.minutesAgo} min ago</p>
+              <p className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">{notification.minutesAgo} min ago</p>
               <button
                 type="button"
                 onClick={onCtaClick}

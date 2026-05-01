@@ -22,7 +22,8 @@ function filterProductsByQuery(products: Product[], query: string): Product[] {
     const tagline = (p.tagline || '').toLowerCase();
     const desc = (p.description || '').toLowerCase();
     const features = (p.features || []).join(' ').toLowerCase();
-    return name.includes(q) || tagline.includes(q) || desc.includes(q) || features.includes(q);
+    const tags = (p.tags || []).join(' ').toLowerCase();
+    return name.includes(q) || tagline.includes(q) || desc.includes(q) || features.includes(q) || tags.includes(q);
   });
 }
 
@@ -47,24 +48,18 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuer
     const fetchSearch = async () => {
       setLoading(true);
       try {
-        try {
-          const shopifyProducts = await shopify.product.fetchQuery({ query, first: 20 });
-          if (shopifyProducts && shopifyProducts.length > 0) {
-            setProducts(shopifyProducts.map(mapShopifyProduct));
-            setLoading(false);
-            return;
-          }
-        } catch {
-          // fall through
-        }
-        const shopifyProducts = await shopify.product.fetchAll(20);
-        if (shopifyProducts && shopifyProducts.length > 0) {
-          setProducts(filterProductsByQuery(shopifyProducts.map(mapShopifyProduct), query));
+        // Fetch products from Shopify (this works - used elsewhere in the app)
+        const allProducts = await shopify.product.fetchAll(100);
+        if (allProducts && allProducts.length > 0) {
+          const mappedProducts = allProducts.map(mapShopifyProduct);
+          const filtered = filterProductsByQuery(mappedProducts, query);
+          setProducts(filtered);
         } else {
+          // If Shopify returns nothing, use fallback
           setProducts(filterProductsByQuery(FALLBACK_PRODUCTS, query));
         }
       } catch (err) {
-        console.warn('Search fallback to local data:', err);
+        console.warn('Search failed, using fallback data:', err);
         setProducts(filterProductsByQuery(FALLBACK_PRODUCTS, query));
       } finally {
         setLoading(false);
