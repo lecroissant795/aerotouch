@@ -2,80 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Info, Layers, Activity, Zap, ShieldCheck, Globe, Trophy, Star, Check, X, ThumbsUp, Smile, Truck, Gift, Flame, Heart, Timer, Sparkles, Play, BadgeCheck, MoreHorizontal, MessageSquare, Share2, Quote, Award, Shield, Droplets, Scissors, ArrowLeftRight, ShoppingBag, Users, Copy } from 'lucide-react';
 import { ReferralSection } from './ReferralSection';
 import { GivingBackSection } from './GivingBackSection';
-import { ProductCard } from './ProductCard';
 import { Product } from '../types';
-import { shopify } from '../utils/shopify';
-import { mapShopifyProduct } from '../utils/mapper';
 import { sectionImages, reviewVideos, reviewAvatars, reviewPhotos } from '../utils/mediaUrls';
-
-const FALLBACK_PRODUCTS: Product[] = [
-  {
-    id: 'massage-insoles',
-    name: 'AeroTouch Massage Insoles',
-    tagline: 'Therapeutic acupressure with every step',
-    price: 34.00,
-    rating: 4.9,
-    reviews: 1540,
-    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
-    features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'],
-    description: ''
-  },
-  {
-    id: 'massage-roller',
-    name: 'Massage Roller',
-    tagline: 'Deep tissue recovery for sore feet',
-    price: 19.00,
-    rating: 4.8,
-    reviews: 820,
-    image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
-    features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
-    description: ''
-  },
-  {
-    id: 'heel-cushion-pad',
-    name: 'Heel Cushion Pad',
-    tagline: 'Instant impact protection for heels',
-    price: 24.00,
-    rating: 4.9,
-    reviews: 2100,
-    image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop',
-    features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'],
-    description: ''
-  },
-  {
-    id: 'compression-socks',
-    name: 'Compression Socks',
-    tagline: 'Boost circulation and reduce swelling',
-    price: 29.00,
-    rating: 4.7,
-    reviews: 940,
-    image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=800&auto=format&fit=crop',
-    features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
-    description: ''
-  },
-  {
-    id: 'fascilites-relief',
-    name: 'Fascilites Relief Kit',
-    tagline: 'Complete recovery system',
-    price: 48.00,
-    rating: 5.0,
-    reviews: 3200,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
-    features: ['Elite Insoles', 'Massage Ball', 'Instructional Guide'],
-    description: ''
-  },
-  {
-    id: 'height-insoles',
-    name: 'Height Insoles',
-    tagline: 'Discreet elevation with maximum comfort',
-    price: 39.00,
-    rating: 4.8,
-    reviews: 1100,
-    image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
-    features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
-    description: ''
-  }
-];
 
 const BUILT_FOR_PURPOSES = [
   { id: 'lifts', label: 'Heavy Lifts', image: sectionImages.heavyLift },
@@ -174,11 +102,10 @@ interface ProductTechSpecsProps {
   onNavigateToBlog?: () => void;
 }
 
-export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProductId, onProductSelect, onNavigateToBlog }) => {
+export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateToBlog }) => {
   const [activeFeature, setActiveFeature] = useState(-1);
   const [builtForIndex, setBuiltForIndex] = useState(0);
   const [splitPos, setSplitPos] = useState(50);
-  const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false);
   const [isTablet, setIsTablet] = useState(typeof window !== 'undefined' ? (window.innerWidth >= MOBILE_BREAKPOINT && window.innerWidth < TABLET_BREAKPOINT) : false);
   const [playingVideoId, setPlayingVideoId] = useState<number | null>(null);
@@ -260,31 +187,6 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
     setTextReviewSlideIndex(Math.max(0, Math.min(activeIndex, TEXT_REVIEW_COUNT - 1)));
   };
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const shopifyProducts = await shopify.product.fetchAll(20);
-        if (shopifyProducts && shopifyProducts.length > 0) {
-          const mapped = shopifyProducts.map(mapShopifyProduct);
-          const filtered = mapped.filter(p => p.id !== currentProductId);
-          const shuffled = filtered.sort(() => Math.random() - 0.5);
-          setSuggestedProducts(shuffled.slice(0, 4));
-        } else {
-          setFallbackSuggestions();
-        }
-      } catch {
-        setFallbackSuggestions();
-      }
-    };
-
-    const setFallbackSuggestions = () => {
-      const filtered = FALLBACK_PRODUCTS.filter(p => p.id !== currentProductId);
-      const shuffled = filtered.sort(() => Math.random() - 0.5);
-      setSuggestedProducts(shuffled.slice(0, 4));
-    };
-
-    fetchProducts();
-  }, [currentProductId]);
 
   const handleSplitMove = (clientX: number) => {
     if (!splitRef.current) return;
@@ -1213,32 +1115,6 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
         </div>
       </section>
 
-      {/* You May Also Like Section */}
-      {suggestedProducts.length > 0 && (
-        <section className="bg-white py-24 border-t border-slate-100">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-                <div>
-                  <span className="text-brand-orange text-[10px] font-black uppercase tracking-[0.2em] mb-4 block">Recommended for you</span>
-                  <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight uppercase">You May Also Like</h2>
-                </div>
-                <p className="text-slate-500 font-medium max-w-sm">Complete your recovery kit with these essential add-ons designed for maximum comfort.</p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {suggestedProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onClick={onProductSelect || (() => {})}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* More Customer Reviews Section */}
       <section className="bg-slate-50 py-24 border-t border-slate-100">
