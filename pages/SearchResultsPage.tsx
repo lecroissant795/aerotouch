@@ -3,7 +3,7 @@ import { ProductCard } from '../components/ProductCard';
 import { Product } from '../types';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
-import { PageHero } from '../components/PageHero';
+
 
 const FALLBACK_PRODUCTS: Product[] = [
   { id: 'massage-insoles', name: 'AeroTouch Massage Insoles', tagline: 'Therapeutic acupressure with every step', price: 25, rating: 4.9, reviews: 1540, image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop', features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'], description: '' },
@@ -97,7 +97,6 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuer
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 };
