@@ -11,17 +11,19 @@ import {
   ArrowRight,
   ShoppingBag,
   Tag,
-  Package
+  Package,
+  TicketPercent
 } from 'lucide-react';
-import { CartItem } from '../types';
+import { CartItem, Product } from '../types';
 import { Button } from './Button';
 import {
-  getLinePricing,
+  getApplicablePricingTier,
   getNextPricingTier,
   getPricingProgress,
   PRICING_TIER_POSITIONS,
   PRICING_TIERS
 } from '../utils/pricing';
+import { getCartLineDisplay, sumCartFinalSubtotals, sumCartLineSavings } from '../utils/cartLineDisplay';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -33,31 +35,16 @@ interface CartDrawerProps {
   /** Called when user taps "Make it a kit" — e.g. close cart and navigate to kits. */
   onMakeItAKit?: () => void;
   isLoading?: boolean;
+  /** Live catalog from Shopify — used for rotating cart upsells */
+  shopProducts?: Product[];
+  onUpsellAdd?: (product: Product) => void;
+  onUpsellView?: (product: Product) => void;
+  appliedPromoCodes?: string[];
+  promoApplyError?: string | null;
+  onApplyPromoCode?: (code: string) => void | Promise<void>;
+  onRemovePromoCodes?: () => void | Promise<void>;
+  onDismissPromoError?: () => void;
 }
-
-const UPSELL_PRODUCTS = [
-  {
-    name: 'Massage Roller',
-    price: 29,
-    compareAt: 45,
-    image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=400&auto=format&fit=crop',
-    blurb: 'Add deep tissue relief in seconds with our pro-grade roller.'
-  },
-  {
-    name: 'Recovery Band',
-    price: 19,
-    compareAt: 32,
-    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop',
-    blurb: 'Targeted resistance for calves and arches.'
-  },
-  {
-    name: 'Travel Case',
-    price: 15,
-    compareAt: 24,
-    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&auto=format&fit=crop',
-    blurb: 'Keep your insoles clean and ready on the go.'
-  }
-];
 
 const UPSELL_ROTATE_SECONDS = 10;
 
@@ -91,27 +78,75 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onCheckout,
   onMakeItAKit,
-  isLoading = false
+  isLoading = false,
+  shopProducts = [],
+  onUpsellAdd,
+  onUpsellView,
+  appliedPromoCodes = [],
+  promoApplyError = null,
+  onApplyPromoCode,
+  onRemovePromoCodes,
+  onDismissPromoError
 }) => {
+  const [promoInput, setPromoInput] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(CART_RESERVE_SECONDS);
   const [currentUpsellIndex, setCurrentUpsellIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const upsellRotateRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    if (isOpen && items.length > 0) {
-      setCurrentUpsellIndex(0);
-      upsellRotateRef.current = setInterval(() => {
-        setCurrentUpsellIndex(prev => (prev + 1) % UPSELL_PRODUCTS.length);
-      }, UPSELL_ROTATE_SECONDS * 1000);
+  const eligibleUpsells = useMemo(() => {
+    if (!shopProducts.length) return [];
+    const blocked = new Set<string>();
+    for (const it of items) {
+      if (it.productShopifyId) blocked.add(String(it.productShopifyId));
+      if (it.productHandle) blocked.add(String(it.productHandle));
+      if (it.name) blocked.add(it.name.trim().toLowerCase());
     }
+    return shopProducts.filter(p => {
+      if (p.id && blocked.has(String(p.id))) return false;
+      if (p.handle && blocked.has(String(p.handle))) return false;
+      if (p.name && blocked.has(p.name.trim().toLowerCase())) return false;
+      return true;
+    });
+  }, [shopProducts, items]);
+
+  const upsellBlockerKey = useMemo(
+    () =>
+      items
+        .map(i =>
+          [i.productShopifyId, i.productHandle, i.name?.trim().toLowerCase()]
+            .filter(Boolean)
+            .join(':')
+        )
+        .sort()
+        .join(';'),
+    [items]
+  );
+
+  useEffect(() => {
+    setCurrentUpsellIndex(0);
+  }, [upsellBlockerKey, shopProducts.length]);
+
+  useEffect(() => {
+    if (!isOpen || items.length === 0 || eligibleUpsells.length <= 1) {
+      return () => {
+        if (upsellRotateRef.current) {
+          clearInterval(upsellRotateRef.current);
+          upsellRotateRef.current = null;
+        }
+      };
+    }
+    const n = eligibleUpsells.length;
+    upsellRotateRef.current = setInterval(() => {
+      setCurrentUpsellIndex(prev => (prev + 1) % n);
+    }, UPSELL_ROTATE_SECONDS * 1000);
     return () => {
       if (upsellRotateRef.current) {
         clearInterval(upsellRotateRef.current);
         upsellRotateRef.current = null;
       }
     };
-  }, [isOpen, items.length]);
+  }, [isOpen, items.length, eligibleUpsells]);
 
   useEffect(() => {
     if (isOpen && items.length > 0) {
@@ -140,24 +175,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     [items]
   );
 
-  const subtotal = useMemo(
-    () => items.reduce((sum, item) => sum + getLinePricing(item.price, item.quantity).total, 0),
-    [items]
-  );
+  const subtotal = useMemo(() => sumCartFinalSubtotals(items), [items]);
 
-  const compareAtSubtotal = useMemo(
-    () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [items]
-  );
+  const totalYouSave = useMemo(() => sumCartLineSavings(items), [items]);
 
-  const savings = Math.max(compareAtSubtotal - subtotal, 0);
   const progressWidth = getPricingProgress(itemCount);
   const nextMilestone = getNextPricingTier(itemCount);
-
+  const currentVolumeTier = useMemo(
+    () => getApplicablePricingTier(itemCount),
+    [itemCount]
+  );
   const itemsAway = nextMilestone ? nextMilestone.minQty - itemCount : 0;
   const milestoneMessage = nextMilestone
-    ? `You're ${itemsAway} ${itemsAway === 1 ? 'item' : 'items'} away from a ${nextMilestone.label.replace(' OFF', '')} discount!`
-    : "🎉 Congrats, you've unlocked our best pricing!";
+    ? `Add ${itemsAway} more ${itemsAway === 1 ? 'item' : 'items'} to unlock ${nextMilestone.label} on every item.`
+    : `${currentVolumeTier.label} — best volume tier applied to your cart.`;
+  const milestoneSubtext = nextMilestone
+    ? `Next: ${nextMilestone.discountPercent}% off compare-at / list price (reference) on each item.`
+    : currentVolumeTier.discountPercent > 0
+      ? `You're saving ${currentVolumeTier.discountPercent}% off reference pricing on eligible lines.`
+      : 'Volume discounts start when you have 2+ items in the cart.';
 
   if (!isOpen) return null;
 
@@ -175,7 +211,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         aria-modal="true"
         aria-label="Shopping cart"
       >
-        <div className="flex h-full flex-col bg-brand-light text-brand-dark shadow-[-8px_0_40px_rgba(0,0,0,0.12)]">
+        <div className="flex h-full min-h-0 flex-col bg-brand-light text-brand-dark shadow-[-8px_0_40px_rgba(0,0,0,0.12)]">
           {/* Top accent */}
           <div className="h-[3px] w-full bg-gradient-to-r from-brand-orange via-brand-orange/80 to-transparent" />
 
@@ -203,8 +239,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </button>
           </header>
 
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto px-5 py-4 pb-32">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 py-4">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-orange/15">
@@ -226,28 +262,35 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               ) : (
                 <>
-                  {/* Promotion bar — tags centered on bar, equidistant at 0%, 50%, 100% */}
+                  {/* Promotion bar — tags at tier milestones */}
                   <div className="mb-4">
-                    <p className="text-center text-xs font-bold text-brand-dark mb-3">
+                    <p className="mb-1 text-center text-xs font-bold text-brand-dark">
                       {milestoneMessage}
                     </p>
+                    <p className="mb-2 text-center text-[10px] font-semibold leading-snug text-slate-600">
+                      {milestoneSubtext}
+                    </p>
+                    <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-brand-orange">
+                      Now: {currentVolumeTier.label}
+                      {currentVolumeTier.discountPercent > 0
+                        ? ` · ${currentVolumeTier.discountPercent}% off reference`
+                        : ' · standard pricing'}
+                    </p>
                     <div className="relative w-full">
-                      {/* Bar + tag circles */}
                       <div className="relative flex h-6 w-full items-center">
-                        {/* Track bg */}
                         <div className="absolute inset-0 flex items-center">
                           <div className="h-2.5 w-full rounded-full bg-[#D9D9D9]">
                             <div
                               className="h-full rounded-full transition-all duration-500 animate-bar-stripe-run"
                               style={{
                                 width: `${progressWidth}%`,
-                                backgroundImage: 'repeating-linear-gradient(-45deg, #C1F11D 0px, #C1F11D 4px, rgba(163, 224, 23, 0.7) 4px, rgba(163, 224, 23, 0.7) 8px)',
+                                backgroundImage:
+                                  'repeating-linear-gradient(-45deg, #C1F11D 0px, #C1F11D 4px, rgba(163, 224, 23, 0.7) 4px, rgba(163, 224, 23, 0.7) 8px)',
                                 backgroundSize: '11.31px 11.31px'
                               }}
                             />
                           </div>
                         </div>
-                        {/* Tag circles at pricing milestones */}
                         {PRICING_TIER_POSITIONS.map((leftPct, i) => (
                           <div
                             key={i}
@@ -262,7 +305,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           </div>
                         ))}
                       </div>
-                      {/* Labels pinned under each tag circle */}
                       <div className="relative mt-1.5 h-4">
                         {PRICING_TIERS.map((m, i) => (
                           <span
@@ -283,9 +325,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   {/* Cart items */}
                   <ul className="space-y-3">
                     {items.map(item => {
-                      const linePricing = getLinePricing(item.price, item.quantity);
-                      const compareAtPrice = item.price;
-                      const discountPercent = linePricing.discountPercent;
+                      const line = getCartLineDisplay(item, itemCount);
+                      const eachFinal =
+                        line.quantity > 0
+                          ? Math.round((line.finalLineSubtotal / line.quantity) * 100) / 100
+                          : 0;
                       return (
                         <li
                           key={`${item.id}-${item.selectedSize}-${item.selectedColor}`}
@@ -356,15 +400,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                             </div>
                           </div>
                           <div className="shrink-0 text-right">
-                            <p className="text-[10px] text-slate-400 line-through">
-                              {formatCurrency(compareAtPrice)}
+                            {line.showStrikethrough && (
+                              <p className="text-sm font-semibold text-slate-400 line-through decoration-2">
+                                {formatCurrency(line.originalSubtotal)}
+                              </p>
+                            )}
+                            <p className="text-base font-bold text-brand-orange tabular-nums">
+                              {formatCurrency(line.finalLineSubtotal)}
                             </p>
-                            <p className="text-base font-bold text-brand-orange">
-                              {formatCurrency(linePricing.unitPrice)}
-                            </p>
-                            <p className="text-[10px] font-medium text-brand-orange">
-                              Save {discountPercent}%
-                            </p>
+                            {line.lineSavings > 0 && (
+                              <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-lime-700">
+                                Save {formatCurrency(line.lineSavings)} on this item
+                              </p>
+                            )}
+                            {line.quantity > 1 && (
+                              <p className="text-[10px] font-medium text-slate-500 tabular-nums">
+                                {formatCurrency(eachFinal)} each
+                              </p>
+                            )}
                           </div>
                         </li>
                       );
@@ -415,40 +468,62 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
                   )}
 
-                  {/* Add more — rotates to next product every 10s so customer can discover other add-ons */}
-                  {(() => {
-                    const upsellProduct = UPSELL_PRODUCTS[currentUpsellIndex];
+                  {/* Add more — real store products; rotates when 2+ eligible */}
+                  {eligibleUpsells.length > 0 && onUpsellAdd && (() => {
+                    const upsellProduct =
+                      eligibleUpsells[currentUpsellIndex % eligibleUpsells.length];
+                    const showCompare =
+                      upsellProduct.compareAtPrice != null &&
+                      upsellProduct.compareAtPrice > upsellProduct.price;
                     return (
-                      <div
-                        key={upsellProduct.name}
-                        className="mt-5 flex items-center gap-3 rounded-2xl bg-slate-100 border border-slate-200/80 p-3 shadow-sm animate-in fade-in duration-300"
-                      >
-                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#FF7F27]">
-                          <img
-                            src={upsellProduct.image}
-                            alt={upsellProduct.name}
-                            className="h-full w-full object-cover object-center"
-                          />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="text-sm font-extrabold leading-tight text-black">
-                            {upsellProduct.name}
-                          </h4>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-sm font-bold text-[#F77421]">
-                            {formatCurrency(upsellProduct.price)}
-                          </p>
-                          <p className="text-[11px] text-slate-400 line-through">
-                            {formatCurrency(upsellProduct.compareAt)}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          className="shrink-0 rounded-xl bg-black px-4 py-2 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-slate-800"
+                      <div className="mt-5">
+                        <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          From the shop
+                        </p>
+                        <div
+                          key={upsellProduct.id}
+                          className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-100 p-3 shadow-sm animate-in fade-in duration-300"
                         >
-                          ADD
-                        </button>
+                          <button
+                            type="button"
+                            className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#FF7F27] text-left transition hover:opacity-90"
+                            onClick={() => onUpsellView?.(upsellProduct)}
+                            aria-label={`View ${upsellProduct.name}`}
+                          >
+                            <img
+                              src={upsellProduct.image}
+                              alt=""
+                              className="h-full w-full object-cover object-center"
+                            />
+                          </button>
+                          <button
+                            type="button"
+                            className="min-w-0 flex-1 text-left transition hover:opacity-80"
+                            onClick={() => onUpsellView?.(upsellProduct)}
+                          >
+                            <h4 className="text-sm font-extrabold leading-tight text-black">
+                              {upsellProduct.name}
+                            </h4>
+                          </button>
+                          <div className="shrink-0 text-right">
+                            <p className="text-sm font-bold text-[#F77421]">
+                              {formatCurrency(upsellProduct.price)}
+                            </p>
+                            {showCompare && (
+                              <p className="text-[11px] text-slate-400 line-through">
+                                {formatCurrency(upsellProduct.compareAtPrice!)}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            className="shrink-0 rounded-xl bg-black px-4 py-2 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={isLoading}
+                            onClick={() => onUpsellAdd(upsellProduct)}
+                          >
+                            Add
+                          </button>
+                        </div>
                       </div>
                     );
                   })()}
@@ -493,20 +568,97 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               )}
             </div>
 
-            {/* Footer */}
+            {/* Footer — shrink-0 so scroll area gets remaining height; avoids clipping vs absolute + guessed padding */}
             {items.length > 0 && (
-              <footer className="absolute inset-x-0 bottom-0 border-t border-slate-200 bg-brand-light px-5 py-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">You save</span>
-                  <span className="font-bold text-lime-600">
-                    {formatCurrency(Number.isFinite(savings) ? savings : 0)}
+              <footer className="shrink-0 border-t border-slate-200 bg-brand-light px-5 py-4">
+                {onApplyPromoCode && (
+                  <div className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <TicketPercent className="h-4 w-4 shrink-0 text-brand-orange" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">
+                        Promo code
+                      </span>
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        type="text"
+                        value={promoInput}
+                        onChange={e => {
+                          setPromoInput(e.target.value);
+                          onDismissPromoError?.();
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && promoInput.trim() && !isLoading) {
+                            e.preventDefault();
+                            void onApplyPromoCode(promoInput);
+                            setPromoInput('');
+                          }
+                        }}
+                        placeholder="Enter code"
+                        autoComplete="off"
+                        autoCapitalize="characters"
+                        className="min-w-0 flex-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-brand-dark placeholder:text-slate-400 focus:border-brand-orange focus:bg-white focus:outline-none"
+                        disabled={isLoading}
+                      />
+                      <button
+                        type="button"
+                        disabled={isLoading || !promoInput.trim()}
+                        onClick={() => {
+                          const c = promoInput.trim();
+                          if (!c) return;
+                          void onApplyPromoCode(c);
+                          setPromoInput('');
+                        }}
+                        className="shrink-0 rounded-xl bg-brand-dark px-4 py-2 text-xs font-black uppercase tracking-wide text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                    {appliedPromoCodes.length > 0 && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                          Applied:
+                        </span>
+                        {appliedPromoCodes.map(code => (
+                          <span
+                            key={code}
+                            className="rounded-lg bg-lime-100 px-2 py-0.5 text-[11px] font-bold text-lime-900"
+                          >
+                            {code}
+                          </span>
+                        ))}
+                        {onRemovePromoCodes && (
+                          <button
+                            type="button"
+                            onClick={() => void onRemovePromoCodes()}
+                            disabled={isLoading}
+                            className="text-[11px] font-bold text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-red-600 disabled:opacity-45"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {promoApplyError && (
+                      <p className="mt-2 text-xs font-medium text-red-600">{promoApplyError}</p>
+                    )}
+                  </div>
+                )}
+                <div className="mt-5 flex items-center justify-between text-base">
+                  <span className="font-extrabold uppercase tracking-wide text-slate-600">
+                    You Save:
+                  </span>
+                  <span
+                    className={`font-extrabold uppercase tabular-nums tracking-wide ${totalYouSave > 0 ? 'text-lime-600' : 'text-slate-400'}`}
+                  >
+                    {formatCurrency(totalYouSave)}
                   </span>
                 </div>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-base font-semibold text-brand-dark">
+                <div className="mt-5 flex items-center justify-between text-base">
+                  <span className="font-extrabold uppercase tracking-wide text-brand-dark">
                     Total
                   </span>
-                  <span className="text-xl font-bold text-brand-dark">
+                  <span className="font-extrabold uppercase tabular-nums tracking-wide text-brand-dark">
                     {formatCurrency(subtotal)}
                   </span>
                 </div>

@@ -10,6 +10,21 @@ export interface SocialProofData {
     isLoading: boolean;
 }
 
+export type SocialProofViewersProfile = 'primary' | 'secondary';
+
+export interface SocialProofOptions {
+    /**
+     * Simulated “viewers” count: primary PDP uses 300 &lt; x &lt; 630, secondary PDP uses 63 &lt; x &lt; 120 (integers).
+     * Review baselines still follow `productId` keywords.
+     */
+    viewersProfile?: SocialProofViewersProfile;
+}
+
+/** Uniform random integer x with min &lt; x &lt; max (strict). */
+function randomIntStrictBetween(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min - 1)) + min + 1;
+}
+
 // Configuration for mock data generation
 const MOCK_CONFIG: Record<string, { baseViewers: number; baseReviews: number; baseRating: number }> = {
     // High traffic items
@@ -22,7 +37,9 @@ const MOCK_CONFIG: Record<string, { baseViewers: number; baseReviews: number; ba
     'accessory': { baseViewers: 12, baseReviews: 85, baseRating: 4.6 },
 };
 
-export const useSocialProof = (productId: string) => {
+export const useSocialProof = (productId: string, options?: SocialProofOptions) => {
+    const viewersProfile: SocialProofViewersProfile = options?.viewersProfile ?? 'primary';
+
     const [data, setData] = useState<SocialProofData>({
         viewers: 0,
         reviewCount: 0,
@@ -45,12 +62,10 @@ export const useSocialProof = (productId: string) => {
 
     // 2. Real-time "Viewers" simulation
     useEffect(() => {
-        // Initial random value within range of baseline (e.g., +/- 20%)
-        const variance = Math.floor(baseline.baseViewers * 0.2);
-        let currentViewers = baseline.baseViewers + Math.floor(Math.random() * variance * 2) - variance;
-
-        // Ensure minimal viable number
-        if (currentViewers < 5) currentViewers = 8;
+        const currentViewers =
+            viewersProfile === 'secondary'
+                ? randomIntStrictBetween(63, 120)
+                : randomIntStrictBetween(300, 630);
 
         setData(prev => ({ ...prev, viewers: currentViewers }));
 
@@ -65,7 +80,7 @@ export const useSocialProof = (productId: string) => {
         }, 4000); // Update every 4s
 
         return () => clearInterval(interval);
-    }, [productId]);
+    }, [productId, viewersProfile]);
 
     // 3. Fetch Real Reviews & Combine with Mock Count
     useEffect(() => {

@@ -60,6 +60,19 @@ const tagsMatchAny = (product: Product, keywords: string[]): boolean => {
 /**
  * Determine if product is a secondary/accessory product
  */
+/** Shopify / local handle for the Massage Roller PDP (custom page + compare-at pricing). */
+export const MASSAGE_ROLLER_HANDLE = 'massage-roller';
+
+export const isMassageRollerProduct = (product: Product): boolean => {
+  const handle = (product.handle || '').toLowerCase();
+  if (handle === MASSAGE_ROLLER_HANDLE) return true;
+  const name = (product.name || '').toLowerCase();
+  if (name.includes('massage roller') && !name.includes('insole')) return true;
+  const id = String(product.id || '').toLowerCase();
+  if (id === MASSAGE_ROLLER_HANDLE) return true;
+  return false;
+};
+
 export const isSecondaryProduct = (product: Product): boolean => {
   // 1. If product has 'insole' in tags, it's NOT secondary
   if (tagsMatchAny(product, MAIN_TAG_KEYWORDS)) {

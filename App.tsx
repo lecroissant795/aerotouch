@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { LandingPage } from './pages/LandingPage';
@@ -8,6 +8,7 @@ import { BlogPage } from './pages/BlogPage';
 import { BlogPostPage } from './pages/BlogPostPage';
 import { SupportPage } from './pages/SupportPage';
 import { CartDrawer } from './components/CartDrawer';
+import { CheckoutUpsellModal } from './components/CheckoutUpsellModal';
 import { SalesBanner } from './components/SalesBanner';
 import { DiscountPopup } from './components/DiscountPopup';
 import { ReferralPopup } from './components/ReferralPopup';
@@ -15,7 +16,7 @@ import { LivePurchaseNotification } from './components/LivePurchaseNotification'
 import { Product, CartItem, Page, BlogPost, BundleKit } from './types';
 import { shopify } from './utils/shopify';
 import { mapShopifyProduct, mapShopifyLineItem } from './utils/mapper';
-import { fetchProductByHandle, fetchAllProducts } from './utils/productFetcher';
+import { fetchProductByHandle } from './utils/productFetcher';
 import { ShopPage } from './pages/ShopPage';
 import { SearchResultsPage } from './pages/SearchResultsPage';
 import { BestSellersPage } from './pages/BestSellersPage';
@@ -30,18 +31,47 @@ import { KitProductPage } from './pages/KitProductPage';
 import { AccessoriesPage } from './pages/AccessoriesPage';
 import { WarrantyPage } from './pages/WarrantyPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
+import { MassageRollerPage } from './pages/MassageRollerPage';
 import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
-import { isSecondaryProduct, getProductClassificationDebug } from './utils/productDetection';
+import { isSecondaryProduct, isMassageRollerProduct, getProductClassificationDebug } from './utils/productDetection';
 import { SizeSelectorModal } from './components/SizeSelectorModal';
 import { useRouter } from './utils/router';
 import {
   getShopifyHandle,
   getShopifyId,
   getFallbackProduct,
+  getCartProductLookupKey,
   hasShopifyMapping,
   KNOWN_PRODUCT_IDS,
   PRODUCT_DATA_MAP
 } from './utils/productMapping';
+import { resolveMassageInsoleUpsell } from './utils/checkoutUpsell';
+import { extractDiscountCodesFromCheckout } from './utils/checkoutPromo';
+import { sumCartFinalSubtotals } from './utils/cartLineDisplay';
+
+/**
+ * Resolve a Shopify variant for checkout. Only requires Size/Color to match when those
+ * options exist on the variant (accessories often use "Title" only — UI defaults like
+ * "Black" / "One Size" must not break add-to-cart).
+ */
+function findCheckoutVariant(shopifyProduct: any, size: string, color: string): any | undefined {
+  const variants = shopifyProduct?.variants;
+  if (!variants || variants.length === 0) return undefined;
+
+  const match = variants.find((v: any) => {
+    const opts = v.selectedOptions || [];
+    const opt = (name: string) => opts.find((o: any) => o.name === name)?.value;
+    const vSize = opt('Size');
+    const vColor = opt('Color');
+    if (vSize !== undefined && vSize !== size) return false;
+    if (vColor !== undefined && vColor !== color) return false;
+    return true;
+  });
+
+  if (match) return match;
+  if (variants.length === 1) return variants[0];
+  return undefined;
+}
 
 // Import static data for blog posts and bundle kits
 import { BLOG_POSTS } from './pages/BlogPage';
@@ -135,6 +165,33 @@ function App() {
   const [isCartLoading, setIsCartLoading] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
+  /** Store catalog for cart upsells (real Shopify products, mapped) */
+  const [shopCatalogProducts, setShopCatalogProducts] = useState<Product[]>([]);
+  const [checkoutUpsellOpen, setCheckoutUpsellOpen] = useState(false);
+
+  const checkoutUpsellContext = useMemo(
+    () => resolveMassageInsoleUpsell(cartItems),
+    [cartItems]
+  );
+
+  const cartTotalItemCount = useMemo(
+    () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
+    [cartItems]
+  );
+
+  const [appliedPromoCodes, setAppliedPromoCodes] = useState<string[]>([]);
+  const [promoApplyError, setPromoApplyError] = useState<string | null>(null);
+
+  const applyCartCheckout = useCallback((checkout: any) => {
+    if (!checkout) return;
+    if (Array.isArray(checkout.lineItems)) {
+      setCartItems(checkout.lineItems.map(mapShopifyLineItem));
+    } else {
+      setCartItems([]);
+    }
+    if (checkout.webUrl) setCheckoutUrl(checkout.webUrl);
+    setAppliedPromoCodes(extractDiscountCodesFromCheckout(checkout));
+  }, []);
 
   // Page-specific data states
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -155,7 +212,7 @@ function App() {
     logPageView();
   }, [page]);
 
-  // Diagnostic: Log all Shopify products on startup
+  // Diagnostic: Log all Shopify products on startup + hydrate cart upsell catalog
   useEffect(() => {
     const logShopifyProducts = async () => {
       if (!shopify) {
@@ -169,6 +226,7 @@ function App() {
           console.log(`[Diagnostic] ID: ${p.id} | Handle: ${p.handle} | Title: ${p.title}`);
         });
         console.log('[Diagnostic] ====================================');
+        setShopCatalogProducts(products.map(mapShopifyProduct));
       } catch (e) {
         console.error('[Diagnostic] Failed to fetch Shopify products:', e);
       }
@@ -193,8 +251,7 @@ function App() {
         try {
           const checkout = await shopify.checkout.fetch(checkoutId);
           if (checkout && !checkout.completedAt) {
-            setCheckoutUrl(checkout.webUrl);
-            setCartItems(checkout.lineItems.map(mapShopifyLineItem));
+            applyCartCheckout(checkout);
             return;
           }
         } catch (e) {
@@ -207,7 +264,7 @@ function App() {
         const checkout = await shopify.checkout.create();
         setCheckoutId(String(checkout.id));
         localStorage.setItem('shopify_checkout_id', String(checkout.id));
-        setCheckoutUrl(checkout.webUrl);
+        applyCartCheckout(checkout);
       } catch (e) {
         console.error("Failed to create checkout", e);
         setCartError("Failed to initialize checkout. Please refresh.");
@@ -215,7 +272,7 @@ function App() {
     };
 
     initCheckout();
-  }, [checkoutId]);
+  }, [checkoutId, applyCartCheckout]);
 
   // Fetch product when handle changes
   useEffect(() => {
@@ -350,13 +407,13 @@ function App() {
     setCartError(null);
 
     try {
-      // Use mapped handle for Shopify fetch
-      const shopifyHandle = getShopifyHandle(product.id);
-      console.log('[Cart] Using handle:', shopifyHandle, 'for product:', product.name);
+      const lookupKey = getCartProductLookupKey(product);
+      const shopifyHandle = getShopifyHandle(lookupKey);
+      console.log('[Cart] Using handle:', shopifyHandle, 'lookupKey:', lookupKey, 'for product:', product.name);
 
       let shopifyProduct = await shopify.product.fetchByHandle(shopifyHandle);
-      if (!shopifyProduct && hasShopifyMapping(product.id)) {
-        shopifyProduct = await shopify.product.fetchByHandle(product.id);
+      if (!shopifyProduct && hasShopifyMapping(lookupKey)) {
+        shopifyProduct = await shopify.product.fetchByHandle(lookupKey);
       }
       if (!shopifyProduct) {
         shopifyProduct = await shopify.product.fetch(product.id);
@@ -374,8 +431,7 @@ function App() {
         { variantId: firstVariant.id, quantity: 1 },
       ]);
 
-      setCartItems(checkout.lineItems.map(mapShopifyLineItem));
-      setCheckoutUrl(checkout.webUrl);
+      applyCartCheckout(checkout);
       logAddToCart(product.name, product.price);
       setIsCartOpen(true);
     } catch (e) {
@@ -391,19 +447,25 @@ function App() {
     await handleAddToCart(product, size, color, quantity);
   };
 
-  const handleAddToCart = async (product: Product, size: string, color: string, quantity = 1, openCart = true): Promise<string | null> => {
+  const handleAddToCart = async (
+    product: Product,
+    size: string,
+    color: string,
+    quantity = 1,
+    openCart = true
+  ): Promise<{ webUrl: string | null; lineItems: CartItem[] } | null> => {
     if (!checkoutId || !shopify) return null;
     setIsCartLoading(true);
     setCartError(null);
 
     try {
-      // Use mapped handle for Shopify fetch
-      const shopifyHandle = getShopifyHandle(product.id);
-      console.log('[Cart] Adding to cart - using handle:', shopifyHandle, 'for product:', product.name);
+      const lookupKey = getCartProductLookupKey(product);
+      const shopifyHandle = getShopifyHandle(lookupKey);
+      console.log('[Cart] Adding to cart - using handle:', shopifyHandle, 'lookupKey:', lookupKey, 'for product:', product.name);
 
       let shopifyProduct = await shopify.product.fetchByHandle(shopifyHandle);
-      if (!shopifyProduct && hasShopifyMapping(product.id)) {
-        shopifyProduct = await shopify.product.fetchByHandle(product.id);
+      if (!shopifyProduct && hasShopifyMapping(lookupKey)) {
+        shopifyProduct = await shopify.product.fetchByHandle(lookupKey);
       }
       if (!shopifyProduct) {
         shopifyProduct = await shopify.product.fetch(product.id);
@@ -416,11 +478,7 @@ function App() {
         return null;
       }
 
-      const variant = shopifyProduct.variants.find((v: any) => {
-        const vSize = v.selectedOptions.find((o: any) => o.name === 'Size')?.value;
-        const vColor = v.selectedOptions.find((o: any) => o.name === 'Color')?.value;
-        return vSize === size && vColor === color;
-      });
+      const variant = findCheckoutVariant(shopifyProduct, size, color);
 
       if (variant) {
         const lineItemsToAdd = [{
@@ -429,14 +487,14 @@ function App() {
         }];
 
         const checkout = await shopify.checkout.addLineItems(checkoutId, lineItemsToAdd);
-        setCartItems(checkout.lineItems.map(mapShopifyLineItem));
-        setCheckoutUrl(checkout.webUrl);
+        applyCartCheckout(checkout);
+        const lineItems = checkout.lineItems.map(mapShopifyLineItem);
         logAddToCart(product.name, product.price * quantity);
 
         if (openCart) {
           setIsCartOpen(true);
         }
-        return checkout.webUrl || null;
+        return { webUrl: checkout.webUrl || null, lineItems };
       } else {
         console.error("Variant not found for", size, color);
         setCartError(`Variant not found: ${size} / ${color}`);
@@ -462,7 +520,7 @@ function App() {
 
            const lineItemsToUpdate = [{ id: id, quantity: newQty }];
            const checkout = await shopify.checkout.updateLineItems(checkoutId, lineItemsToUpdate);
-           setCartItems(checkout.lineItems.map(mapShopifyLineItem));
+           applyCartCheckout(checkout);
         }
     } catch (e) {
         setCartItems(prev => prev.map(item => {
@@ -478,43 +536,111 @@ function App() {
      if (!checkoutId || !shopify) return;
      try {
          const checkout = await shopify.checkout.removeLineItems(checkoutId, [id]);
-         setCartItems(checkout.lineItems.map(mapShopifyLineItem));
+         applyCartCheckout(checkout);
      } catch (e) {
         setCartItems(prev => prev.filter(item => !(item.id === id && item.selectedSize === size && item.selectedColor === color)));
      }
   };
 
-  const handleCheckout = () => {
-      if (checkoutUrl) {
-            setIsCartLoading(true);
-
-            const totalValue = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-            logBeginCheckout(
-                cartItems.map(item => ({
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity
-                })),
-                totalValue
-            );
-
-            window.location.href = checkoutUrl;
-        } else {
-            console.warn("No checkout URL available");
-            setCartError("Checkout link not ready yet. Please try again.");
+  const applyPromoCode = useCallback(
+    async (rawCode: string) => {
+      const code = rawCode.trim();
+      if (!checkoutId || !shopify || !code) return;
+      setPromoApplyError(null);
+      setIsCartLoading(true);
+      try {
+        const checkout = await shopify.checkout.addDiscount(checkoutId, code);
+        if (checkout.userErrors?.length) {
+          setPromoApplyError(
+            checkout.userErrors
+              .map((u: { message?: string }) => u.message)
+              .filter(Boolean)
+              .join(' ') || 'Could not apply code.'
+          );
+          return;
         }
-    };
+        applyCartCheckout(checkout);
+      } catch (e: unknown) {
+        let msg = 'Could not apply this code.';
+        if (Array.isArray(e)) {
+          msg = e.map((x: { message?: string }) => x.message || String(x)).join(' ');
+        } else if (e instanceof Error && e.message) {
+          msg = e.message;
+        }
+        setPromoApplyError(msg);
+      } finally {
+        setIsCartLoading(false);
+      }
+    },
+    [checkoutId, shopify, applyCartCheckout]
+  );
+
+  const removePromoCodes = useCallback(async () => {
+    if (!checkoutId || !shopify) return;
+    setPromoApplyError(null);
+    setIsCartLoading(true);
+    try {
+      const checkout = await shopify.checkout.removeDiscount(checkoutId);
+      applyCartCheckout(checkout);
+    } catch (e: unknown) {
+      let msg = 'Could not remove promo.';
+      if (Array.isArray(e)) {
+        msg = e.map((x: { message?: string }) => x.message || String(x)).join(' ');
+      } else if (e instanceof Error && e.message) {
+        msg = e.message;
+      }
+      setPromoApplyError(msg);
+    } finally {
+      setIsCartLoading(false);
+    }
+  }, [checkoutId, shopify, applyCartCheckout]);
+
+  const proceedToHostedCheckout = useCallback(
+    (opts?: { lineItems?: CartItem[]; webUrl?: string | null }) => {
+      const url = opts?.webUrl ?? checkoutUrl;
+      if (!url) {
+        console.warn("No checkout URL available");
+        setCartError("Checkout link not ready yet. Please try again.");
+        return;
+      }
+      setIsCartLoading(true);
+      const items = opts?.lineItems ?? cartItems;
+      const totalValue = sumCartFinalSubtotals(items);
+      logBeginCheckout(
+        items.map(item => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        })),
+        totalValue
+      );
+      window.location.href = url;
+    },
+    [checkoutUrl, cartItems]
+  );
+
+  const handleCartCheckoutClick = useCallback(() => {
+    if (!checkoutUrl || cartItems.length === 0) {
+      setCartError("Checkout link not ready yet. Please try again.");
+      return;
+    }
+    if (checkoutUpsellContext) {
+      setCheckoutUpsellOpen(true);
+      return;
+    }
+    proceedToHostedCheckout();
+  }, [checkoutUrl, cartItems.length, checkoutUpsellContext, proceedToHostedCheckout]);
 
   const handleBuyNow = async (prod: Product, size: string, col: string, qty = 1) => {
-      const directUrl = await handleAddToCart(prod, size, col, qty, false);
-      const finalUrl = directUrl || checkoutUrl;
+    const result = await handleAddToCart(prod, size, col, qty, false);
+    const finalUrl = result?.webUrl || checkoutUrl;
 
-      if (finalUrl) {
-          window.location.href = finalUrl;
-          return;
-      }
+    if (finalUrl) {
+      window.location.href = finalUrl;
+      return;
+    }
 
-      setCartError("Checkout link not ready yet. Please try again.");
+    setCartError("Checkout link not ready yet. Please try again.");
   };
 
   const handleAddKitToCart = (kit: BundleKit, quantity = 1) => {
@@ -568,7 +694,16 @@ function App() {
 
         {page === Page.PRODUCT && (
           selectedProduct ? (
-            isSecondaryProduct(selectedProduct) ? (
+            isMassageRollerProduct(selectedProduct) ? (
+              <MassageRollerPage
+                product={selectedProduct}
+                onAddToCart={handleAddToCart}
+                onBack={() => navigate(Page.SHOP)}
+                onProductSelect={handleProductSelect}
+                isLoading={isCartLoading}
+                error={cartError}
+              />
+            ) : isSecondaryProduct(selectedProduct) ? (
               <SecondaryProductPage
                 product={selectedProduct}
                 onAddToCart={handleAddToCart}
@@ -726,14 +861,53 @@ function App() {
         items={cartItems}
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeItem}
-        onCheckout={handleCheckout}
+        onCheckout={handleCartCheckoutClick}
         onMakeItAKit={() => {
           setIsCartOpen(false);
           navigate(Page.HOME);
           setTimeout(() => document.getElementById('recovery-kits')?.scrollIntoView({ behavior: 'smooth' }), 100);
         }}
         isLoading={isCartLoading}
+        shopProducts={shopCatalogProducts}
+        onUpsellAdd={handleQuickAddToCart}
+        onUpsellView={product => {
+          setIsCartOpen(false);
+          handleProductSelect(product);
+        }}
+        appliedPromoCodes={appliedPromoCodes}
+        promoApplyError={promoApplyError}
+        onApplyPromoCode={applyPromoCode}
+        onRemovePromoCodes={removePromoCodes}
+        onDismissPromoError={() => setPromoApplyError(null)}
       />
+
+      {checkoutUpsellContext && (
+        <CheckoutUpsellModal
+          isOpen={checkoutUpsellOpen}
+          onClose={() => {
+            setCheckoutUpsellOpen(false);
+            proceedToHostedCheckout();
+          }}
+          upsellProduct={checkoutUpsellContext.product}
+          cartTotalItemCount={cartTotalItemCount}
+          defaultSize={checkoutUpsellContext.defaultSize}
+          defaultColor={checkoutUpsellContext.defaultColor}
+          isLoading={isCartLoading}
+          onAddPairs={async (product, size, color) => {
+            const result = await handleAddToCart(product, size, color, 2, false);
+            setCheckoutUpsellOpen(false);
+            if (result) {
+              proceedToHostedCheckout({ lineItems: result.lineItems, webUrl: result.webUrl });
+            } else {
+              proceedToHostedCheckout();
+            }
+          }}
+          onDecline={() => {
+            setCheckoutUpsellOpen(false);
+            proceedToHostedCheckout();
+          }}
+        />
+      )}
 
       <DiscountPopup />
       <ReferralPopup />

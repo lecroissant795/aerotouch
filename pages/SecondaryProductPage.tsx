@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Product } from '../types';
 import { Button } from '../components/Button';
 import { Star, ChevronLeft, Truck, RotateCcw, Check, ShoppingBag, ShieldCheck, Timer, Users, CreditCard, Lock, ChevronDown, ChevronUp, Flame, BadgeCheck, Smile, Headphones, X, Play, Volume2, VolumeX, MapPin, Box, CircleDollarSign, Activity, Wrench, Tag } from 'lucide-react';
@@ -7,10 +7,13 @@ import { mapShopifyProduct } from '../utils/mapper';
 import { fetchProductByHandle } from '../utils/productFetcher';
 import { useProductMetafields } from '../utils/useProductMetafields';
 import { ProductCard } from '../components/ProductCard';
-import { getLinePricing } from '../utils/pricing';
-import { SplitTestimonials } from '../components/SplitTestimonials';
-import { StaggeredTestimonials } from '../components/StaggeredTestimonials';
+import {
+  findVariantBySizeAndColor,
+  variantSalePrice,
+  variantCompareAt
+} from '../utils/shopifyVariantMoney';
 import { ProductDescription } from '../components/ProductDescription';
+import { useSocialProof } from '../hooks/useSocialProof';
 
 interface SecondaryProductPageProps {
   product: Product;
@@ -19,9 +22,25 @@ interface SecondaryProductPageProps {
   onProductSelect?: (product: Product) => void;
   isLoading?: boolean;
   error?: string | null;
+  /** Optional MSRP / compare-at price (e.g. custom PDPs). Shown struck-through when above the live sale price. */
+  compareAtPrice?: number;
+  /** When set, replaces the default description / metafield bullets / feature list in the right detail card. */
+  detailCardBody?: React.ReactNode;
+  /** Optional block rendered below the testimonial card (same column as FAQs / trust grid). */
+  belowTestimonials?: React.ReactNode;
+  /** Override default accessory FAQs (e.g. Massage Roller–specific copy). */
+  faqs?: { question: string; answer: string }[];
+  /** Override rotating testimonial card (same shape as default). */
+  testimonials?: {
+    name: string;
+    role: string;
+    image: string;
+    quote: string;
+    result: string;
+  }[];
 }
 
-const TESTIMONIALS = [
+const DEFAULT_TESTIMONIALS = [
   {
     name: 'Sarah M.',
     role: 'Fitness Enthusiast',
@@ -45,7 +64,7 @@ const TESTIMONIALS = [
   }
 ];
 
-const FAQs = [
+const DEFAULT_FAQS = [
   {
     question: 'How do I use this product?',
     answer: 'Simply follow the included instructions. Most products are designed for easy at-home use.'
@@ -66,8 +85,15 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   onBack,
   onProductSelect,
   isLoading = false,
-  error = null
+  error = null,
+  compareAtPrice,
+  detailCardBody,
+  belowTestimonials,
+  faqs: faqsProp,
+  testimonials: testimonialsProp
 }) => {
+  const faqItems = faqsProp ?? DEFAULT_FAQS;
+  const testimonialItems = testimonialsProp ?? DEFAULT_TESTIMONIALS;
   const [product, setProduct] = useState<Product>(initialProduct);
   const meta = useProductMetafields(product);
   const [shopifyProduct, setShopifyProduct] = useState<any>(null);
@@ -78,7 +104,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
-  const [viewers] = useState(Math.floor(Math.random() * 50) + 15);
+  const { viewers } = useSocialProof(initialProduct.id, { viewersProfile: 'secondary' });
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 12, seconds: 45 });
   const [paymentMethodsOpen, setPaymentMethodsOpen] = useState(false);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
@@ -100,12 +126,20 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
           console.log('[SecondaryProductPage] ✅ Shopify data fetched successfully');
           setShopifyProduct(fetchedProduct);
           const shopifyMapped = mapShopifyProduct(fetchedProduct);
-          setProduct((prev: Product) => ({
-            ...prev,
-            ...shopifyMapped,
-            id: prev.id,
-            handle: prev.handle
-          }));
+          setProduct((prev: Product) => {
+            const merged: Product = {
+              ...prev,
+              ...shopifyMapped,
+              id: prev.id,
+              handle: prev.handle
+            };
+            if (shopifyMapped.compareAtPrice != null && shopifyMapped.compareAtPrice > merged.price) {
+              merged.compareAtPrice = shopifyMapped.compareAtPrice;
+            } else {
+              delete merged.compareAtPrice;
+            }
+            return merged;
+          });
 
           const firstVariant = fetchedProduct.variants?.[0];
           if (firstVariant) {
@@ -162,10 +196,14 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   useEffect(() => {
     if (isTestimonialHovered) return;
     const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % TESTIMONIALS.length);
+      setActiveTestimonial((prev) => (prev + 1) % testimonialItems.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isTestimonialHovered]);
+  }, [isTestimonialHovered, testimonialItems.length]);
+
+  useEffect(() => {
+    setActiveTestimonial(0);
+  }, [initialProduct.id]);
 
   const sizeOption = shopifyProduct?.options?.find((o: any) => o.name === 'Size');
   const colorOption = shopifyProduct?.options?.find((o: any) => o.name === 'Color');
@@ -182,8 +220,33 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   );
   const secondaryImages = images.slice(1, 5);
 
-  const getBundlePricing = (qty: number) => getLinePricing(product.price, qty);
-  const selectedBundlePricing = getBundlePricing(bundle);
+  const resolvedVariant = useMemo(
+    () => findVariantBySizeAndColor(shopifyProduct, selectedSize, selectedColor),
+    [shopifyProduct, selectedSize, selectedColor]
+  );
+
+  const unitPrice = useMemo(() => {
+    if (resolvedVariant) return variantSalePrice(resolvedVariant);
+    return product.price;
+  }, [resolvedVariant, product.price]);
+
+  const compareAtEach = useMemo(() => {
+    const fromVariant = resolvedVariant ? variantCompareAt(resolvedVariant) : null;
+    let cap = fromVariant != null && fromVariant > unitPrice ? fromVariant : null;
+    if (cap == null && compareAtPrice != null && compareAtPrice > unitPrice) {
+      cap = compareAtPrice;
+    }
+    if (cap == null && product.compareAtPrice != null && product.compareAtPrice > unitPrice) {
+      cap = product.compareAtPrice;
+    }
+    return cap;
+  }, [resolvedVariant, unitPrice, compareAtPrice, product.compareAtPrice]);
+
+  const savingsEach = compareAtEach != null ? compareAtEach - unitPrice : 0;
+  const savingsPercent =
+    compareAtEach != null && compareAtEach > 0
+      ? Math.round((savingsEach / compareAtEach) * 100)
+      : 0;
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -212,7 +275,8 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
     }
   };
 
-  const currentTestimonial = TESTIMONIALS[activeTestimonial];
+  const currentTestimonial =
+    testimonialItems[Math.min(activeTestimonial, testimonialItems.length - 1)] ?? testimonialItems[0];
 
   return (
     <div className="min-h-screen bg-slate-50 animate-in fade-in duration-500 pb-24 md:pb-0">
@@ -329,19 +393,27 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 
                 <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight leading-none mb-4">{product.name}</h1>
                 
-                {/* Price Display */}
-                <div className="flex items-end gap-3 mb-4">
-                   <div className="text-4xl font-black text-brand-orange">${selectedBundlePricing.unitPrice.toFixed(2)}</div>
-                   {bundle > 1 && (
-                     <>
-                       <div className="text-xl font-bold text-slate-400 line-through decoration-2 mb-1">${product.price.toFixed(2)}</div>
-                       <div className="text-sm font-bold text-slate-500 mb-1">each</div>
-                       <div className="mb-2 bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">
-                          Save {selectedBundlePricing.discountPercent}% (${selectedBundlePricing.savings.toFixed(2)})
-                       </div>
-                     </>
+                {/* Price Display — Shopify variant price / compare-at */}
+                <div className="flex items-end gap-3 mb-4 flex-wrap">
+                   <div className="text-4xl font-black text-brand-orange">${unitPrice.toFixed(2)}</div>
+                   {compareAtEach != null && (
+                     <div className="text-xl font-bold text-slate-400 line-through decoration-2 mb-1">
+                       ${compareAtEach.toFixed(2)}
+                     </div>
+                   )}
+                   <div className="text-sm font-bold text-slate-500 mb-1">each</div>
+                   {savingsPercent > 0 && bundle === 1 && (
+                     <div className="mb-2 bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">
+                       Sale · Save {savingsPercent}%
+                     </div>
                    )}
                 </div>
+                {bundle > 1 && (
+                  <p className="text-sm font-bold text-slate-700 mb-4 -mt-2">
+                    {bundle} items —{' '}
+                    <span className="text-slate-900">${(unitPrice * bundle).toFixed(2)} at checkout</span>
+                  </p>
+                )}
 
                 {/* Scarcity / Views */}
                 <div className="flex items-center justify-between text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
@@ -355,26 +427,32 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                    </div>
                 </div>
 
-                {/* Description Snippet */}
-                <p className="text-slate-600 leading-relaxed mb-6">{meta.custom_description || product.tagline || product.description}</p>
-                {meta.custom_description_points && meta.custom_description_points.length > 0 ? (
-                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
-                    {meta.custom_description_points.map((point: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : product.features && product.features.length > 0 && (
-                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
-                    {product.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                        <span><span className="font-bold text-slate-900">{feature.split(':')[0]}:</span> {feature.split(':').slice(1).join(':')}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Description / custom long-form copy */}
+                {detailCardBody ? (
+                  <div className="mb-6">{detailCardBody}</div>
+                ) : (
+                  <>
+                    <p className="text-slate-600 leading-relaxed mb-6">{meta.custom_description || product.tagline || product.description}</p>
+                    {meta.custom_description_points && meta.custom_description_points.length > 0 ? (
+                      <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+                        {meta.custom_description_points.map((point: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                            <span>{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : product.features && product.features.length > 0 && (
+                      <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+                        {product.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                            <span><span className="font-bold text-slate-900">{feature.split(':')[0]}:</span> {feature.split(':').slice(1).join(':')}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
                 )}
 
                 {/* Bundle Selector - Dropshipping Style */}
@@ -410,18 +488,24 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                   <div className="flex flex-col">
                                       <div className="flex items-center">
                                           <span className="text-xl font-black text-slate-900 leading-none">{qty} {qty === 1 ? 'Item' : 'Items'}</span>
-                                          {qty > 1 && <span className="bg-brand-orange text-white text-[10px] font-black px-2.5 py-1 rounded-md ml-3 uppercase tracking-wider">SAVE {getBundlePricing(qty).discountPercent}%</span>}
                                       </div>
-                                      {qty > 1 && (
-                                        <p className="text-sm font-bold text-slate-600 mt-1.5">
-                                            Save ${(getBundlePricing(qty).savings).toFixed(2)} at checkout
-                                        </p>
-                                      )}
+                                      <p className="text-sm font-bold text-slate-600 mt-1.5">
+                                        {qty === 1
+                                          ? `Total ${unitPrice.toFixed(2)} at checkout`
+                                          : `${qty} × ${unitPrice.toFixed(2)} at checkout`}
+                                      </p>
                                   </div>
                               </div>
                               <div className="text-right">
-                                  <span className="font-bold text-brand-orange block text-xl">${getBundlePricing(qty).unitPrice.toFixed(2)}</span>
-                                  {qty > 1 && <span className="text-xs text-slate-400 line-through font-bold">${product.price.toFixed(2)} each</span>}
+                                  <span className="font-bold text-brand-orange block text-xl">
+                                    ${(unitPrice * qty).toFixed(2)}
+                                  </span>
+                                  <span className="text-xs text-slate-500 font-bold">${unitPrice.toFixed(2)} /item</span>
+                                  {qty === 1 && compareAtEach != null && compareAtEach > unitPrice && (
+                                    <span className="text-xs text-slate-400 line-through font-bold block">
+                                      ${compareAtEach.toFixed(2)} MSRP
+                                    </span>
+                                  )}
                               </div>
                           </div>
                       </div>
@@ -527,7 +611,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 >
                    <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
                        {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
-                       {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || `ADD TO CART - $${selectedBundlePricing.total.toFixed(2)}`) : (meta.secondary_cta_text || 'SELECT SIZE'))}
+                       {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || `ADD TO CART - $${(unitPrice * bundle).toFixed(2)}`) : (meta.secondary_cta_text || 'SELECT SIZE'))}
                    </span>
                    {/* Shine effect */}
                    {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
@@ -596,7 +680,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                     </div>
 
                     <div className="space-y-0 border-t border-slate-100">
-                        {FAQs.map((item, idx) => (
+                        {faqItems.map((item, idx) => (
                             <div key={idx} className="border-b border-slate-100">
                                 <button 
                                     className="w-full py-4 flex items-center justify-between text-left group"
@@ -662,7 +746,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                         </div>
 
                         <div className="flex justify-center gap-1.5 mt-5 relative z-10">
-                            {TESTIMONIALS.map((_, i) => (
+                            {testimonialItems.map((_, i) => (
                                 <button
                                     key={i}
                                     type="button"
@@ -673,6 +757,8 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                             ))}
                         </div>
                     </div>
+
+                    {belowTestimonials}
 
                 </div>
              </div>
@@ -704,8 +790,6 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
           ))}
         </div>
       </section>
-
-      <StaggeredTestimonials />
 
       <ProductDescription product={product} />
 

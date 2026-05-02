@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, Star, Ruler } from 'lucide-react';
 import { Product } from '../types';
 import { shopify } from '../utils/shopify';
+import { getCartProductLookupKey, getShopifyHandle } from '../utils/productMapping';
 
 const DEFAULT_SIZES = [
   { label: 'M 5 / W 6', detail: 'US Men 5 / US Women 6' },
@@ -34,18 +35,23 @@ export const SizeSelectorModal: React.FC<SizeSelectorModalProps> = ({
 }) => {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [availableSizes, setAvailableSizes] = useState(DEFAULT_SIZES);
+  /** First Color option from Shopify (insoles use Color + Size; "One Size" breaks variant match). */
+  const [defaultColorForCart, setDefaultColorForCart] = useState<string>('Default');
   const [isClosing, setIsClosing] = useState(false);
 
   // Fetch real sizes from Shopify when product changes
   useEffect(() => {
     if (!isOpen || !product) return;
     setSelectedSize(null);
+    setDefaultColorForCart('Default');
 
     const fetchSizes = async () => {
       if (!shopify) return;
       try {
+        const lookupKey = getCartProductLookupKey(product);
+        const handle = getShopifyHandle(lookupKey);
         const shopifyProduct =
-          (await shopify.product.fetchByHandle(product.id)) ||
+          (await shopify.product.fetchByHandle(handle)) ||
           (await shopify.product.fetch(product.id));
         const sizeOption = shopifyProduct?.options?.find(
           (o: any) => o.name === 'Size'
@@ -57,6 +63,20 @@ export const SizeSelectorModal: React.FC<SizeSelectorModalProps> = ({
               detail: v.value,
             }))
           );
+        }
+        const colorOption = shopifyProduct?.options?.find(
+          (o: any) => o.name === 'Color'
+        );
+        const colors: string[] =
+          colorOption?.values?.map((v: any) => v.value).filter(Boolean) || [];
+        if (colors.length) {
+          const preferred =
+            colors.find((c) => /^orange$/i.test(c)) ||
+            colors.find((c) => /orange/i.test(c)) ||
+            colors[0];
+          setDefaultColorForCart(preferred);
+        } else {
+          setDefaultColorForCart('Default');
         }
       } catch {
         // Keep defaults
@@ -86,7 +106,7 @@ export const SizeSelectorModal: React.FC<SizeSelectorModalProps> = ({
 
   const handleConfirm = () => {
     if (!selectedSize) return;
-    onConfirm(product, selectedSize, 'One Size', 1);
+    onConfirm(product, selectedSize, defaultColorForCart, 1);
   };
 
   if (!isOpen) return null;

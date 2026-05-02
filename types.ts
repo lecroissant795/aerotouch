@@ -3,6 +3,8 @@ export interface Product {
   name: string;
   tagline: string;
   price: number;
+  /** Shopify variant compare-at price (MSRP), when higher than `price` */
+  compareAtPrice?: number;
   rating: number;
   reviews: number;
   image: string;
@@ -49,6 +51,11 @@ export interface CartItem extends Product {
   quantity: number;
   selectedSize: string;
   selectedColor: string;
+  /** Shopify product id (GID) — line item `id` is the checkout line id, not the product */
+  productShopifyId?: string;
+  productHandle?: string;
+  /** Sum of discount allocation amounts on this line (promo / automatic discounts) */
+  linePromoDiscountTotal?: number;
 }
 
 export interface Review {

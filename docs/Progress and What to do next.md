@@ -194,42 +194,46 @@ Bundle data (`BUNDLE_KITS`) is also duplicated in `BundleKitsPage.tsx` and impor
    - [ ] Set canonical URLs
    - [ ] Create sitemap.xml
 
+7. **Content: avatars & reviews (reminder)**
+   - [ ] **Reminder — avatars**: Find suitable **avatar / profile images** for testimonial and review UI (rotating card, “What Our Customers Say” grid, etc.). Replace generic stock headshots where you want a more authentic, product-appropriate look.
+   - [ ] **Reminder — reviews**: Curate **user review copy and quotes per product** so text matches each SKU and use case (e.g. massage roller vs insoles vs accessories). Audit PDP-specific blocks and shared templates that still use placeholder or cross-product copy.
+
 ### Should-Have (Nice to Have)
 
-7. **Performance Optimizations**
+8. **Performance Optimizations**
    - [ ] Implement lazy loading for components (React.lazy + Suspense)
    - [ ] Add image lazy loading and responsive images (srcset)
    - [ ] Cache Shopify responses (React Query or SWR)
    - [ ] Code splitting by route
    - [ ] Preload critical resources
 
-8. **Enhanced Error Handling**
+9. **Enhanced Error Handling**
    - [ ] Add React error boundaries
    - [ ] Create loading skeleton components
    - [ ] Implement retry logic for failed API calls
    - [ ] Better user-facing error messages
 
-9. **Accessibility**
+10. **Accessibility**
    - [ ] Keyboard navigation audit
    - [ ] ARIA labels where missing
    - [ ] Screen reader testing
    - [ ] Focus management for modals/drawers
    - [ ] Color contrast verification
 
-10. **Search Improvement**
+11. **Search Improvement**
     - [ ] Integrate Shopify Search API
     - [ ] Add debounced search input
     - [ ] Show search results as you type
     - [ ] Highlight matched terms
 
-11. **Code Quality**
+12. **Code Quality**
     - [ ] Add unit tests for utilities (router, pricing, mapper)
     - [ ] Add component tests for critical paths
     - [ ] ESLint configuration and linting
     - [ ] Remove commented code and TODOs
     - [ ] Consolidate duplicate product data (as noted above)
 
-12. **Documentation**
+13. **Documentation**
     - [ ] Update README with setup instructions
     - [ ] Document API integrations (Shopify, Supabase, GA4)
     - [ ] Add deployment guide

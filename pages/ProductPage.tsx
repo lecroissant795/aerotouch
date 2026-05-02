@@ -1,15 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Product } from '../types';
 import { Button } from '../components/Button';
 import { Star, Check, Truck, RotateCcw, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Ruler, Users, Timer, ShieldCheck, Flame, CreditCard, Smile, Headphones, Tag, Box, CircleDollarSign, BadgeCheck, ShoppingBag, MapPin, Play, X, Lock, Volume2, VolumeX } from 'lucide-react';
 import { ProductTechSpecs } from '../components/ProductTechSpecs';
 import { FAQSection } from '../components/FAQSection';
 import { useSocialProof } from '../hooks/useSocialProof';
-import { getLinePricing } from '../utils/pricing';
 import { fetchProductByHandle } from '../utils/productFetcher';
 import { mapShopifyProduct } from '../utils/mapper';
+import {
+  findVariantBySizeAndColor,
+  variantSalePrice,
+  variantCompareAt
+} from '../utils/shopifyVariantMoney';
 import { useProductMetafields } from '../utils/useProductMetafields';
 import { productVideos } from '../utils/mediaUrls';
+import { isMassageRollerProduct } from '../utils/productDetection';
 
 interface ProductPageProps {
   product: Product;
@@ -136,6 +141,11 @@ export const ProductPage: React.FC<ProductPageProps> = ({
             if (shopifyMapped.name) merged.name = shopifyMapped.name;
             if (shopifyMapped.tagline) merged.tagline = shopifyMapped.tagline;
             if (shopifyMapped.price > 0) merged.price = shopifyMapped.price;
+            if (shopifyMapped.compareAtPrice != null && shopifyMapped.compareAtPrice > merged.price) {
+              merged.compareAtPrice = shopifyMapped.compareAtPrice;
+            } else {
+              delete merged.compareAtPrice;
+            }
             if (shopifyMapped.image) merged.image = shopifyMapped.image;
             if (shopifyMapped.images && shopifyMapped.images.length > 0) merged.images = shopifyMapped.images;
             if (shopifyMapped.description) merged.description = shopifyMapped.description;
@@ -247,13 +257,31 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const [bundle, setBundle] = useState(1); // 1 = 1 pair, 2 = 2 pairs, 3 = 3 pairs
   
   const formatPrice = (amount: number) => amount.toFixed(2);
-  const getBundlePricing = (qty: number) => getLinePricing(product.price, qty);
 
-  const selectedBundlePricing = getBundlePricing(bundle);
-  const selectedFinalPrice = selectedBundlePricing.unitPrice;
-  const selectedCompareAtPrice = product.price;
-  const selectedSavingsAmount = selectedCompareAtPrice - selectedFinalPrice;
-  const selectedSavingsPercent = selectedBundlePricing.discountPercent;
+  const resolvedVariant = useMemo(
+    () => findVariantBySizeAndColor(shopifyProduct, selectedSize, selectedColor),
+    [shopifyProduct, selectedSize, selectedColor]
+  );
+
+  const unitPrice = useMemo(() => {
+    if (resolvedVariant) return variantSalePrice(resolvedVariant);
+    return product.price;
+  }, [resolvedVariant, product.price]);
+
+  const compareAtEach = useMemo(() => {
+    const fromVariant = resolvedVariant ? variantCompareAt(resolvedVariant) : null;
+    let cap = fromVariant != null && fromVariant > unitPrice ? fromVariant : null;
+    if (cap == null && product.compareAtPrice != null && product.compareAtPrice > unitPrice) {
+      cap = product.compareAtPrice;
+    }
+    return cap;
+  }, [resolvedVariant, unitPrice, product.compareAtPrice]);
+
+  const savingsEach = compareAtEach != null ? compareAtEach - unitPrice : 0;
+  const savingsPercent =
+    compareAtEach != null && compareAtEach > 0
+      ? Math.round((savingsEach / compareAtEach) * 100)
+      : 0;
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
 
   useEffect(() => {
@@ -276,7 +304,16 @@ export const ProductPage: React.FC<ProductPageProps> = ({
 
   // Guard against undefined product name during loading
   const productName = product.name || '';
-  const isMainProductType = product.id === 'massage-insoles' || productName.toLowerCase().includes('massage insole');
+  const nameLower = productName.toLowerCase();
+  const handleLower = (product.handle || '').toLowerCase();
+  // Full PDP (size/color) for primary insoles — not the simplified branch that sends bogus Standard/Default.
+  // Shopify titles like "AeroTouch Insoles" and GID `id` must still match here.
+  const isMainProductType =
+    !isMassageRollerProduct(product) &&
+    (String(product.id) === 'massage-insoles' ||
+      handleLower === 'massage-insoles' ||
+      nameLower.includes('massage insole') ||
+      (nameLower.includes('insole') && !nameLower.includes('roller')));
 
   if (!isMainProductType) {
     return (
@@ -439,15 +476,29 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                 
                 <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight leading-none mb-4">{product.name}</h1>
                 
-                {/* Price Display */}
-                <div className="flex items-end gap-3 mb-4">
-                   <div className="text-4xl font-black text-brand-orange">${formatPrice(selectedFinalPrice)}</div>
-                   <div className="text-xl font-bold text-slate-400 line-through decoration-2 mb-1">${formatPrice(selectedCompareAtPrice)}</div>
+                {/* Price Display — matches Shopify variant price / compare-at */}
+                <div className="flex items-end gap-3 mb-4 flex-wrap">
+                   <div className="text-4xl font-black text-brand-orange">${formatPrice(unitPrice)}</div>
+                   {compareAtEach != null && (
+                     <div className="text-xl font-bold text-slate-400 line-through decoration-2 mb-1">
+                       ${formatPrice(compareAtEach)}
+                     </div>
+                   )}
                    <div className="text-sm font-bold text-slate-500 mb-1">each</div>
-                   <div className="mb-2 bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">
-                      Save {selectedSavingsPercent}% (${formatPrice(selectedSavingsAmount)})
-                   </div>
+                   {savingsPercent > 0 && (
+                     <div className="mb-2 bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">
+                       Save {savingsPercent}% (${formatPrice(savingsEach)})
+                     </div>
+                   )}
                 </div>
+                {bundle > 1 && (
+                  <p className="text-sm font-bold text-slate-700 mb-4 -mt-2">
+                    {bundle} pairs —{' '}
+                    <span className="text-slate-900">
+                      ${formatPrice(unitPrice * bundle)} at checkout
+                    </span>
+                  </p>
+                )}
 
                 {/* Scarcity / Views */}
                 <div className="flex items-center justify-between text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
@@ -505,16 +556,20 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                 <div className="flex flex-col">
                                     <div className="flex items-center">
                                         <span className="text-xl font-black text-slate-900 leading-none">1 Pair</span>
-                                        <span className="bg-brand-orange text-white text-[10px] font-black px-2.5 py-1 rounded-md ml-3 uppercase tracking-wider">SAVE {getBundlePricing(1).discountPercent}%</span>
                                     </div>
                                     <p className="text-sm font-bold text-slate-600 mt-1.5">
-                                        Save ${formatPrice(getBundlePricing(1).savings)} + Free Compression Socks
+                                        Per pair · total ${formatPrice(unitPrice)}
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(getBundlePricing(1).unitPrice)}</span>
-                                <span className="text-xs text-slate-400 line-through font-bold">${formatPrice(product.price)} each</span>
+                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice)}</span>
+                                <span className="text-xs text-slate-500 font-bold">/pair</span>
+                                {compareAtEach != null && compareAtEach > unitPrice && (
+                                  <span className="text-xs text-slate-400 line-through font-bold block">
+                                    ${formatPrice(compareAtEach)} MSRP
+                                  </span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -538,16 +593,15 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                 <div className="flex flex-col">
                                     <div className="flex items-center">
                                         <span className="text-xl font-black text-slate-900 leading-none">2 Pairs</span>
-                                        <span className="bg-brand-orange text-white text-[10px] font-black px-2.5 py-1 rounded-md ml-3 uppercase tracking-wider">SAVE {getBundlePricing(2).discountPercent}%</span>
                                     </div>
                                     <p className="text-sm font-bold text-slate-600 mt-1.5">
-                                        Save ${formatPrice(getBundlePricing(2).savings)} + Free Compression Socks
+                                        2 × ${formatPrice(unitPrice)} at checkout
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(getBundlePricing(2).unitPrice)}</span>
-                                <span className="text-xs text-slate-400 line-through font-bold">${formatPrice(product.price)} each</span>
+                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 2)}</span>
+                                <span className="text-xs text-slate-500 font-bold">${formatPrice(unitPrice)} /pair</span>
                             </div>
                         </div>
                     </div>
@@ -571,16 +625,15 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                 <div className="flex flex-col">
                                     <div className="flex items-center">
                                         <span className="text-xl font-black text-slate-900 leading-none">3 Pairs</span>
-                                        <span className="bg-brand-orange text-white text-[10px] font-black px-2.5 py-1 rounded-md ml-3 uppercase tracking-wider">SAVE {getBundlePricing(3).discountPercent}%</span>
                                     </div>
                                     <p className="text-sm font-bold text-slate-600 mt-1.5">
-                                        Save ${formatPrice(getBundlePricing(3).savings)} + Free Compression Socks
+                                        3 × ${formatPrice(unitPrice)} at checkout
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(getBundlePricing(3).unitPrice)}</span>
-                                <span className="text-xs text-slate-400 line-through font-bold">${formatPrice(product.price)} each</span>
+                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 3)}</span>
+                                <span className="text-xs text-slate-500 font-bold">${formatPrice(unitPrice)} /pair</span>
                             </div>
                         </div>
                     </div>
@@ -679,21 +732,21 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">1 Pair Option</span>
                            </div>
-                           <span className="text-xs font-black text-brand-dark bg-slate-100 px-2 py-1 rounded">{getBundlePricing(1).discountPercent}% DISCOUNT</span>
+                           <span className="text-xs font-black text-brand-dark bg-slate-100 px-2 py-1 rounded">${formatPrice(unitPrice)}</span>
                         </div>
                         <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-2 rounded-lg border border-slate-100">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">2 Pairs Option</span>
                            </div>
-                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">{getBundlePricing(2).discountPercent}% DISCOUNT</span>
+                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">${formatPrice(unitPrice * 2)}</span>
                         </div>
                         <div className="flex justify-between items-center bg-brand-dark p-2 rounded-lg border border-brand-dark shadow-lg">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse" />
                                <span className="text-xs font-bold text-slate-300 uppercase tracking-tight">3 Pairs Option</span>
                            </div>
-                           <span className="text-xs font-black text-brand-dark bg-brand-lime px-2 py-1 rounded">{getBundlePricing(3).discountPercent}% DISCOUNT</span>
+                           <span className="text-xs font-black text-brand-dark bg-brand-lime px-2 py-1 rounded">${formatPrice(unitPrice * 3)}</span>
                         </div>
                     </div>
                 </div>

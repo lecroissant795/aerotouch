@@ -1,5 +1,5 @@
 import { Product } from '../types';
-import { DEFAULT_METAFIELDS } from './productMetafields';
+import { getVariantsArray, variantSalePrice, variantCompareAt } from './shopifyVariantMoney';
 
 const generateReviewCount = (id: string | number | undefined = ''): number => {
     // Convert to string if it's not already
@@ -61,7 +61,20 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
       images = shopifyProduct.images.map((img: any) => img?.src || '').filter(Boolean);
     }
 
-    const price = parseFloat(shopifyProduct.variants?.edges?.[0]?.node?.price?.amount || shopifyProduct.variants?.[0]?.price?.amount || '0');
+    const variantsList = getVariantsArray(shopifyProduct);
+    const firstVariant = variantsList[0];
+    const price = firstVariant
+      ? variantSalePrice(firstVariant)
+      : parseFloat(
+          shopifyProduct.variants?.edges?.[0]?.node?.price?.amount ||
+            shopifyProduct.variants?.[0]?.price?.amount ||
+            '0'
+        );
+    let compareAtPrice: number | undefined;
+    if (firstVariant) {
+      const cap = variantCompareAt(firstVariant);
+      if (cap != null && cap > price) compareAtPrice = cap;
+    }
 
     // Extract tags
     const tags = (shopifyProduct.tags || []).map((t: any): string => {
@@ -125,6 +138,7 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
         name: shopifyProduct.title,
         tagline: shopifyProduct.description || '',
         price: price,
+        ...(compareAtPrice != null ? { compareAtPrice } : {}),
         rating: 5.0,
         reviews: reviews,
         image: image,
@@ -137,19 +151,46 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
     };
 };
 
+const sumLineItemDiscountAllocations = (lineItem: any): number => {
+    const allocs = lineItem.discountAllocations;
+    if (!Array.isArray(allocs) || allocs.length === 0) return 0;
+    let sum = 0;
+    for (const a of allocs) {
+        const money = a?.allocatedAmount ?? a?.discountedAmount;
+        const raw =
+            typeof money === 'object' && money != null && 'amount' in money
+                ? (money as { amount?: string }).amount
+                : money;
+        if (raw != null) {
+            const n = parseFloat(String(raw));
+            if (!Number.isNaN(n)) sum += n;
+        }
+    }
+    return Math.round(sum * 100) / 100;
+};
+
 export const mapShopifyLineItem = (lineItem: any): any => {
     const isMainProduct = lineItem.title?.toLowerCase().includes('massage insole');
     const reviews = isMainProduct ? 4823 : generateReviewCount(lineItem.id || '');
+    const sale = variantSalePrice(lineItem.variant) || parseFloat(lineItem.variant?.price?.amount || lineItem.variant?.price || '0');
+    const cap = variantCompareAt(lineItem.variant);
+    const compareAtPrice = cap != null && cap > sale ? cap : undefined;
+    const productRef = lineItem.variant?.product;
+    const promoDiscount = sumLineItemDiscountAllocations(lineItem);
 
     return {
         id: lineItem.id,
         quantity: lineItem.quantity,
         title: lineItem.title,
         name: lineItem.title,
-        price: parseFloat(lineItem.variant?.price?.amount || lineItem.variant?.price || '0'),
+        price: sale,
+        ...(compareAtPrice != null ? { compareAtPrice } : {}),
+        ...(promoDiscount > 0 ? { linePromoDiscountTotal: promoDiscount } : {}),
         image: lineItem.variant?.image?.src || '',
         selectedSize: lineItem.variant?.selectedOptions?.find((o: any) => o.name === 'Size')?.value || '',
         selectedColor: lineItem.variant?.selectedOptions?.find((o: any) => o.name === 'Color')?.value || '',
+        ...(productRef?.id ? { productShopifyId: productRef.id } : {}),
+        ...(productRef?.handle ? { productHandle: productRef.handle } : {}),
         tagline: '',
         rating: 5.0,
         reviews: reviews,

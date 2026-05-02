@@ -191,6 +191,21 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
 };
 
 /**
+ * Key used to resolve Shopify product for cart/API when `product.id` may be a
+ * Storefront GID or numeric id (URL-loaded PDP) while `product.handle` is the real handle.
+ */
+export const getCartProductLookupKey = (product: Product): string => {
+  const rawId = String(product.id ?? '');
+  const handle = (product.handle || '').trim();
+  const idLooksLikeShopify =
+    rawId.includes('gid://shopify/Product/') || /^\d+$/.test(rawId);
+  if (idLooksLikeShopify && handle) {
+    return handle;
+  }
+  return rawId || handle;
+};
+
+/**
  * Get Shopify handle for a product identifier (local ID or existing handle)
  */
 export const getShopifyHandle = (identifier: string): string => {

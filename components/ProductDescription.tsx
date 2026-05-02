@@ -1,10 +1,160 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ShieldCheck, Zap, Wind, Thermometer, Heart, Leaf, Award, Clock, Users, Star, Truck, X } from 'lucide-react';
 import { Product } from '../types';
-import { Check, ShieldCheck, Zap, Wind, Thermometer, Heart, Leaf, Award, Clock, Users, Star, Truck, Image } from 'lucide-react';
+import { isMassageRollerProduct } from '../utils/productDetection';
 
-interface ProductDescriptionProps {
-  product: Product;
+/** Request a larger asset when opening review photos (Unsplash-style `w=` param). */
+function enlargedPhotoUrl(url: string): string {
+  if (/[?&]w=\d+/i.test(url)) {
+    return url.replace(/([?&])w=\d+/i, '$1w=1600');
+  }
+  return url;
 }
+
+type CustomerReview = {
+  name: string;
+  location: string;
+  rating: number;
+  title: string;
+  text: string;
+  image: string;
+  photos: string[];
+};
+
+const DEFAULT_CUSTOMER_REVIEWS: CustomerReview[] = [
+  {
+    name: 'Sarah M.',
+    location: 'Austin, TX',
+    rating: 5,
+    title: 'Finally pain-free after years!',
+    text: "I've struggled with plantar fasciitis for 3 years. After just 2 weeks of wearing these insoles, the pain is completely gone. I can finally run again!",
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=300&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'Michael T.',
+    location: 'Seattle, WA',
+    rating: 5,
+    title: 'Worth every penny',
+    text: "As a nurse working 12-hour shifts, my feet used to kill me. These insoles have been game-changing. No more pain after long days on my feet.",
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=150&auto=format&fit=crop',
+    photos: ['https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop']
+  },
+  {
+    name: 'Jennifer K.',
+    location: 'Denver, CO',
+    rating: 5,
+    title: 'Best investment for running',
+    text: "Training for my first marathon and these insoles have made all the difference. My recovery time has improved dramatically.",
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=300&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'David R.',
+    location: 'Miami, FL',
+    rating: 4,
+    title: 'Great for work boots',
+    text: "I work in construction and these insoles fit perfectly in my work boots. Much better than the generic ones I was using before.",
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop',
+    photos: []
+  },
+  {
+    name: 'Amanda L.',
+    location: 'Portland, OR',
+    rating: 5,
+    title: 'Gift that keeps on giving',
+    text: "Bought these for my husband who has flat feet. He absolutely loves them! Ordered more for his work shoes and running shoes.",
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
+    photos: ['https://images.unsplash.com/photo-1556227848-4f87e2429c09?q=80&w=300&auto=format&fit=crop']
+  },
+  {
+    name: 'Carlos M.',
+    location: 'Chicago, IL',
+    rating: 5,
+    title: 'Amazing support',
+    text: "The arch support is perfect for my high arches. I've tried many insoles and this is hands down the best one I've found.",
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=300&auto=format&fit=crop'
+    ]
+  }
+];
+
+/** Grid reviews for the Foot Massage Roller PDP only */
+const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
+  {
+    name: 'Danielle K.',
+    location: 'Phoenix, AZ',
+    rating: 5,
+    title: 'Finally unwinds my arches after shifts',
+    text: "I'm on my feet in the ER all night. Two minutes on the AeroTouch roller before bed hits spots stretching never does. My arches feel noticeably looser by morning.",
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=300&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'Marcus T.',
+    location: 'Boulder, CO',
+    rating: 5,
+    title: 'Post-long-run ritual',
+    text: "After 15+ mile weeks my plantar fascia and calves get angry. I roll slowly under the arch and up the calf—way more targeted than a lacrosse ball. Lives in my gym bag.",
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=300&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'Elena R.',
+    location: 'Dallas, TX',
+    rating: 5,
+    title: 'Retail floors destroyed my heels',
+    text: "Concrete all day left my heels burning. I keep this roller by the couch and use it while I watch TV. It's small but the texture really digs into the right spots.",
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
+    photos: ['https://images.unsplash.com/photo-1556227848-4f87e2429c09?q=80&w=300&auto=format&fit=crop']
+  },
+  {
+    name: 'James W.',
+    location: 'Atlanta, GA',
+    rating: 4,
+    title: 'Great for desk breaks too',
+    text: "I roll my forearms and feet during WFH breaks. Keeps tension from creeping up. Build feels solid—no squeaks after a month of daily use.",
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'Priya N.',
+    location: 'San Jose, CA',
+    rating: 5,
+    title: 'Plantar fasciitis maintenance',
+    text: "My PT suggested rolling daily. This one matches the contour of my arch better than the cheap wood roller I had. Less slipping, more consistent pressure.",
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=300&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'Tomás V.',
+    location: 'San Diego, CA',
+    rating: 5,
+    title: 'Travel-friendly recovery',
+    text: "I fly for work and toss it in my carry-on. Hotel floors, airport lounges—anywhere I can sit for two minutes I can get relief. Game changer after long walking days.",
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
+    photos: ['https://images.unsplash.com/photo-1556227848-4f87e2429c09?q=80&w=300&auto=format&fit=crop']
+  }
+];
 
 // Animated counter hook
 const useCountUp = (end: number, duration: number = 2000, start: number = 0) => {
@@ -84,7 +234,30 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: any; title: str
   </div>
 );
 
+interface ProductDescriptionProps {
+  /** When this is the Massage Roller product, review cards use roller-specific copy. */
+  product?: Product;
+}
+
 export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const customerReviews =
+    product && isMassageRollerProduct(product) ? MASSAGE_ROLLER_CUSTOMER_REVIEWS : DEFAULT_CUSTOMER_REVIEWS;
+
+  useEffect(() => {
+    if (!lightboxUrl) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxUrl(null);
+    };
+    document.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [lightboxUrl]);
+
   const features = [
     {
       icon: Zap,
@@ -161,92 +334,8 @@ export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product 
         </div>
       </div>
 
-      {/* Product Detail - Alternating Layout */}
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 mt-20">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-
-          {/* Left Side - Image */}
-          <div className="w-full lg:w-1/2 relative order-2 lg:order-1">
-            <div className="absolute inset-0 bg-brand-orange/20 rounded-[3rem] rotate-3 transform scale-105 origin-center -z-10" />
-            <div className="rounded-[2.5rem] overflow-hidden shadow-2xl relative aspect-[4/5] md:aspect-square">
-              <img
-                src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop'}
-                alt={`${product.name} detail`}
-                className="w-full h-full object-cover object-center"
-              />
-
-              {/* Floating Badge */}
-              <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl flex items-center gap-4">
-                <div className="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center text-brand-lime">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Premium Quality</p>
-                  <p className="text-sm font-black text-slate-900">Engineered for Comfort</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side - Content */}
-          <div className="w-full lg:w-1/2 order-1 lg:order-2">
-            <h3 className="text-2xl md:text-4xl font-black text-slate-900 uppercase tracking-tight leading-none mb-6">
-              Technology Meets <span className="text-brand-orange">Comfort</span>
-            </h3>
-
-            {product.descriptionHtml ? (
-              <div
-                className="text-base text-slate-600 leading-relaxed mb-8 prose prose-slate max-w-none prose-p:mb-4 prose-ul:list-disc prose-ul:pl-5 prose-li:mb-2 prose-strong:text-slate-900"
-                dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-              />
-            ) : (
-              <p className="text-base text-slate-600 leading-relaxed mb-8">
-                {product.description || "Our products are designed with cutting-edge technology and premium materials to provide you with the ultimate support, comfort, and performance all day long."}
-              </p>
-            )}
-
-            {/* Key Benefits */}
-            {product.features && product.features.length > 0 && (
-              <div className="pt-6 border-t border-slate-200">
-                <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">What's Included</h4>
-                <ul className="space-y-3">
-                  {product.features.slice(0, 4).map((feature, idx) => {
-                    const parts = feature.split(':');
-                    const label = parts[0];
-                    const val = parts.slice(1).join(':');
-                    return (
-                      <li key={idx} className="flex items-start gap-3">
-                        <div className="mt-0.5 bg-brand-dark rounded-full p-1 flex-shrink-0">
-                          <Check className="w-3 h-3 text-brand-lime" strokeWidth={3} />
-                        </div>
-                        <span className="text-sm text-slate-700">
-                          {val ? (
-                            <><span className="font-bold">{label}:</span>{val}</>
-                          ) : (
-                            <span className="font-medium">{feature}</span>
-                          )}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {/* CTA Button */}
-            <div className="mt-8">
-              <button className="inline-flex items-center justify-center bg-brand-orange text-white font-black uppercase tracking-wider py-4 px-8 rounded-xl shadow-lg shadow-brand-orange/25 hover:shadow-xl hover:shadow-brand-orange/40 hover:scale-105 transition-all duration-300">
-                Shop Now
-                <Zap className="w-4 h-4 ml-2" />
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
       {/* Trust Badges Strip */}
-      <div className="mt-20 py-8 bg-brand-dark">
+      <div className="mt-16 md:mt-20 py-8 bg-brand-dark">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
             {[
@@ -277,81 +366,15 @@ export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product 
               What Our <span className="text-brand-orange">Customers Say</span>
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              See what real customers are saying about their experience with AeroTouch.
+              {product && isMassageRollerProduct(product)
+                ? 'Real stories from people who use the AeroTouch Foot Massage Roller for tired feet, training, and long days on the move.'
+                : 'See what real customers are saying about their experience with AeroTouch.'}
             </p>
           </div>
 
           {/* Reviews with Photos Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                name: 'Sarah M.',
-                location: 'Austin, TX',
-                rating: 5,
-                title: 'Finally pain-free after years!',
-                text: "I've struggled with plantar fasciitis for 3 years. After just 2 weeks of wearing these insoles, the pain is completely gone. I can finally run again!",
-                image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop',
-                photos: [
-                  'https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=300&auto=format&fit=crop',
-                  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=300&auto=format&fit=crop'
-                ]
-              },
-              {
-                name: 'Michael T.',
-                location: 'Seattle, WA',
-                rating: 5,
-                title: 'Worth every penny',
-                text: "As a nurse working 12-hour shifts, my feet used to kill me. These insoles have been game-changing. No more pain after long days on my feet.",
-                image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=150&auto=format&fit=crop',
-                photos: [
-                  'https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop'
-                ]
-              },
-              {
-                name: 'Jennifer K.',
-                location: 'Denver, CO',
-                rating: 5,
-                title: 'Best investment for running',
-                text: "Training for my first marathon and these insoles have made all the difference. My recovery time has improved dramatically.",
-                image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
-                photos: [
-                  'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=300&auto=format&fit=crop',
-                  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=300&auto=format&fit=crop'
-                ]
-              },
-              {
-                name: 'David R.',
-                location: 'Miami, FL',
-                rating: 4,
-                title: 'Great for work boots',
-                text: "I work in construction and these insoles fit perfectly in my work boots. Much better than the generic ones I was using before.",
-                image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop',
-                photos: []
-              },
-              {
-                name: 'Amanda L.',
-                location: 'Portland, OR',
-                rating: 5,
-                title: 'Gift that keeps on giving',
-                text: "Bought these for my husband who has flat feet. He absolutely loves them! Ordered more for his work shoes and running shoes.",
-                image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
-                photos: [
-                  'https://images.unsplash.com/photo-1556227848-4f87e2429c09?q=80&w=300&auto=format&fit=crop'
-                ]
-              },
-              {
-                name: 'Carlos M.',
-                location: 'Chicago, IL',
-                rating: 5,
-                title: 'Amazing support',
-                text: "The arch support is perfect for my high arches. I've tried many insoles and this is hands down the best one I've found.",
-                image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
-                photos: [
-                  'https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop',
-                  'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=300&auto=format&fit=crop'
-                ]
-              }
-            ].map((review, idx) => (
+            {customerReviews.map((review, idx) => (
               <div key={idx} className="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-shadow">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-4">
@@ -384,19 +407,22 @@ export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product 
 
                 {/* Customer Photos */}
                 {review.photos.length > 0 && (
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     {review.photos.map((photo, photoIdx) => (
-                      <div
+                      <button
                         key={photoIdx}
-                        className="relative w-28 h-28 rounded-xl overflow-hidden cursor-pointer group"
+                        type="button"
+                        className="relative w-28 h-28 rounded-xl overflow-hidden cursor-zoom-in group border-0 p-0 bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
+                        onClick={() => setLightboxUrl(photo)}
+                        aria-label={`Enlarge photo ${photoIdx + 1} from ${review.name}`}
                       >
                         <img
                           src={photo}
-                          alt={`Customer photo ${photoIdx + 1}`}
+                          alt=""
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                      </div>
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
+                      </button>
                     ))}
                   </div>
                 )}
@@ -438,6 +464,31 @@ export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product 
           </div>
         </div>
       </section>
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setLightboxUrl(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Enlarged customer photo"
+        >
+          <button
+            type="button"
+            className="absolute top-4 right-4 z-[101] rounded-full bg-white/10 p-2.5 text-white hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close enlarged image"
+          >
+            <X className="w-6 h-6" strokeWidth={2} />
+          </button>
+          <img
+            src={enlargedPhotoUrl(lightboxUrl)}
+            alt="Customer photo enlarged"
+            className="max-h-[min(90vh,900px)] max-w-full w-auto object-contain rounded-xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </section>
   );
 };

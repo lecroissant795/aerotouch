@@ -15,6 +15,10 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAddToCart, bestSeller, compactOnMobile }) => {
   const keyFeature = product.features[0] || 'Premium support';
+  const compareAt =
+    product.compareAtPrice != null && product.compareAtPrice > product.price
+      ? product.compareAtPrice
+      : null;
   // Use handle if available for SEO-friendly URLs, fall back to id
   const productHref = createUrl(Page.PRODUCT, { handle: product.handle || product.id });
 
@@ -94,12 +98,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
             {product.tagline || keyFeature}
           </p>
 
-          {/* Price */}
+          {/* Price — sale + Shopify compare-at when present */}
           <div className={`mt-auto`}>
-            <div className="flex items-baseline justify-between">
-              <span className={`font-black text-slate-900 tracking-tight ${compactOnMobile ? 'text-lg md:text-xl' : 'text-xl'}`}>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span
+                className={`font-black tracking-tight ${compareAt != null ? 'text-brand-orange' : 'text-slate-900'} ${compactOnMobile ? 'text-lg md:text-xl' : 'text-xl'}`}
+              >
                 ${product.price.toFixed(2)}
               </span>
+              {compareAt != null && (
+                <span
+                  className={`text-slate-400 line-through font-bold ${compactOnMobile ? 'text-sm md:text-base' : 'text-base'}`}
+                >
+                  ${compareAt.toFixed(2)}
+                </span>
+              )}
             </div>
           </div>
         </div>

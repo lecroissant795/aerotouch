@@ -4,12 +4,15 @@ export interface PricingTier {
   label: string;
 }
 
+/** Quantity is total units in cart (all lines). Tier 1 = no volume discount. */
 export const PRICING_TIERS: PricingTier[] = [
+  { minQty: 1, discountPercent: 0, label: '1+' },
   { minQty: 2, discountPercent: 56, label: '56% OFF' },
   { minQty: 3, discountPercent: 80, label: '80% OFF' }
 ];
 
-export const PRICING_TIER_POSITIONS = [45, 65, 100];
+/** Progress bar marker positions (one per tier). */
+export const PRICING_TIER_POSITIONS = [12, 48, 100];
 
 const clampQty = (qty: number) => Math.max(1, Math.floor(qty));
 
@@ -47,6 +50,18 @@ export const getLinePricing = (compareAtUnitPrice: number, qty: number) => {
     discountPercent: tier.discountPercent
   };
 };
+
+/** Unit price after global volume tier (% off reference = compare-at or list). */
+export const getVolumeAdjustedUnitPrice = (referenceUnitPrice: number, globalCartItemCount: number): number => {
+  const n = Math.max(0, Math.floor(globalCartItemCount));
+  if (n <= 0 || referenceUnitPrice <= 0) return round2(referenceUnitPrice);
+  const tier = getApplicablePricingTier(n);
+  return round2(referenceUnitPrice * (1 - tier.discountPercent / 100));
+};
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
 
 export const getPricingProgress = (qty: number): number => {
   if (qty <= 0) return 0;
