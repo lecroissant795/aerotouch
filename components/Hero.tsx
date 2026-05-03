@@ -3,10 +3,13 @@ import { Button } from './Button';
 import { Star } from 'lucide-react';
 
 interface HeroProps {
-  onPrimaryCtaClick?: () => void;
+  /** Main product: Massage Insoles PDP */
+  onShopMassageInsolesClick?: () => void;
+  /** Full catalog (Shop All) */
+  onShopAllClick?: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onPrimaryCtaClick }) => {
+export const Hero: React.FC<HeroProps> = ({ onShopMassageInsolesClick, onShopAllClick }) => {
   const RunningBanner = ({ suffix }: { suffix: string }) => (
     <div className="flex items-center min-w-max">
       {[1, 2, 3, 4].map((item) => (
@@ -49,19 +52,37 @@ export const Hero: React.FC<HeroProps> = ({ onPrimaryCtaClick }) => {
             </div>
 
             <p className="text-brand-lime font-bold tracking-[0.2em] uppercase mb-4 text-sm md:text-base">
-              MADE FOR PERFORMANCE & COMFORT
+              RECOVER WHILE YOU MOVE
             </p>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter leading-[0.9] mb-8">
               ENGINEERED<br />FOR EVERY STEP
             </h1>
             
-            <Button 
-              className="rounded-full bg-brand-lime text-brand-dark hover:bg-white hover:text-brand-dark border-none px-8 py-4 text-lg font-bold uppercase tracking-wide"
-              onClick={onPrimaryCtaClick}
-            >
-              Get Yours Now
-            </Button>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+              <Button 
+                className="bg-brand-lime text-brand-dark hover:bg-white hover:text-brand-dark border-none px-8 py-4 text-lg font-bold uppercase tracking-wide shadow-lg shadow-black/20"
+                onClick={onShopMassageInsolesClick}
+                aria-label="Shop Massage Insoles — primary"
+              >
+                Shop Massage Insoles
+              </Button>
+              <button
+                type="button"
+                onClick={onShopAllClick}
+                aria-label="Get Yours Now — shop all products"
+                className="group relative inline-flex min-h-[52px] items-center justify-center overflow-hidden rounded-lg border-2 border-white/90 bg-white/5 px-8 py-4 text-lg font-bold uppercase tracking-wide transition-[border-color,box-shadow] duration-[250ms] ease-out hover:border-brand-lime focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:border-brand-lime touch-manipulation"
+              >
+                {/* Left-to-right fill — desktop: hover; touch: :active; keyboard: focus-visible */}
+                <span
+                  className="pointer-events-none absolute inset-0 z-0 origin-left scale-x-0 bg-brand-lime transition-transform duration-[250ms] ease-out will-change-transform group-hover:scale-x-100 group-active:scale-x-100 group-focus-visible:scale-x-100 motion-reduce:transition-none motion-reduce:group-hover:scale-x-100 motion-reduce:group-active:scale-x-100 motion-reduce:group-focus-visible:scale-x-100"
+                  aria-hidden
+                />
+                <span className="relative z-10 text-white transition-colors duration-[250ms] ease-out group-hover:text-brand-dark group-active:text-brand-dark group-focus-visible:text-brand-dark motion-reduce:duration-0">
+                  Get Yours Now
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </section>

@@ -249,12 +249,11 @@ export const LimitedTimeKits: React.FC<LimitedTimeKitsProps> = ({ onKitSelect, o
   };
 
   return (
-    <section id="recovery-kits" className="relative overflow-hidden bg-brand-light py-24">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-orange/30 to-transparent" />
+    <section id="recovery-kits" className="relative overflow-hidden bg-brand-light pb-20 pt-0 md:pb-24">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
 
       <div className="container relative z-10 mx-auto px-4 md:px-6">
-        <div className="mb-12 flex flex-col justify-between gap-8 border-b border-slate-200 pb-10 md:mb-16 md:flex-row md:items-end md:pb-12">
+        <div className="mb-12 flex flex-col justify-between gap-8 md:mb-16 md:flex-row md:items-end">
           <div className="max-w-xl">
             <div className="mb-4 flex items-center gap-2">
               <span className="h-0.5 w-12 bg-brand-orange" />

@@ -181,6 +181,10 @@ const FEATURED_PRODUCTS: Product[] = [
   }
 ];
 
+/** Hero primary CTA — main PDP (same handle as Shopify `massage-insoles`). */
+const MASSAGE_INSOLES_PRODUCT =
+  FEATURED_PRODUCTS.find((p) => p.handle === 'massage-insoles') ?? FEATURED_PRODUCTS[0];
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQuickAddToCart, onCategorySelect, onShopSaleClick, onKitSelect, onAddKitToCart }) => {
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const bestSellerSectionRef = useRef<HTMLElement | null>(null);
@@ -241,7 +245,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
 
   return (
     <div className="animate-in fade-in duration-500">
-      <Hero onPrimaryCtaClick={handleHeroPrimaryCta} />
+      <Hero
+        onShopMassageInsolesClick={() => onProductSelect(MASSAGE_INSOLES_PRODUCT)}
+        onShopAllClick={() => onShopSaleClick?.()}
+      />
       {/* Best Seller Section with Rolling Text */}
       <section
         ref={bestSellerSectionRef}

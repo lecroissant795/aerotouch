@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '../components/Button';
 import { useRouter } from '../utils/router';
+import { Page } from '../types';
 
 export const NotFoundPage: React.FC = () => {
   const { navigate } = useRouter();
@@ -12,10 +13,10 @@ export const NotFoundPage: React.FC = () => {
         Oops! The page you're looking for seems to have taken a detour.
       </p>
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button onClick={() => navigate('/')} size="lg">
+        <Button onClick={() => navigate(Page.HOME)} size="lg">
           Go Home
         </Button>
-        <Button onClick={() => navigate('/shop')} variant="outline" size="lg">
+        <Button onClick={() => navigate(Page.SHOP)} variant="outline" size="lg">
           Browse Shop
         </Button>
       </div>

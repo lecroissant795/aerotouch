@@ -5,7 +5,6 @@ import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { ReferralSection } from '../components/ReferralSection';
 import { GivingBackSection } from '../components/GivingBackSection';
-import { PageHero } from '../components/PageHero';
 
 // Fallback products for when Shopify is unavailable
 const SECONDARY_PRODUCTS: Product[] = [
@@ -101,12 +100,6 @@ export const AccessoriesPage: React.FC<AccessoriesPageProps> = ({
 
   return (
     <div className="animate-in fade-in duration-500 pt-24">
-      <PageHero
-        title="Accessories & Recovery"
-        description="Complete your recovery routine with our premium massage tools, compression gear, and therapeutic accessories."
-        image="https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=1920&auto=format&fit=crop"
-      />
-
       <div className="container mx-auto px-4 md:px-6 py-12">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

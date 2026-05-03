@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Page } from '../types';
 
 // URL pattern definitions
@@ -124,38 +124,64 @@ export const createUrl = (
   return url;
 };
 
-// useRouter hook
-export const useRouter = () => {
+export interface RouterContextValue {
+  page: Page;
+  params: Record<string, string>;
+  query: Record<string, string>;
+  navigate: (page: Page, params?: Record<string, string>, query?: Record<string, string>) => void;
+  replace: (page: Page, params?: Record<string, string>, query?: Record<string, string>) => void;
+  back: () => void;
+  forward: () => void;
+}
+
+const RouterContext = createContext<RouterContextValue | null>(null);
+
+type NavigationIntentRef = React.MutableRefObject<(() => void) | undefined>;
+
+/**
+ * Single source of truth for URL-driven UI state. Mount once above the app shell.
+ * Optional `navigationIntentRef`: assign `ref.current = () => { ... }` in a parent render
+ * to run code synchronously before every client navigation (pushState / replaceState / popstate).
+ */
+export const RouterProvider: React.FC<{
+  children: React.ReactNode;
+  navigationIntentRef?: NavigationIntentRef;
+}> = ({ children, navigationIntentRef }) => {
   const [state, setState] = useState<RouterState>(() => parseUrl());
+
+  const fireNavigationIntent = useCallback(() => {
+    navigationIntentRef?.current?.();
+  }, [navigationIntentRef]);
 
   useEffect(() => {
     const handlePopState = () => {
+      fireNavigationIntent();
       setState(parseUrl());
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [fireNavigationIntent]);
 
-  const navigate = useCallback((
-    page: Page,
-    params: Record<string, string> = {},
-    query: Record<string, string> = {}
-  ) => {
-    const url = createUrl(page, params, query);
-    window.history.pushState({ page, params, query }, '', url);
-    setState({ page, params, query });
-  }, []);
+  const navigate = useCallback(
+    (page: Page, params: Record<string, string> = {}, query: Record<string, string> = {}) => {
+      fireNavigationIntent();
+      const url = createUrl(page, params, query);
+      window.history.pushState({ page, params, query }, '', url);
+      setState({ page, params, query });
+    },
+    [fireNavigationIntent]
+  );
 
-  const replace = useCallback((
-    page: Page,
-    params: Record<string, string> = {},
-    query: Record<string, string> = {}
-  ) => {
-    const url = createUrl(page, params, query);
-    window.history.replaceState({ page, params, query }, '', url);
-    setState({ page, params, query });
-  }, []);
+  const replace = useCallback(
+    (page: Page, params: Record<string, string> = {}, query: Record<string, string> = {}) => {
+      fireNavigationIntent();
+      const url = createUrl(page, params, query);
+      window.history.replaceState({ page, params, query }, '', url);
+      setState({ page, params, query });
+    },
+    [fireNavigationIntent]
+  );
 
   const back = useCallback(() => {
     window.history.back();
@@ -165,13 +191,26 @@ export const useRouter = () => {
     window.history.forward();
   }, []);
 
-  return {
-    page: state.page,
-    params: state.params,
-    query: state.query,
-    navigate,
-    replace,
-    back,
-    forward,
-  };
+  const value = useMemo(
+    () => ({
+      page: state.page,
+      params: state.params,
+      query: state.query,
+      navigate,
+      replace,
+      back,
+      forward,
+    }),
+    [state.page, state.params, state.query, navigate, replace, back, forward]
+  );
+
+  return React.createElement(RouterContext.Provider, { value }, children);
+};
+
+export const useRouter = (): RouterContextValue => {
+  const ctx = useContext(RouterContext);
+  if (!ctx) {
+    throw new Error('useRouter must be used within a RouterProvider');
+  }
+  return ctx;
 };
