@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { ChevronLeft, ChevronRight, Info, Layers, Activity, Zap, ShieldCheck, Globe, Trophy, Star, Check, X, ThumbsUp, Smile, Truck, Gift, Flame, Heart, Timer, Sparkles, Play, BadgeCheck, MoreHorizontal, MessageSquare, Share2, Quote, Award, Shield, Droplets, Scissors, ArrowLeftRight, ShoppingBag, Users, Copy } from 'lucide-react';
 import { ReferralSection } from './ReferralSection';
 import { GivingBackSection } from './GivingBackSection';
@@ -135,6 +135,9 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
   const [videoReviewSlideIndex, setVideoReviewSlideIndex] = useState(0);
   const [textReviewSlideIndex, setTextReviewSlideIndex] = useState(0);
   const splitRef = useRef<HTMLDivElement>(null);
+  const comfortInteractiveRef = useRef<HTMLDivElement>(null);
+  const comfortTooltipRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [comfortTooltipNudgeX, setComfortTooltipNudgeX] = useState(0);
   const videoReviewRefs = useRef<Record<number, HTMLVideoElement | null>>({});
   const videoReviewScrollRef = useRef<HTMLDivElement>(null);
   const videoReviewCardRefs = useRef<(HTMLElement | null)[]>([]);
@@ -155,6 +158,44 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useLayoutEffect(() => {
+    const shell = comfortInteractiveRef.current;
+    if (activeFeature < 0 || !shell) {
+      setComfortTooltipNudgeX(0);
+      return;
+    }
+    const tip = comfortTooltipRefs.current[activeFeature];
+    if (!tip) {
+      setComfortTooltipNudgeX(0);
+      return;
+    }
+
+    const measure = () => {
+      const s = comfortInteractiveRef.current;
+      const t = comfortTooltipRefs.current[activeFeature];
+      if (!s || !t) return;
+      const shellRect = s.getBoundingClientRect();
+      const tipRect = t.getBoundingClientRect();
+      const pad = 12;
+      let nudge = 0;
+      if (tipRect.left < shellRect.left + pad) {
+        nudge = shellRect.left + pad - tipRect.left;
+      } else if (tipRect.right > shellRect.right - pad) {
+        nudge = shellRect.right - pad - tipRect.right;
+      }
+      setComfortTooltipNudgeX(nudge);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(shell);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [activeFeature]);
 
   const scrollVideoReviewTo = (index: number) => {
     const i = Math.max(0, Math.min(index, VIDEO_REVIEWS.length - 1));
@@ -275,7 +316,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
   return (
     <div className="w-full animate-in fade-in slide-in-from-bottom-8 duration-700">
       {/* 1. Engineered Section */}
-      <section id="engineered-for-everyone" className="pt-12 pb-20 md:pt-16 md:pb-32 bg-[#f8f9fa] overflow-hidden">
+      <section id="engineered-for-everyone" className="pt-12 pb-20 md:pt-16 md:pb-32 bg-[#f8f9fa] overflow-visible">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-16 md:mb-24 max-w-3xl mx-auto">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Targeted Relief</span>
@@ -286,15 +327,20 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
           </div>
 
         <div className="relative w-full max-w-[1600px] mx-auto">
+          <div
+            ref={comfortInteractiveRef}
+            className="relative w-full overflow-visible md:px-0 pb-6 md:pb-0"
+          >
           {/* The base image */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-40">
-            <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.08)_0%,transparent_70%)] rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute inset-0 flex items-center justify-center opacity-40 pointer-events-none">
+            <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.08)_0%,transparent_70%)] rounded-full blur-3xl"></div>
           </div>
           
           <img 
              src="/images/performance-tech.jpeg" 
              alt="AeroTouch Insole Tech" 
-             className="w-full h-auto rounded-[3rem] border border-slate-100/50 drop-shadow-[0_30px_40px_rgba(0,0,0,0.15)] relative z-10"
+             className="block w-full max-w-full h-auto object-contain rounded-3xl md:rounded-[3rem] border border-slate-100/50 drop-shadow-[0_30px_40px_rgba(0,0,0,0.15)] relative z-10 select-none"
+             draggable={false}
           />
           
             {/* Hotspots overlay */}
@@ -305,6 +351,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                 desc: "Reduces fatigue and protects your joints from daily impact.",
                 icon: "☁️",
                 position: isMobile ? { top: '35%', left: '72%' } : { top: '35%', left: '75%' }, // Heel
+                tooltipShiftPx: 2,
               },
               {
                 id: "arch",
@@ -325,43 +372,88 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                 title: "Custom Fit",
                 desc: "Molds perfectly to your unique foot shape over time.",
                 icon: "✨",
-                position: isMobile ? { top: '75%', left: '75%' } : { top: '75%', left: '75%' }, // Toe
+                position: isMobile ? { top: '70%', left: '70%' } : { top: '75%', left: '70%' }, // Toe
+                tooltipShiftPx: 4,
               }
             ].map((f, i) => (
                <div
                  key={i}
-                 className="absolute z-30"
+                 className={`absolute ${
+                   activeFeature < 0 ? 'z-30' : activeFeature === i ? 'z-50' : 'z-20'
+                 }`}
                  style={{ top: f.position.top, left: f.position.left, transform: 'translate(-50%, -50%)' }}
                >
-                 {/* Tooltip Card */}
-                 <div className={`absolute bottom-[calc(100%+16px)] left-1/2 -translate-x-1/2 mb-2 w-[280px] bg-white rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] border border-slate-100/50 p-6 transition-all duration-400 origin-bottom z-40 ${activeFeature === i ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 translate-y-4 scale-95 pointer-events-none'}`}>
-                   <div className="text-3xl mb-4">{f.icon}</div>
-                   <h4 className="font-bold text-slate-900 text-[17px] mb-2">{f.title}</h4>
-                   <p className="text-[15px] text-slate-600 leading-relaxed font-medium">{f.desc}</p>
-                   {/* Triangle pointer */}
-                   <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1.5 w-4 h-4 bg-white rotate-45 border-r border-b border-slate-100/50"></div>
+                 {/* Tooltip Card: below hotspot on small screens (except shock); shock above on all sizes */}
+                 <div
+                   ref={(el) => {
+                     comfortTooltipRefs.current[i] = el;
+                   }}
+                   style={
+                     activeFeature === i
+                       ? {
+                           marginLeft:
+                             comfortTooltipNudgeX +
+                             ('tooltipShiftPx' in f && typeof f.tooltipShiftPx === 'number'
+                               ? f.tooltipShiftPx
+                               : 0),
+                         }
+                       : undefined
+                   }
+                   className={`absolute z-40 w-[min(280px,calc(100vw-2.5rem))] max-w-[calc(100vw-2.5rem)] left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] border border-slate-100/50 p-4 sm:p-6 transition-all duration-300 ${
+                     f.id === 'shock' ? 'origin-bottom' : 'max-md:origin-top md:origin-bottom'
+                   } ${
+                     f.id === 'shock'
+                       ? 'bottom-[calc(100%+16px)] top-auto mb-2 mt-0'
+                       : 'top-[calc(100%+14px)] bottom-auto mt-0 md:bottom-[calc(100%+16px)] md:top-auto md:mb-2 md:mt-0'
+                   } ${
+                     activeFeature === i
+                       ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
+                       : `opacity-0 scale-95 pointer-events-none ${
+                           f.id === 'shock' ? 'translate-y-4' : 'max-md:-translate-y-2 md:translate-y-4'
+                         }`
+                   }`}
+                 >
+                   <div className="text-2xl sm:text-3xl mb-3 sm:mb-4">{f.icon}</div>
+                   <h4 className="font-bold text-slate-900 text-base sm:text-[17px] mb-1.5 sm:mb-2">{f.title}</h4>
+                   <p className="text-sm sm:text-[15px] text-slate-600 leading-relaxed font-medium">{f.desc}</p>
+                   {/* Triangle: up-caret when tooltip is below hotspot (mobile); down-caret when tooltip is above */}
+                   <div
+                     className={`absolute bottom-full -translate-x-1/2 mb-[-7px] w-4 h-4 bg-white rotate-45 border-l border-t border-slate-100/50 ${
+                       f.id === 'shock' ? 'hidden' : 'block md:hidden'
+                     } ${f.id === 'custom' ? 'left-[52%]' : 'left-1/2'}`}
+                     aria-hidden
+                   />
+                   <div
+                     className={`absolute top-full left-1/2 -translate-x-1/2 -mt-1.5 w-4 h-4 bg-white rotate-45 border-r border-b border-slate-100/50 ${
+                       f.id === 'shock' ? 'block' : 'hidden md:block'
+                     }`}
+                     aria-hidden
+                   />
                  </div>
 
                  {/* Hotspot Button */}
                  <button
+                   type="button"
                    onClick={() => setActiveFeature(activeFeature === i ? -1 : i)}
-                   className="relative w-14 h-14 flex items-center justify-center rounded-full group outline-none"
+                   className="relative w-14 h-14 min-w-[3.5rem] min-h-[3.5rem] flex items-center justify-center rounded-full group outline-none touch-manipulation [-webkit-tap-highlight-color:transparent]"
+                   aria-expanded={activeFeature === i}
                    aria-label={`View ${f.title} details`}
                  >
                    {/* Outer Ping Ring */}
                    <div className={`absolute inset-0 rounded-full border-[2.5px] transition-all duration-300 ${activeFeature === i ? 'border-[#0f3c31] scale-110 bg-[#0f3c31]/10' : 'border-white bg-white/20 group-hover:scale-110 shadow-[0_0_15px_rgba(0,0,0,0.1)]'}`}></div>
                    {activeFeature !== i && (
-                     <div className="absolute inset-0 rounded-full border-[2.5px] border-white animate-ping opacity-40"></div>
+                     <div className="absolute inset-0 rounded-full border-[2.5px] border-white animate-ping opacity-40 motion-reduce:animate-none"></div>
                    )}
                    
                    {/* Inner Circle */}
-                   <div className="relative w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                   <div className="relative w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm pointer-events-none">
                      <span className={`text-[#0f3c31] font-medium text-2xl leading-none transition-transform duration-300 transform ${activeFeature === i ? 'rotate-45' : ''}`}>+</span>
                    </div>
                  </button>
                </div>
             ))}
           </div>
+        </div>
         </div>
       </section>
 

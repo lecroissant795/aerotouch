@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { flushSync } from 'react-dom';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { LandingPage } from './pages/LandingPage';
@@ -37,7 +36,7 @@ import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/ana
 import { isSecondaryProduct, isMassageRollerProduct, getProductClassificationDebug } from './utils/productDetection';
 import { SizeSelectorModal } from './components/SizeSelectorModal';
 import { RouterProvider, useRouter } from './utils/router';
-import { PageTransitionOverlay } from './components/PageTransitionOverlay';
+import { ProductPageSkeleton } from './components/ProductPageSkeleton';
 import {
   getShopifyHandle,
   getShopifyId,
@@ -79,77 +78,8 @@ function findCheckoutVariant(shopifyProduct: any, size: string, color: string): 
 import { BLOG_POSTS } from './pages/BlogPage';
 import { BUNDLE_KITS } from './pages/BundleKitsPage';
 
-/** Minimum time the transition layer stays up so navigation never feels like a one-frame glitch. */
-const NAV_TRANSITION_MIN_MS = 320;
-
-interface AppShellProps {
-  navOverlayVisible: boolean;
-  setNavOverlayVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  transitionStartRef: React.MutableRefObject<number>;
-}
-
-function AppShell({ navOverlayVisible, setNavOverlayVisible, transitionStartRef }: AppShellProps) {
+function AppShell() {
   const { page, params, query, navigate } = useRouter();
-
-  // Track previous page for smooth transitions during loading
-  const previousPageRef = useRef<Page>(Page.HOME);
-  const [previousPage, setPreviousPage] = useState<Page>(Page.HOME);
-
-  // Update previous page when page changes
-  useEffect(() => {
-    setPreviousPage(previousPageRef.current);
-    previousPageRef.current = page;
-  }, [page]);
-
-  // Render the previous page during loading to maintain visual continuity
-  const renderPreviousPage = () => {
-    switch (previousPage) {
-      case Page.HOME:
-        return (
-          <LandingPage
-            onProductSelect={handleProductSelect}
-            onQuickAddToCart={handleQuickAddToCart}
-            onCategorySelect={(cat) => navigate(Page.CATEGORY, { category: cat })}
-            onShopSaleClick={() => navigate(Page.SHOP)}
-            onKitSelect={(kit) => navigate(Page.KIT_PRODUCT, { kitId: kit.id })}
-            onAddKitToCart={handleAddKitToCart}
-          />
-        );
-      case Page.SHOP:
-        return (
-          <ShopPage
-            onProductSelect={handleProductSelect}
-            onQuickAddToCart={handleQuickAddToCart}
-          />
-        );
-      case Page.CATEGORY:
-        return (
-          <CategoryPage
-            category={category || 'All'}
-            onProductSelect={handleProductSelect}
-            onQuickAddToCart={handleQuickAddToCart}
-            onNavigateToBlog={() => navigate(Page.BLOG)}
-          />
-        );
-      case Page.BEST_SELLERS:
-        return (
-          <BestSellersPage
-            onProductSelect={handleProductSelect}
-            onQuickAddToCart={handleQuickAddToCart}
-          />
-        );
-      case Page.ACCESSORIES:
-        return (
-          <AccessoriesPage
-            onProductSelect={handleProductSelect}
-            onQuickAddToCart={handleQuickAddToCart}
-            onNavigateToBlog={() => navigate(Page.BLOG)}
-          />
-        );
-      default:
-        return null;
-    }
-  };
 
   // Derived params
   const category = params.category;
@@ -209,14 +139,6 @@ function AppShell({ navOverlayVisible, setNavOverlayVisible, transitionStartRef 
   const [isProductLoading, setIsProductLoading] = useState(false);
   const [productError, setProductError] = useState<string | null>(null);
 
-  const navDismissSnapshotRef = useRef({
-    page,
-    isProductLoading,
-    selectedProduct,
-    productError,
-  });
-  navDismissSnapshotRef.current = { page, isProductLoading, selectedProduct, productError };
-
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
 
   const [selectedKit, setSelectedKit] = useState<BundleKit | null>(null);
@@ -230,38 +152,6 @@ function AppShell({ navOverlayVisible, setNavOverlayVisible, transitionStartRef 
   useEffect(() => {
     logPageView();
   }, [page]);
-
-  // Freeze UI during route changes until minimum delay elapses and (on PDP) product fetch settles.
-  useEffect(() => {
-    if (!navOverlayVisible) return;
-
-    const tryDismiss = () => {
-      const snap = navDismissSnapshotRef.current;
-      const productRouteReady =
-        snap.page !== Page.PRODUCT ||
-        (!snap.isProductLoading && (!!snap.selectedProduct || !!snap.productError));
-      const elapsed = Date.now() - transitionStartRef.current;
-      if (elapsed < NAV_TRANSITION_MIN_MS || !productRouteReady) return false;
-      setNavOverlayVisible(false);
-      return true;
-    };
-
-    if (tryDismiss()) return;
-
-    const id = window.setInterval(() => {
-      tryDismiss();
-    }, 40);
-    return () => window.clearInterval(id);
-  }, [navOverlayVisible, page, isProductLoading, selectedProduct, productError, setNavOverlayVisible, transitionStartRef]);
-
-  useEffect(() => {
-    if (!navOverlayVisible) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [navOverlayVisible]);
 
   // Diagnostic: Log all Shopify products on startup + hydrate cart upsell catalog
   useEffect(() => {
@@ -711,7 +601,6 @@ function AppShell({ navOverlayVisible, setNavOverlayVisible, transitionStartRef 
 
   return (
     <div className="flex flex-col min-h-screen">
-      <PageTransitionOverlay visible={navOverlayVisible} />
       <Navbar
         cartCount={cartItems.reduce((a,c) => a + c.quantity, 0)}
         onCartClick={() => setIsCartOpen(true)}
@@ -783,7 +672,9 @@ function AppShell({ navOverlayVisible, setNavOverlayVisible, transitionStartRef 
                 Back to Shop
               </button>
             </div>
-          ) : renderPreviousPage()
+          ) : (
+            <ProductPageSkeleton />
+          )
         )}
 
         {page === Page.SHOP && (
@@ -983,24 +874,9 @@ function AppShell({ navOverlayVisible, setNavOverlayVisible, transitionStartRef 
 }
 
 export default function App() {
-  const navigationIntentRef = useRef<(() => void) | undefined>(undefined);
-  const [navOverlayVisible, setNavOverlayVisible] = useState(false);
-  const transitionStartRef = useRef(0);
-
-  navigationIntentRef.current = () => {
-    transitionStartRef.current = Date.now();
-    flushSync(() => {
-      setNavOverlayVisible(true);
-    });
-  };
-
   return (
-    <RouterProvider navigationIntentRef={navigationIntentRef}>
-      <AppShell
-        navOverlayVisible={navOverlayVisible}
-        setNavOverlayVisible={setNavOverlayVisible}
-        transitionStartRef={transitionStartRef}
-      />
+    <RouterProvider>
+      <AppShell />
     </RouterProvider>
   );
 }

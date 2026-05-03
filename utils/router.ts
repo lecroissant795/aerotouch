@@ -136,51 +136,35 @@ export interface RouterContextValue {
 
 const RouterContext = createContext<RouterContextValue | null>(null);
 
-type NavigationIntentRef = React.MutableRefObject<(() => void) | undefined>;
-
-/**
- * Single source of truth for URL-driven UI state. Mount once above the app shell.
- * Optional `navigationIntentRef`: assign `ref.current = () => { ... }` in a parent render
- * to run code synchronously before every client navigation (pushState / replaceState / popstate).
- */
-export const RouterProvider: React.FC<{
-  children: React.ReactNode;
-  navigationIntentRef?: NavigationIntentRef;
-}> = ({ children, navigationIntentRef }) => {
+/** Single source of truth for URL-driven UI state. Mount once above the app shell. */
+export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<RouterState>(() => parseUrl());
-
-  const fireNavigationIntent = useCallback(() => {
-    navigationIntentRef?.current?.();
-  }, [navigationIntentRef]);
 
   useEffect(() => {
     const handlePopState = () => {
-      fireNavigationIntent();
       setState(parseUrl());
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [fireNavigationIntent]);
+  }, []);
 
   const navigate = useCallback(
     (page: Page, params: Record<string, string> = {}, query: Record<string, string> = {}) => {
-      fireNavigationIntent();
       const url = createUrl(page, params, query);
       window.history.pushState({ page, params, query }, '', url);
       setState({ page, params, query });
     },
-    [fireNavigationIntent]
+    []
   );
 
   const replace = useCallback(
     (page: Page, params: Record<string, string> = {}, query: Record<string, string> = {}) => {
-      fireNavigationIntent();
       const url = createUrl(page, params, query);
       window.history.replaceState({ page, params, query }, '', url);
       setState({ page, params, query });
     },
-    [fireNavigationIntent]
+    []
   );
 
   const back = useCallback(() => {
