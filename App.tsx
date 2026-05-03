@@ -27,7 +27,7 @@ import { OrderStatusPage } from './pages/OrderStatusPage';
 import { ReturnsExchangePage } from './pages/ReturnsExchangePage';
 import { SizeGuidePage } from './pages/SizeGuidePage';
 import { BundleKitsPage } from './pages/BundleKitsPage';
-import { KitProductPage } from './pages/KitProductPage';
+import { bundleKitToGridProduct } from './utils/bundleKits';
 import { AccessoriesPage } from './pages/AccessoriesPage';
 import { WarrantyPage } from './pages/WarrantyPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
@@ -578,7 +578,12 @@ function AppShell() {
     setCartError("Checkout link not ready yet. Please try again.");
   };
 
-  const handleAddKitToCart = (kit: BundleKit, quantity = 1) => {
+  const handleAddKitToCart = (
+    kit: BundleKit,
+    size: string = 'Standard',
+    color: string = 'One Size',
+    quantity = 1
+  ) => {
     const kitAsProduct: Product = {
       id: kit.shopifyProductId,
       handle: kit.handle,
@@ -592,7 +597,7 @@ function AppShell() {
       reviews: 0,
       tagline: 'Bundle Kit'
     };
-    handleAddToCart(kitAsProduct, 'Standard', 'One Size', quantity);
+    handleAddToCart(kitAsProduct, size, color, quantity);
   };
 
   return (
@@ -764,10 +769,17 @@ function AppShell() {
 
         {page === Page.KIT_PRODUCT && (
           selectedKit ? (
-            <KitProductPage
-              kit={selectedKit}
+            <ProductPage
+              product={bundleKitToGridProduct(selectedKit)}
+              onAddToCart={handleAddToCart}
               onBack={() => navigate(Page.BUNDLE_KITS)}
-              onAddToCart={handleAddKitToCart}
+              onProductSelect={handleProductSelect}
+              onNavigateToBlog={() => navigate(Page.BLOG)}
+              isLoading={isCartLoading}
+              error={cartError}
+              onBuyNow={handleBuyNow}
+              bundleItems={selectedKit.items}
+              backLabel="Back to Bundle Kits"
             />
           ) : (
             <div className="min-h-screen flex items-center justify-center">Kit not found</div>
