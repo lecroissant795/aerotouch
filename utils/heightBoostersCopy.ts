@@ -28,6 +28,34 @@ export const HEIGHT_BOOSTERS_PDP_COPY = {
   ]
 } as const;
 
+/** Rotating testimonial cards on SecondaryProductPage (unless overridden by props). */
+export const HEIGHT_BOOSTER_TESTIMONIALS = [
+  {
+    name: 'James L.',
+    role: 'Sales & client meetings',
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'I used to fixate on being the shorter guy in the room — handshakes, stage photos, all of it. AeroTouch Height Boosters sit invisibly in my Oxfords; I finally stop scanning who is taller and focus on the pitch.',
+    result: 'Stopped sizing myself up before every meeting'
+  },
+  {
+    name: 'Priya S.',
+    role: 'Wedding & event season',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'Group photos wrecked me — I’d shrink or stand on tiptoe and still feel awkward next to cousins in heels. These give me a natural bump inside my shoes so I’m not clock-watching the photographer anymore.',
+    result: 'Photos without that “why am I shortest?” spiral'
+  },
+  {
+    name: 'David O.',
+    role: 'Teacher, on feet all day',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'Kids don’t care, but I felt looked past next to taller coworkers in the hallway. One slim layer in my sneakers — not theatrical tall — just enough that I stand eye-level more often. Nobody’s guessed what changed.',
+    result: 'Less invisible in the crowd'
+  }
+];
+
 /** FAQ accordion for Height Boosters on SecondaryProductPage (unless overridden by props / metafields). */
 export const HEIGHT_BOOSTER_FAQS: { question: string; answer: string }[] = [
   {

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Button } from './Button';
-import { Zap, ArrowRight, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { Zap, ArrowRight, ShieldCheck, Heart } from 'lucide-react';
+import { createUrl } from '../utils/router';
+import { Page } from '../types';
+import { bundleKitItemStockPhotos } from '../utils/mediaUrls';
 
 interface Kit {
   id: string;
@@ -10,48 +12,75 @@ interface Kit {
   image: string;
   badge: string;
   items: string[];
+  /** One product image per included item (same order as `items`) */
+  itemImages: string[];
 }
 
 const KITS: Kit[] = [
   {
     id: 'fascilites-relief',
     name: 'Fascilites Relief Kit',
-    price: 48.00,
-    originalPrice: 75.00,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
+    price: 48.0,
+    originalPrice: 75.0,
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=900&auto=format&fit=max',
     badge: 'Best For Rehab',
-    items: ['1x Pro Insole', '1x Massage Ball', '1x compression sock']
+    items: ['1x Pro Insole', '1x Massage Ball', '1x compression sock'],
+    itemImages: [
+      bundleKitItemStockPhotos.insoleRedPerformance,
+      bundleKitItemStockPhotos.massageBall,
+      bundleKitItemStockPhotos.compressionSocks,
+    ],
   },
   {
     id: 'heel-relief',
     name: 'Heel Relief Kit',
-    price: 39.00,
-    originalPrice: 60.00,
-    image: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=800&auto=format&fit=crop',
+    price: 39.0,
+    originalPrice: 60.0,
+    image: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=900&auto=format&fit=max',
     badge: 'Top Rated',
-    items: ['1x Heel Cushion', '1x Daily Insole', '1x Arch Support']
+    items: ['1x Heel Cushion', '1x Daily Insole', '1x Arch Support'],
+    itemImages: [
+      bundleKitItemStockPhotos.heelCushion,
+      bundleKitItemStockPhotos.insoleWhiteSneaker,
+      bundleKitItemStockPhotos.archSupport,
+    ],
   },
   {
     id: 'toe-relief',
     name: 'Toe Relief Kit',
-    price: 39.00,
-    originalPrice: 60.00,
-    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
+    price: 39.0,
+    originalPrice: 60.0,
+    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=900&auto=format&fit=max',
     badge: 'Doctor Choice',
-    items: ['1x Toe Spreader', '1x Sport Insole', '1x Fabric sleeve']
+    items: ['1x Toe Spreader', '1x Sport Insole', '1x Fabric sleeve'],
+    itemImages: [
+      bundleKitItemStockPhotos.toeAccessory,
+      bundleKitItemStockPhotos.insoleSole,
+      bundleKitItemStockPhotos.fabricSleeve,
+    ],
   },
   {
     id: 'complete-recovery-kit',
     name: 'The Complete Recovery Kit',
-    price: 97.00,
-    originalPrice: 150.00,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
+    price: 97.0,
+    originalPrice: 150.0,
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=900&auto=format&fit=max',
     badge: 'Ultimate Value',
-    items: ['2x AeroTouch Massage Insoles', '2x Compression Socks', '1x Massage Roller']
-  }
+    items: ['2x AeroTouch Massage Insoles', '2x Compression Socks', '1x Massage Roller'],
+    itemImages: [
+      bundleKitItemStockPhotos.insoleRedPerformance,
+      bundleKitItemStockPhotos.compressionSocks,
+      bundleKitItemStockPhotos.foamRoller,
+    ],
+  },
 ];
 
-const KIT_CARD_WIDTH_MOBILE = 280;
+function savingsPercent(price: number, original: number): number {
+  if (original <= 0 || original <= price) return 0;
+  return Math.round(((original - price) / original) * 100);
+}
+
+const KIT_CARD_WIDTH_MOBILE = 300;
 const KIT_CAROUSEL_GAP = 16;
 
 interface LimitedTimeKitsProps {
@@ -60,8 +89,145 @@ interface LimitedTimeKitsProps {
   onAddKitToCart?: (kit: Kit) => void;
 }
 
-export const LimitedTimeKits: React.FC<LimitedTimeKitsProps> = ({ onKitSelect, onAddKitToCart }) => {
+interface KitBundleCardProps {
+  kit: Kit;
+  onKitSelect?: (kit: Kit) => void;
+  onAddKitToCart?: (kit: Kit) => void;
+}
 
+const KitBundleCard: React.FC<KitBundleCardProps> = ({ kit, onKitSelect, onAddKitToCart }) => {
+  const [activeItemIndex, setActiveItemIndex] = useState(0);
+  const kitHref = createUrl(Page.KIT_PRODUCT, { kitId: kit.id });
+  const savePct = savingsPercent(kit.price, kit.originalPrice);
+  const itemCount = kit.items.length;
+
+  const handleKitNavigate = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    onKitSelect?.(kit);
+  };
+
+  return (
+    <article
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg md:hover:-translate-y-1 ${onKitSelect ? 'cursor-pointer' : ''}`}
+    >
+      {/* Card-wide link layer (hero + copy); thumbs & CTAs sit above with pointer-events */}
+      {onKitSelect && (
+        <a
+          href={kitHref}
+          onClick={handleKitNavigate}
+          className="absolute inset-0 z-[1] rounded-2xl"
+          aria-label={`View ${kit.name}`}
+        />
+      )}
+
+      <div className="relative z-[2] flex min-h-0 flex-1 flex-col pointer-events-none">
+        {/* Hero — white background; image fully visible (object-contain, no crop) */}
+        <div className="relative bg-white">
+          <div className="relative px-3 pb-2 pt-10 sm:px-4 sm:pb-3 sm:pt-11">
+            {kit.badge && (
+              <span className="absolute left-3 top-3 z-10 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-900 shadow-sm sm:left-4 sm:top-4 sm:text-[10px]">
+                {kit.badge}
+              </span>
+            )}
+            {savePct > 0 && (
+              <span className="absolute right-3 top-3 z-10 rounded-md bg-brand-orange px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white shadow-sm sm:right-4 sm:top-4 sm:text-[10px]">
+                Save {savePct}%
+              </span>
+            )}
+            <div className="flex h-[168px] w-full items-center justify-center sm:h-[188px] md:h-[200px]">
+              <img
+                src={kit.image}
+                alt={kit.name}
+                className="max-h-full max-w-full object-contain object-center transition-transform duration-500 group-hover:scale-[1.02]"
+                decoding="async"
+              />
+            </div>
+          </div>
+
+          {/* What's included — product thumbnails */}
+          <div className="pointer-events-auto border-t border-slate-100 bg-white px-3 py-3 sm:px-4 sm:py-3.5">
+            <p className="mb-2.5 text-center text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              What&apos;s included
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+              {kit.items.map((item, i) => {
+                const thumbSrc = kit.itemImages[i] ?? kit.itemImages[0];
+                const active = i === activeItemIndex;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    title={item}
+                    aria-label={item}
+                    aria-pressed={active}
+                    onClick={() => setActiveItemIndex(i)}
+                    className={`relative flex h-[52px] w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 bg-slate-50 transition-colors sm:h-14 sm:w-14 ${
+                      active ? 'border-brand-orange shadow-sm ring-1 ring-brand-orange/20' : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <img
+                      src={thumbSrc}
+                      alt=""
+                      loading="lazy"
+                      className="max-h-full max-w-full object-contain object-center p-1.5 sm:p-2"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Body — category, title + price, included count */}
+        <div className="flex flex-1 flex-col border-t border-slate-100 bg-white px-4 pb-3 pt-4 sm:px-5 sm:pt-5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-slate-400">Recovery bundle</p>
+
+          <div className="mt-2 flex items-start justify-between gap-3">
+            <h3 className="min-w-0 flex-1 text-left text-[15px] font-semibold leading-snug text-slate-900 sm:text-base">
+              {kit.name}
+            </h3>
+            <div className="shrink-0 text-right">
+              {kit.originalPrice > kit.price && (
+                <span className="block text-[11px] font-medium text-slate-400 line-through">
+                  ${kit.originalPrice.toFixed(2)}
+                </span>
+              )}
+              <span className="text-[15px] font-bold tabular-nums text-slate-900 sm:text-base">
+                ${kit.price.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            <span className="font-semibold text-slate-600">{itemCount} items</span>
+            <span className="text-slate-400"> · </span>
+            <span className="line-clamp-2">{kit.items.join(' · ')}</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Actions — above overlay link */}
+      <div className="relative z-[3] flex gap-2 border-t border-slate-100 bg-white px-4 pb-4 pt-1 sm:px-5 sm:pb-5">
+        <button
+          type="button"
+          className="min-h-[48px] flex-1 rounded-[10px] bg-brand-dark py-3 text-center text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:bg-slate-800 active:scale-[0.99] sm:text-xs"
+          onClick={() => onAddKitToCart?.(kit)}
+        >
+          Add to cart
+        </button>
+        <button
+          type="button"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-brand-orange transition-colors hover:bg-slate-50"
+          aria-label="Save bundle"
+        >
+          <Heart className="h-5 w-5 fill-brand-orange text-brand-orange" aria-hidden />
+        </button>
+      </div>
+    </article>
+  );
+};
+
+export const LimitedTimeKits: React.FC<LimitedTimeKitsProps> = ({ onKitSelect, onAddKitToCart }) => {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [activeKitIndex, setActiveKitIndex] = useState(0);
 
@@ -82,149 +248,71 @@ export const LimitedTimeKits: React.FC<LimitedTimeKitsProps> = ({ onKitSelect, o
     setActiveKitIndex(index);
   };
 
-
-
   return (
-    <section id="recovery-kits" className="py-24 bg-brand-light relative overflow-hidden">
-      {/* Dynamic Background */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-orange/30 to-transparent"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-30"></div>
-      
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        {/* Header with High Refined Style */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 border-b border-slate-200 pb-12">
+    <section id="recovery-kits" className="relative overflow-hidden bg-brand-light py-24">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-orange/30 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
+
+      <div className="container relative z-10 mx-auto px-4 md:px-6">
+        <div className="mb-12 flex flex-col justify-between gap-8 border-b border-slate-200 pb-10 md:mb-16 md:flex-row md:items-end md:pb-12">
           <div className="max-w-xl">
-             <div className="flex items-center gap-2 mb-4">
-               <span className="w-12 h-0.5 bg-brand-orange"></span>
-               <span className="text-brand-orange font-black uppercase tracking-[0.3em] text-[10px]">Limited Edition Collection</span>
-             </div>
-             <h2 className="text-5xl md:text-6xl font-black text-brand-dark uppercase tracking-tighter leading-[0.9] mb-4">
-               Exclusive <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-orange-400">Recovery Kits</span>
-             </h2>
-             <p className="text-slate-500 font-medium">
-               Professional-grade orthotics and recovery tools bundled for maximum performance. Guaranteed lowest pricing for a limited time.
-             </p>
+            <div className="mb-4 flex items-center gap-2">
+              <span className="h-0.5 w-12 bg-brand-orange" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-orange">
+                Limited Edition Collection
+              </span>
+            </div>
+            <h2 className="mb-4 text-4xl font-black uppercase leading-[0.95] tracking-tighter text-brand-dark md:text-5xl lg:text-6xl">
+              Exclusive <br />{' '}
+              <span className="bg-gradient-to-r from-brand-orange to-orange-400 bg-clip-text text-transparent">
+                Recovery Kits
+              </span>
+            </h2>
+            <p className="font-medium text-slate-500">
+              Professional-grade orthotics and recovery tools bundled for maximum performance. Guaranteed lowest pricing
+              for a limited time.
+            </p>
           </div>
-
-          {/* Premium Glass Timer */}
-
         </div>
 
-        {/* Enhanced Kit Grid / Mobile Carousel */}
         <div
           ref={carouselRef}
           onScroll={updateActiveKitIndex}
-          className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pb-4 md:pb-0 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide md:overflow-visible"
+          className="scrollbar-hide -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 lg:grid-cols-4 md:overflow-visible md:px-0 md:pb-0"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {KITS.map((kit) => (
-            <div
-              key={kit.id}
-              className="group relative flex-none w-[280px] md:w-auto snap-start"
-            >
-               {/* Card Container - full width in carousel, 90% in grid on md */}
-               <div
-                 role={onKitSelect ? 'button' : undefined}
-                 tabIndex={onKitSelect ? 0 : undefined}
-                 onClick={() => onKitSelect?.(kit)}
-                 onKeyDown={(e) => onKitSelect && e.key === 'Enter' && onKitSelect(kit)}
-                 className={`w-full bg-white rounded-xl md:rounded-[2rem] p-3 md:p-4 h-full border border-slate-100 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-brand-orange/10 md:hover:-translate-y-2 flex flex-col ${onKitSelect ? 'cursor-pointer' : ''}`}
-               >
-                  {/* Visual Header */}
-                  <div className="relative aspect-[3/4] md:aspect-[4/5] bg-slate-50 rounded-xl md:rounded-[1.5rem] overflow-hidden mb-4 md:mb-6">
-                     {/* Badge Overlay */}
-                     <div className="absolute top-2 left-2 md:top-4 md:left-4 z-10">
-                        <span className="bg-white/90 backdrop-blur-sm text-[8px] md:text-[9px] font-black text-slate-900 px-2 py-1 md:px-3 md:py-1.5 rounded-full uppercase tracking-widest shadow-sm">
-                           {kit.badge}
-                        </span>
-                     </div>
-
-                     {/* Image with sophisticated effect */}
-                     <img 
-                        src={kit.image} 
-                        alt={kit.name}
-                        className="w-full h-full object-cover mix-blend-multiply opacity-80 group-hover:scale-110 group-hover:opacity-100 transition-all duration-700"
-                     />
-                     
-                     {/* Gradient Bottom */}
-                     <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-50"></div>
-                     
-                     {/* Quick Savings Bubble */}
-                     <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-brand-orange text-white text-[8px] md:text-[10px] font-black w-10 h-10 md:w-14 md:h-14 rounded-full flex flex-col items-center justify-center shadow-lg transform rotate-12 group-hover:rotate-0 transition-transform duration-500">
-                        <span>SAVE</span>
-                        <span className="text-xs md:text-sm">40%</span>
-                     </div>
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="px-1 md:px-2 flex-grow">
-                     <h3 className="text-base md:text-lg font-black text-slate-900 leading-tight mb-2 md:mb-3 uppercase tracking-tight">
-                        {kit.name}
-                     </h3>
-                     
-                     {/* In-kit list */}
-                     <div className="space-y-1 md:space-y-1.5 mb-4 md:mb-6">
-                        {kit.items.map((item, i) => (
-                          <div key={i} className="flex items-center gap-1.5 md:gap-2 text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                             <Zap className="w-2 h-2 md:w-2.5 md:h-2.5 text-brand-lime fill-current flex-shrink-0" />
-                             {item}
-                          </div>
-                        ))}
-                     </div>
-                  </div>
-
-                  {/* Pricing and Action */}
-                  <div className="mt-auto px-1 md:px-2 pt-3 md:pt-4 border-t border-slate-50 flex items-center justify-between">
-                     <div>
-                        <span className="block text-[9px] md:text-[10px] font-bold text-slate-400 line-through tracking-tighter mb-0.5">${kit.originalPrice.toFixed(2)}</span>
-                        <span className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter leading-none">${kit.price.toFixed(2)}</span>
-                     </div>
-                     <button
-                       type="button"
-                       className="w-10 h-10 md:w-12 md:h-12 bg-slate-900 text-white rounded-xl md:rounded-2xl flex items-center justify-center transition-all hover:bg-brand-orange hover:shadow-lg hover:shadow-brand-orange/30 active:scale-95"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         onAddKitToCart?.(kit);
-                       }}
-                       aria-label={`Add ${kit.name} to cart`}
-                     >
-                        <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
-                     </button>
-                  </div>
-               </div>
+            <div key={kit.id} className="w-[300px] flex-none snap-start md:w-auto">
+              <KitBundleCard kit={kit} onKitSelect={onKitSelect} onAddKitToCart={onAddKitToCart} />
             </div>
           ))}
         </div>
 
-        {/* Carousel dots - mobile only */}
-        <div className="flex justify-center gap-2 mt-4 md:hidden" aria-hidden>
+        <div className="mt-4 flex justify-center gap-2 md:hidden" aria-hidden>
           {KITS.map((_, index) => (
             <button
               key={index}
               type="button"
               onClick={() => goToKitIndex(index)}
               className={`h-2 rounded-full transition-all duration-200 ${
-                index === activeKitIndex
-                  ? 'w-6 bg-brand-orange'
-                  : 'w-2 bg-slate-300 hover:bg-slate-400'
+                index === activeKitIndex ? 'w-6 bg-brand-orange' : 'w-2 bg-slate-300 hover:bg-slate-400'
               }`}
               aria-label={`Go to kit ${index + 1}`}
             />
           ))}
         </div>
 
-        {/* Footer Trust Bar inside Section */}
-        <div className="mt-16 flex flex-wrap justify-center gap-x-12 gap-y-6">
-           {[
-             { icon: ShieldCheck, text: "60-Day Performance Guarantee" },
-             { icon: Zap, text: "Instant Recovery Support" },
-             { icon: ArrowRight, text: "Premium Doctor Approved" }
-           ].map((item, i) => (
-             <div key={i} className="flex items-center gap-3">
-                <item.icon className="w-4 h-4 text-brand-orange" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{item.text}</span>
-             </div>
-           ))}
+        <div className="mt-14 flex flex-wrap justify-center gap-x-12 gap-y-6 md:mt-16">
+          {[
+            { icon: ShieldCheck, text: '60-Day Performance Guarantee' },
+            { icon: Zap, text: 'Instant Recovery Support' },
+            { icon: ArrowRight, text: 'Premium Doctor Approved' },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <item.icon className="h-4 w-4 text-brand-orange" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{item.text}</span>
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -18,7 +18,8 @@ import { isHeightBoosterProduct } from '../utils/productDetection';
 import {
   HEIGHT_BOOSTERS_PDP_COPY,
   HEIGHT_BOOSTERS_STORY_BELOW_TESTIMONIALS,
-  HEIGHT_BOOSTER_FAQS
+  HEIGHT_BOOSTER_FAQS,
+  HEIGHT_BOOSTER_TESTIMONIALS
 } from '../utils/heightBoostersCopy';
 
 interface SecondaryProductPageProps {
@@ -98,9 +99,14 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   faqs: faqsProp,
   testimonials: testimonialsProp
 }) => {
-  const testimonialItems = testimonialsProp ?? DEFAULT_TESTIMONIALS;
   const [product, setProduct] = useState<Product>(initialProduct);
   const meta = useProductMetafields(product);
+
+  const testimonialItems = useMemo(() => {
+    if (testimonialsProp) return testimonialsProp;
+    if (isHeightBoosterProduct(product)) return HEIGHT_BOOSTER_TESTIMONIALS;
+    return DEFAULT_TESTIMONIALS;
+  }, [testimonialsProp, product]);
 
   const bundleQuantities = useMemo(() => {
     const raw = meta.bundle_options_override;
@@ -230,7 +236,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
       setActiveTestimonial((prev) => (prev + 1) % testimonialItems.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isTestimonialHovered, testimonialItems.length]);
+  }, [isTestimonialHovered, testimonialItems]);
 
   useEffect(() => {
     setActiveTestimonial(0);

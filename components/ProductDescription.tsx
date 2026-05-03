@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShieldCheck, Zap, Wind, Thermometer, Heart, Leaf, Award, Clock, Users, Star, Truck, X } from 'lucide-react';
 import { Product } from '../types';
-import { isMassageRollerProduct } from '../utils/productDetection';
+import { isMassageRollerProduct, isHeightBoosterProduct } from '../utils/productDetection';
 
 /** Request a larger asset when opening review photos (Unsplash-style `w=` param). */
 function enlargedPhotoUrl(url: string): string {
@@ -156,6 +156,72 @@ const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
   }
 ];
 
+/** Grid reviews for Height Boosters PDP — insecurity → AeroTouch relief (not generic insoles). */
+const HEIGHT_BOOSTERS_CUSTOMER_REVIEWS: CustomerReview[] = [
+  {
+    name: 'James L.',
+    location: 'Boston, MA',
+    rating: 5,
+    title: 'I stopped dreading the conference-room lineup',
+    text: 'Being shorter than most of my clients genuinely messed with my head — I’d overcompensate with voice or jokes. Height Boosters in my Oxfords gave me a few cm without clown shoes; first week I noticed I wasn’t bracing for every handshake.',
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'Priya S.',
+    location: 'Chicago, IL',
+    rating: 5,
+    title: 'Family weddings used to ruin my mood',
+    text: 'I’m the shortest cousin — every reunion photo felt like proof. I refused ridiculous platforms. AeroTouch sits inside my actual heels so I’m not on display as “the tiny one” anymore; I can laugh at dinner instead of hovering at the edge.',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1516478177764-576fe58782f9?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'David O.',
+    location: 'Charlotte, NC',
+    rating: 5,
+    title: 'I felt easy to overlook next to taller staff',
+    text: 'Hall duty with colleagues who tower over you sounds dumb as a problem until you live it. One thin layer in my sneakers — not magic tall — just enough eye contact with kids and adults that I don’t feel like I’m speaking up from below.',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
+    photos: []
+  },
+  {
+    name: 'Rachel T.',
+    location: 'Denver, CO',
+    rating: 5,
+    title: 'Dating apps meet reality — I used to panic about it',
+    text: 'I spiraled before every first coffee: what if they expected taller? Height Boosters in boots level the walk-in moment so I’m not apologizing with my posture. Still me — just not negotiating my height in my head the whole date.',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=300&auto=format&fit=crop'
+    ]
+  },
+  {
+    name: 'André M.',
+    location: 'Montreal, QC',
+    rating: 4,
+    title: 'Cheaper lifts embarrassed me — these don’t',
+    text: 'I tried plastic stacks years ago and felt like everyone could tell. I almost gave up. These took a day to get used to but the cushioning is real; I’m not obsessing in every reflective window anymore.',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop',
+    photos: []
+  },
+  {
+    name: 'Mei K.',
+    location: 'San Jose, CA',
+    rating: 5,
+    title: 'Standing meetings made me feel boxed out',
+    text: 'Open floor + taller managers = I felt like I was craning or disappearing in the huddle. Slim Height Boosters for days on my feet — I’m not chasing inches for ego; I’m tired of feeling like the shortest voice in the circle.',
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1595950653106-6c046ebd75cc?q=80&w=300&auto=format&fit=crop'
+    ]
+  }
+];
+
 // Animated counter hook
 const useCountUp = (end: number, duration: number = 2000, start: number = 0) => {
   const [count, setCount] = useState(start);
@@ -235,14 +301,18 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: any; title: str
 );
 
 interface ProductDescriptionProps {
-  /** When this is the Massage Roller product, review cards use roller-specific copy. */
+  /** When set, review grid copy matches the PDP product (Massage Roller / Height Boosters). */
   product?: Product;
 }
 
 export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const customerReviews =
-    product && isMassageRollerProduct(product) ? MASSAGE_ROLLER_CUSTOMER_REVIEWS : DEFAULT_CUSTOMER_REVIEWS;
+    product && isMassageRollerProduct(product)
+      ? MASSAGE_ROLLER_CUSTOMER_REVIEWS
+      : product && isHeightBoosterProduct(product)
+        ? HEIGHT_BOOSTERS_CUSTOMER_REVIEWS
+        : DEFAULT_CUSTOMER_REVIEWS;
 
   useEffect(() => {
     if (!lightboxUrl) return;
@@ -368,7 +438,9 @@ export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product 
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
               {product && isMassageRollerProduct(product)
                 ? 'Real stories from people who use the AeroTouch Foot Massage Roller for tired feet, training, and long days on the move.'
-                : 'See what real customers are saying about their experience with AeroTouch.'}
+                : product && isHeightBoosterProduct(product)
+                  ? 'Real people on feeling shorter in rooms, photos, and dating — and how discreet AeroTouch Height Boosters helped them show up without the mental spiral.'
+                  : 'See what real customers are saying about their experience with AeroTouch.'}
             </p>
           </div>
 
