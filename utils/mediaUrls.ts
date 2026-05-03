@@ -41,8 +41,8 @@ export const sectionImages = {
     running: `${STORAGE_BASE}/sections/Running.png`,
     allDayComfort: `${STORAGE_BASE}/sections/All%20Day%20Comfort.png`,
     drCatherineAris: `${STORAGE_BASE}/sections/Dr.%20Catherine%20Aris.png`,
-    section2: `${STORAGE_BASE}/sections/2.png`,
-    section3: `${STORAGE_BASE}/sections/3.png`,
+    section2: `${STORAGE_BASE}/sections/before-aerotouch.png`,
+    section3: `${STORAGE_BASE}/sections/after-aerotouch.png`,
 };
 
 // ── Review avatars (large PNGs) ─────────────────────────────────────────────

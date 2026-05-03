@@ -96,6 +96,29 @@ const VIDEO_REVIEWS = [
 const MOBILE_BREAKPOINT = 768;
 const TABLET_BREAKPOINT = 1024;
 
+/** Regular vs AeroTouch — booleans = passes that criterion */
+const DIFFERENCE_COMPARISON_ROWS: {
+  emoji: string;
+  label: string;
+  normalPasses: boolean;
+  aerotouchPasses: boolean;
+}[] = [
+  { emoji: '☁️', label: 'Cushioning and comfort', normalPasses: false, aerotouchPasses: true },
+  { emoji: '⚖️', label: 'Pressure relief', normalPasses: false, aerotouchPasses: true },
+  { emoji: '🦶', label: 'Arch and heel support', normalPasses: false, aerotouchPasses: true },
+  { emoji: '🛡️', label: 'Shock absorption', normalPasses: false, aerotouchPasses: true },
+  { emoji: '♾️', label: 'Long-term wearability', normalPasses: false, aerotouchPasses: true },
+  { emoji: '☀️', label: 'Suited to daily, all-day wear', normalPasses: false, aerotouchPasses: true },
+  { emoji: '💵', label: 'Lowest upfront cost', normalPasses: true, aerotouchPasses: false },
+];
+
+const DIFFERENCE_FEATURE_HIGHLIGHTS: { icon: typeof Star; title: string; desc: string }[] = [
+  { icon: Star, title: 'Improve Posture', desc: 'Proper arch support promotes better spine alignment.' },
+  { icon: Zap, title: 'Boost Performance', desc: 'Adds a spring to each step making walking and running easier.' },
+  { icon: Scissors, title: 'Size Adjustable', desc: 'Simply cut along the dotted line with scissors.' },
+  { icon: Droplets, title: 'Easily Washable', desc: 'Simply hand wash with soap and water.' },
+];
+
 interface ProductTechSpecsProps {
   currentProductId?: string;
   onProductSelect?: (product: Product) => void;
@@ -933,24 +956,19 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
       </section>
 
       {/* The AeroTouch Difference – Interactive slider + Benefits */}
-      <section className="bg-white border-t border-slate-100 py-16 md:py-24">
-        <div className="container mx-auto px-4 md:px-6">
+      <section className="bg-white border-t border-slate-100 py-20 md:py-28 scroll-mt-8">
+        <div className="container mx-auto px-4 sm:px-5 md:px-6">
           {/* Top row: interactive split image + headline */}
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 md:gap-16 items-center mb-16">
-            {/* Left – interactive before/after slider */}
-            <div className="relative mx-auto w-full max-w-[22.56rem] select-none">
-              {/* Normal label */}
-              {splitPos > 15 && (
-                <span className="absolute top-4 left-4 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md z-10 pointer-events-none">Normal</span>
-              )}
-              {/* AeroTouch label */}
-              {splitPos < 85 && (
-                <span className="absolute top-4 right-4 bg-brand-orange text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md z-10 pointer-events-none">AeroTouch</span>
-              )}
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-14 lg:gap-16 items-start md:items-center mb-16 md:mb-20">
+            {/* Left – interactive before/after slider (labels in flow so they never overlap the image awkwardly) */}
+            <div className="w-full max-w-md mx-auto md:max-w-none md:mx-0 min-w-0 flex flex-col gap-2 select-none">
+              <p className="text-center text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] text-slate-500 max-w-[min(100%,28rem)] mx-auto w-full">
+                Drag to Compare
+              </p>
 
               <div
                 ref={splitRef}
-                className="relative rounded-2xl overflow-hidden aspect-[3/4] bg-white cursor-ew-resize touch-none"
+                className="relative w-full max-w-[min(100%,28rem)] mx-auto rounded-2xl overflow-hidden bg-white border border-slate-200/90 aspect-[4/5] cursor-ew-resize touch-none isolate"
                 onPointerDown={onSplitPointerDown}
                 onPointerMove={onSplitPointerMove}
               >
@@ -958,60 +976,138 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                 <img
                   src={sectionImages.section2}
                   alt="Normal shoe insoles"
-                  className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
+                  className="absolute inset-0 z-0 w-full h-full object-cover object-center pointer-events-none"
                   draggable={false}
                 />
-                {/* "AeroTouch" side – clipped overlay */}
+                {/* "AeroTouch" side – clipped overlay (same geometry as base; no inline offset) */}
                 <img
                   src={sectionImages.section3}
                   alt="AeroTouch insoles"
-                  className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
+                  className="absolute inset-0 z-[1] w-full h-full object-cover object-center pointer-events-none"
                   draggable={false}
-                  style={{ clipPath: `inset(0 0 0 ${splitPos}%)`, top: '3px' }}
+                  style={{ clipPath: `inset(0 0 0 ${splitPos}%)` }}
                 />
+
+                {splitPos > 15 && (
+                  <span className="absolute top-3 left-3 z-[4] pointer-events-none inline-flex bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-md shadow-sm">
+                    Normal
+                  </span>
+                )}
+                {splitPos < 85 && (
+                  <span className="absolute top-3 right-3 z-[4] pointer-events-none inline-flex bg-brand-orange text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-md shadow-sm">
+                    AeroTouch
+                  </span>
+                )}
 
                 {/* Divider line */}
                 <div
-                  className="absolute top-0 bottom-0 w-[2px] bg-white z-10 pointer-events-none"
+                  className="absolute inset-y-0 z-[5] w-0.5 bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.06)] pointer-events-none"
                   style={{ left: `${splitPos}%`, transform: 'translateX(-50%)' }}
                 />
                 {/* Drag handle */}
                 <div
-                  className="absolute top-1/2 z-20 -translate-y-1/2 w-10 h-10 rounded-full bg-white border-2 border-white shadow-[0_4px_20px_rgba(0,0,0,0.3)] flex items-center justify-center pointer-events-none"
+                  className="absolute top-1/2 z-[6] w-10 h-10 rounded-full bg-white border-2 border-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.22)] flex items-center justify-center pointer-events-none"
                   style={{ left: `${splitPos}%`, transform: 'translate(-50%, -50%)' }}
                 >
-                  <ArrowLeftRight className="w-4 h-4 text-slate-900" />
+                  <ArrowLeftRight className="w-4 h-4 text-slate-900" aria-hidden />
                 </div>
               </div>
             </div>
 
-            {/* Right – headline & description */}
-            <div>
-              <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-5">
+            {/* Right – headline & feature highlights */}
+            <div className="min-w-0 pt-2 md:pt-0 w-full">
+              <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-6 md:mb-8">
                 The AeroTouch <span className="text-brand-orange">Difference</span>
               </h2>
-              <p className="text-slate-600 text-lg leading-relaxed max-w-md">
-                Experience the transformation for yourself and step into a brighter, pain-free future today.
-              </p>
+              <div className="w-full max-w-xl lg:max-w-2xl mx-auto md:mx-0">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-9 md:gap-x-8">
+                  {DIFFERENCE_FEATURE_HIGHLIGHTS.map((item) => (
+                    <div key={item.title} className="text-center">
+                      <div className="w-12 h-12 rounded-xl bg-brand-orange/10 flex items-center justify-center mx-auto mb-4">
+                        <item.icon className="w-6 h-6 text-brand-orange" />
+                      </div>
+                      <h3 className="font-black text-slate-900 text-base mb-2">{item.title}</h3>
+                      <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Bottom row: 4 benefit cards */}
-          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: Star, title: 'Improve Posture', desc: 'Proper arch support promotes better spine alignment.' },
-              { icon: Zap, title: 'Boost Performance', desc: 'Adds a spring to each step making walking and running easier.' },
-              { icon: Scissors, title: 'Size Adjustable', desc: 'Simply cut along the dotted line with scissors.' },
-              { icon: Droplets, title: 'Easily Washable', desc: 'Simply hand wash with soap and water.' },
-            ].map((item) => (
-              <div key={item.title} className="text-center">
-                <div className="w-12 h-12 rounded-xl bg-brand-orange/10 flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="w-6 h-6 text-brand-orange" />
-                </div>
-                <h3 className="font-black text-slate-900 text-base mb-2">{item.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+          {/* Normal vs AeroTouch comparison table */}
+          <div className="max-w-5xl mx-auto w-full pt-8 md:pt-12 mt-2 md:mt-0 border-t border-slate-100/80">
+            <h3 className="text-center text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 mb-5 md:mb-7 px-2 leading-tight max-w-2xl mx-auto">
+              Stop guessing—see how <span className="text-brand-orange">AeroTouch Cloud Foam</span> stacks up against ordinary insoles
+            </h3>
+            <div className="w-full -mx-1 sm:mx-0">
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-900/5">
+                <table className="w-full min-w-[300px] text-left text-sm">
+                  <caption className="sr-only">
+                    Comparison of normal insoles versus AeroTouch Cloud Foam insoles on cushioning, support, durability, and cost
+                  </caption>
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50">
+                      <th scope="col" className="py-3.5 pl-4 pr-2 font-bold text-slate-900 sm:py-4 sm:pl-5">
+                        Feature
+                      </th>
+                      <th scope="col" className="px-2 py-3.5 text-center text-xs font-bold uppercase tracking-wide text-slate-600 sm:px-3 sm:py-4 sm:text-sm sm:normal-case sm:tracking-normal">
+                        <span className="hidden sm:inline">Normal insoles</span>
+                        <span className="sm:hidden">Normal</span>
+                      </th>
+                      <th scope="col" className="px-2 py-3.5 pr-4 text-center text-xs font-bold uppercase tracking-wide text-slate-900 sm:px-3 sm:py-4 sm:text-sm sm:normal-case sm:tracking-normal">
+                        <span className="hidden md:inline">AeroTouch Cloud Foam</span>
+                        <span className="md:hidden">AeroTouch</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {DIFFERENCE_COMPARISON_ROWS.map((row) => (
+                      <tr key={row.label} className="bg-white">
+                        <th
+                          scope="row"
+                          className="max-w-[11rem] py-3 pl-4 pr-2 font-medium text-slate-800 sm:max-w-none sm:py-3.5 sm:pl-5 sm:text-[15px] text-left align-middle"
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <span className="text-[1.125rem] leading-none shrink-0 select-none" aria-hidden="true">
+                              {row.emoji}
+                            </span>
+                            <span>{row.label}</span>
+                          </span>
+                        </th>
+                        <td className="px-2 py-3 text-center sm:px-3 sm:py-3.5">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 sm:h-9 sm:w-9">
+                            {row.normalPasses ? (
+                              <Check className="h-4 w-4 text-emerald-600 sm:h-[18px] sm:w-[18px]" strokeWidth={2.5} aria-hidden />
+                            ) : (
+                              <X className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2.25} aria-hidden />
+                            )}
+                          </span>
+                          <span className="sr-only">{row.normalPasses ? 'Yes' : 'No'}</span>
+                        </td>
+                        <td className="px-2 py-3 pr-4 text-center sm:px-3 sm:py-3.5">
+                          <span
+                            className={`inline-flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9 ${
+                              row.aerotouchPasses ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'
+                            }`}
+                          >
+                            {row.aerotouchPasses ? (
+                              <Check className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2.5} aria-hidden />
+                            ) : (
+                              <X className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2.25} aria-hidden />
+                            )}
+                          </span>
+                          <span className="sr-only">{row.aerotouchPasses ? 'Yes' : 'No'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
+              <p className="mt-3 text-xs leading-relaxed text-slate-500 sm:text-sm max-w-3xl">
+                Foam pads often cost less upfront but flatten quickly. AeroTouch is built for lasting support—many wearers find the cost per month of use lower than replacing cheap inserts.
+              </p>
+            </div>
           </div>
         </div>
       </section>
