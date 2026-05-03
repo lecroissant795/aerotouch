@@ -81,12 +81,18 @@ export interface BlogPost {
 
 export interface BundleKit {
   id: string;
+  /** Shopify product handle — used for Storefront fetch and cart resolution */
+  handle: string;
+  /** Shopify Product legacy numeric id (for mapping / diagnostics) */
+  shopifyProductId: string;
   name: string;
   price: number;
   originalPrice: number;
   image: string;
   badge: string;
   items: string[];
+  /** Set from Shopify variant after refresh; omit when unknown */
+  availableForSale?: boolean;
 }
 
 export enum Page {

@@ -24,6 +24,7 @@ import {
   PRICING_TIERS
 } from '../utils/pricing';
 import { getCartLineDisplay, sumCartFinalSubtotals, sumCartLineSavings } from '../utils/cartLineDisplay';
+import { BUNDLE_KITS } from '../utils/bundleKits';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -48,14 +49,22 @@ interface CartDrawerProps {
 
 const UPSELL_ROTATE_SECONDS = 10;
 
-/** Featured kit for "Make it a kit" offer in cart. */
+const primaryBundleKit = BUNDLE_KITS.find((k) => k.id === 'fascilites-relief')!;
+
+/** Featured kit for "Make it a kit" offer in cart (aligned with Shopify bundle product). */
 const MAKE_IT_A_KIT_OFFER = {
-  name: 'Fascilites Relief Kit',
-  price: 48,
-  originalPrice: 75,
-  image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
+  name: primaryBundleKit.name,
+  price: primaryBundleKit.price,
+  originalPrice: primaryBundleKit.originalPrice,
+  image: primaryBundleKit.image,
   blurb: 'Pro insole + massage ball + compression sock. Save more when you bundle.'
 };
+
+const MAKE_IT_A_KIT_EXCLUDED_HANDLES = new Set<string>([
+  'compression-socks',
+  'recovery-gel',
+  ...BUNDLE_KITS.map((k) => k.handle)
+]);
 
 const PAYMENT_METHODS = ['Amex', 'Apple Pay', 'Google Pay', 'PayPal', 'Shop Pay', 'VISA'];
 
@@ -330,10 +339,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         line.quantity > 0
                           ? Math.round((line.finalLineSubtotal / line.quantity) * 100) / 100
                           : 0;
+                      const variantBits = [item.selectedColor, item.selectedSize]
+                        .map((s) => (typeof s === 'string' ? s.trim() : ''))
+                        .filter(Boolean);
                       return (
                         <li
                           key={`${item.id}-${item.selectedSize}-${item.selectedColor}`}
-                          className="flex gap-3 rounded-2xl bg-slate-50 border border-slate-100 p-3"
+                          className="flex gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3"
                         >
                           <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-200">
                             <img
@@ -342,16 +354,45 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                               className="h-full w-full object-cover"
                             />
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="text-sm font-bold text-brand-dark leading-tight">
-                              {item.name}
-                            </h3>
-                            <p className="mt-0.5 text-[11px] text-slate-500 uppercase tracking-wider">
-                              {item.selectedColor} · {item.selectedSize}
-                            </p>
-                            <div className="mt-2 flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-1.5 rounded-lg bg-slate-200">
+                          <div className="min-w-0 flex-1 flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                              <div className="min-w-0 flex-1 sm:pr-1">
+                                <h3 className="break-words text-sm font-bold leading-tight text-brand-dark">
+                                  {item.name}
+                                </h3>
+                                {variantBits.length > 0 && (
+                                  <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-500">
+                                    {variantBits.join(' · ')}
+                                  </p>
+                                )}
+                              </div>
+                              {/* MSRP, sale, per-unit, savings — one right-aligned stack (mobile + desktop) */}
+                              <div className="flex w-full shrink-0 flex-col items-end gap-0.5 text-right sm:w-auto sm:pl-2">
+                                {line.showStrikethrough && (
+                                  <p className="text-sm font-semibold tabular-nums text-slate-400 line-through decoration-2">
+                                    {formatCurrency(line.originalSubtotal)}
+                                  </p>
+                                )}
+                                <p className="text-base font-bold tabular-nums text-brand-orange">
+                                  {formatCurrency(line.finalLineSubtotal)}
+                                </p>
+                                {line.quantity > 1 && (
+                                  <p className="text-[10px] font-medium tabular-nums text-slate-500">
+                                    {formatCurrency(eachFinal)} each
+                                  </p>
+                                )}
+                                {line.lineSavings > 0 && (
+                                  <p className="mt-0.5 text-right text-[10px] font-bold uppercase leading-snug tracking-wide text-lime-700">
+                                    Save {formatCurrency(line.lineSavings)} on this item
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-200/80 pt-2">
+                              <div className="flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-200">
                                 <button
+                                  type="button"
                                   className="p-1.5 text-slate-600 hover:text-brand-orange disabled:opacity-40"
                                   disabled={item.quantity <= 1}
                                   onClick={() =>
@@ -370,6 +411,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                   {item.quantity}
                                 </span>
                                 <button
+                                  type="button"
                                   className="p-1.5 text-slate-600 hover:text-brand-orange"
                                   onClick={() =>
                                     onUpdateQuantity(
@@ -385,7 +427,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                 </button>
                               </div>
                               <button
-                                className="inline-flex items-center gap-1 text-[11px] text-slate-500 transition hover:text-red-500"
+                                type="button"
+                                className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-slate-500 transition hover:text-red-500"
                                 onClick={() =>
                                   onRemoveItem(
                                     item.id,
@@ -394,30 +437,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                   )
                                 }
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <Trash2 className="h-3.5 w-3.5 shrink-0" />
                                 Remove
                               </button>
                             </div>
-                          </div>
-                          <div className="shrink-0 text-right">
-                            {line.showStrikethrough && (
-                              <p className="text-sm font-semibold text-slate-400 line-through decoration-2">
-                                {formatCurrency(line.originalSubtotal)}
-                              </p>
-                            )}
-                            <p className="text-base font-bold text-brand-orange tabular-nums">
-                              {formatCurrency(line.finalLineSubtotal)}
-                            </p>
-                            {line.lineSavings > 0 && (
-                              <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-lime-700">
-                                Save {formatCurrency(line.lineSavings)} on this item
-                              </p>
-                            )}
-                            {line.quantity > 1 && (
-                              <p className="text-[10px] font-medium text-slate-500 tabular-nums">
-                                {formatCurrency(eachFinal)} each
-                              </p>
-                            )}
                           </div>
                         </li>
                       );
@@ -425,7 +448,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </ul>
 
                   {/* Make it a kit — bundle offer (hidden when cart already has bundle/kit items) */}
-                  {onMakeItAKit && !items.some(item => ['compression-socks', 'recovery-gel', 'fascilites-relief', 'complete-recovery-kit', 'heel-relief', 'toe-relief'].includes(item.id)) && (
+                  {onMakeItAKit &&
+                    !items.some(
+                      (item) =>
+                        item.productHandle != null &&
+                        MAKE_IT_A_KIT_EXCLUDED_HANDLES.has(item.productHandle)
+                    ) && (
                     <div className="mt-5 rounded-2xl border-2 border-brand-orange/30 bg-gradient-to-br from-orange-50/80 to-slate-50 p-3 shadow-sm">
                       <div className="mb-2 flex items-center gap-2">
                         <Package className="h-4 w-4 text-brand-orange" />

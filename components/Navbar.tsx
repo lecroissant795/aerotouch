@@ -5,13 +5,14 @@ import { MegaMenuTestimonials } from './MegaMenuTestimonials';
 import { createUrl } from '../utils/router';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
+import { BUNDLE_KITS } from '../utils/bundleKits';
 
 const FALLBACK_SUGGESTIONS = [
   { id: 'massage-insoles', name: 'AeroTouch Massage Insoles' },
   { id: 'massage-roller', name: 'Massage Roller' },
   { id: 'heel-cushion-pad', name: 'Heel Cushion Pad' },
   { id: 'compression-socks', name: 'Compression Socks' },
-  { id: 'fascilites-relief', name: 'Fascilites Relief Kit' },
+  { id: 'fascilites-relief', name: BUNDLE_KITS.find((k) => k.id === 'fascilites-relief')?.name ?? 'Bundle kit' },
   { id: 'height-insoles', name: 'Height Insoles' },
 ];
 

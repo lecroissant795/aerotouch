@@ -46,6 +46,7 @@ import {
   KNOWN_PRODUCT_IDS,
   PRODUCT_DATA_MAP
 } from './utils/productMapping';
+import { useShopifyBundleKits } from './hooks/useShopifyBundleKits';
 import { resolveMassageInsoleUpsell } from './utils/checkoutUpsell';
 import { extractDiscountCodesFromCheckout } from './utils/checkoutPromo';
 import { sumCartFinalSubtotals } from './utils/cartLineDisplay';
@@ -76,7 +77,6 @@ function findCheckoutVariant(shopifyProduct: any, size: string, color: string): 
 
 // Import static data for blog posts and bundle kits
 import { BLOG_POSTS } from './pages/BlogPage';
-import { BUNDLE_KITS } from './pages/BundleKitsPage';
 
 function AppShell() {
   const { page, params, query, navigate } = useRouter();
@@ -141,7 +141,11 @@ function AppShell() {
 
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
 
-  const [selectedKit, setSelectedKit] = useState<BundleKit | null>(null);
+  const shopifyBundleKits = useShopifyBundleKits();
+  const selectedKit = useMemo(
+    () => (kitId ? shopifyBundleKits.find((k) => k.id === kitId) ?? null : null),
+    [kitId, shopifyBundleKits]
+  );
 
   // Analytics
   useEffect(() => {
@@ -325,16 +329,6 @@ function AppShell() {
     const post = BLOG_POSTS.find(p => p.id === blogSlug);
     setSelectedBlogPost(post || null);
   }, [blogSlug]);
-
-  // Fetch kit when kitId changes
-  useEffect(() => {
-    if (!kitId) {
-      setSelectedKit(null);
-      return;
-    }
-    const kit = BUNDLE_KITS.find(k => k.id === kitId);
-    setSelectedKit(kit || null);
-  }, [kitId]);
 
   // Cart functions
   const handleQuickAddToCart = async (product: Product) => {
@@ -586,9 +580,11 @@ function AppShell() {
 
   const handleAddKitToCart = (kit: BundleKit, quantity = 1) => {
     const kitAsProduct: Product = {
-      id: kit.id,
+      id: kit.shopifyProductId,
+      handle: kit.handle,
       name: kit.name,
       price: kit.price,
+      ...(kit.originalPrice > kit.price ? { compareAtPrice: kit.originalPrice } : {}),
       image: kit.image,
       description: kit.items.join(', '),
       features: kit.items,
@@ -698,6 +694,8 @@ function AppShell() {
             onProductSelect={handleProductSelect}
             onQuickAddToCart={handleQuickAddToCart}
             onNavigateToBlog={() => navigate(Page.BLOG)}
+            onKitSelect={(kit) => navigate(Page.KIT_PRODUCT, { kitId: kit.id })}
+            onAddKitToCart={handleAddKitToCart}
           />
         )}
 
@@ -759,7 +757,6 @@ function AppShell() {
 
         {page === Page.BUNDLE_KITS && (
           <BundleKitsPage
-            onBack={() => navigate(Page.HOME)}
             onKitSelect={(kit) => navigate(Page.KIT_PRODUCT, { kitId: kit.id })}
             onAddKitToCart={handleAddKitToCart}
           />

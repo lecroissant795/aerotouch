@@ -150,13 +150,14 @@ export const KitProductPage: React.FC<KitProductPageProps> = ({ kit, onBack, onA
             <Button
               fullWidth
               size="lg"
-              className="h-14 text-lg shadow-lg relative overflow-hidden group bg-black text-white hover:bg-brand-lime hover:text-slate-900 transition-all duration-300"
+              disabled={kit.availableForSale === false}
+              className="h-14 text-lg shadow-lg relative overflow-hidden group bg-black text-white hover:bg-brand-lime hover:text-slate-900 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => onAddToCart?.(kit, quantity)}
             >
               <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
                 <ShoppingCart className="w-5 h-5" />
-                Add Kit to Cart
-                {quantity > 1 ? ` (${quantity})` : ''}
+                {kit.availableForSale === false ? 'Out of stock' : 'Add Kit to Cart'}
+                {quantity > 1 && kit.availableForSale !== false ? ` (${quantity})` : ''}
               </span>
               {/* Shine effect */}
               <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />

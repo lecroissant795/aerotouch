@@ -3,6 +3,7 @@ import { ProductCard } from '../components/ProductCard';
 import { Product } from '../types';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
+import { getFascilitesBundleGridProduct } from '../utils/bundleKits';
 
 
 const FALLBACK_PRODUCTS: Product[] = [
@@ -10,7 +11,7 @@ const FALLBACK_PRODUCTS: Product[] = [
   { id: 'massage-roller', name: 'Massage Roller', tagline: 'Deep tissue recovery for sore feet', price: 19, rating: 4.8, reviews: 820, image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop', features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'], description: '' },
   { id: 'heel-cushion-pad', name: 'Heel Cushion Pad', tagline: 'Instant impact protection for heels', price: 24, rating: 4.9, reviews: 2100, image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop', features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'], description: '' },
   { id: 'compression-socks', name: 'Compression Socks', tagline: 'Boost circulation and reduce swelling', price: 29, rating: 4.7, reviews: 940, image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=800&auto=format&fit=crop', features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'], description: '' },
-  { id: 'fascilites-relief', name: 'Fascilites Relief Kit', tagline: 'Complete recovery system', price: 48, rating: 5.0, reviews: 3200, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop', features: ['Elite Insoles', 'Massage Ball', 'Instructional Guide'], description: '' },
+  getFascilitesBundleGridProduct(),
   { id: 'height-insoles', name: 'Height Insoles', tagline: 'Discreet elevation with maximum comfort', price: 39, rating: 4.8, reviews: 1100, image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop', features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'], description: '' },
 ];
 

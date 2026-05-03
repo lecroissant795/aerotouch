@@ -1,9 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { ProductCard } from '../components/ProductCard';
-import { Product } from '../types';
+import { KitBundleCard } from '../components/KitBundleCard';
+import { Product, BundleKit } from '../types';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
+import { getFascilitesBundleGridProduct } from '../utils/bundleKits';
+import { isBundleKitsCategory } from '../utils/bundleKitsCategory';
+import { useShopifyBundleKits } from '../hooks/useShopifyBundleKits';
 import { ReferralSection } from '../components/ReferralSection';
 import { GivingBackSection } from '../components/GivingBackSection';
 
@@ -57,18 +61,7 @@ const FEATURED_PRODUCTS: Product[] = [
     features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
     description: ''
   },
-  {
-    id: 'fascilites-relief',
-    handle: 'fascilites-relief',
-    name: 'Fascilites Relief Kit',
-    tagline: 'Complete recovery system',
-    price: 48.00,
-    rating: 5.0,
-    reviews: 3200,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
-    features: ['Elite Insoles', 'Massage Ball', 'Instructional Guide'],
-    description: ''
-  },
+  getFascilitesBundleGridProduct(),
   {
     id: 'height-insoles',
     handle: 'height-insoles',
@@ -91,6 +84,8 @@ interface CategoryPageProps {
     onProductSelect: (product: Product) => void;
     onQuickAddToCart?: (product: Product) => void;
     onNavigateToBlog?: () => void;
+    onKitSelect?: (kit: BundleKit) => void;
+    onAddKitToCart?: (kit: BundleKit) => void;
 }
 
 const CATEGORY_IMAGES: Record<string, string> = {
@@ -105,12 +100,23 @@ const CATEGORY_IMAGES: Record<string, string> = {
     'default': 'https://images.unsplash.com/photo-1556906781-9a412961d289?q=80&w=1920&auto=format&fit=crop'
 };
 
-export const CategoryPage: React.FC<CategoryPageProps> = ({ category, onProductSelect, onQuickAddToCart, onNavigateToBlog }) => {
+export const CategoryPage: React.FC<CategoryPageProps> = ({
+  category,
+  onProductSelect,
+  onQuickAddToCart,
+  onNavigateToBlog,
+  onKitSelect,
+  onAddKitToCart,
+}) => {
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const [loading, setLoading] = useState(true);
+  const bundleKits = useShopifyBundleKits();
 
   useEffect(() => {
-    // ... (existing fetch logic)
+    if (isBundleKitsCategory(category)) {
+      setLoading(false);
+      return;
+    }
     const fetchProducts = async () => {
       setLoading(true);
       const catLower = category.toLowerCase();
@@ -145,39 +151,51 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ category, onProductS
   }, [category]);
 
 
+  const showBundleKits = isBundleKitsCategory(category);
+
   return (
     <div className="animate-in fade-in duration-500 pt-24">
-      
       <div className="container mx-auto px-4 md:px-6 py-12">
-        {loading ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[1,2,3,4,5,6].map(i => (
-                    <div key={i} className="bg-slate-100 rounded-2xl h-[400px] animate-pulse" />
-                ))}
-             </div>
+        {showBundleKits ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            {bundleKits.map((kit) => (
+              <KitBundleCard
+                key={kit.id}
+                kit={kit}
+                onKitSelect={onKitSelect}
+                onAddKitToCart={onAddKitToCart}
+              />
+            ))}
+          </div>
+        ) : loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-slate-100 rounded-2xl h-[400px] animate-pulse" />
+            ))}
+          </div>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {products.map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onClick={onProductSelect}
-                  onAddToCart={onQuickAddToCart}
-                  compactOnMobile
-                />
-                ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onClick={onProductSelect}
+                onAddToCart={onQuickAddToCart}
+                compactOnMobile
+              />
+            ))}
+          </div>
         )}
-        
-        {products.length === 0 && !loading && (
-            <div className="text-center py-12">
-                <p className="text-slate-500">No products found for this category.</p>
-            </div>
+
+        {!showBundleKits && products.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <p className="text-slate-500">No products found for this category.</p>
+          </div>
         )}
       </div>
 
       <ReferralSection />
-      <GivingBackSection onLearnMore={onNavigateToBlog} />
+      {onNavigateToBlog && <GivingBackSection onLearnMore={onNavigateToBlog} />}
     </div>
   );
 };

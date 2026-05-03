@@ -9,6 +9,7 @@ import { PressLogos } from '../components/PressLogos';
 import { Product, BundleKit } from '../types';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
+import { getFascilitesBundleGridProduct } from '../utils/bundleKits';
 import { LimitedTimeKits } from '../components/LimitedTimeKits';
 import { ValueProps } from '../components/ValueProps';
 import { ComparisonTable } from '../components/ComparisonTable';
@@ -155,18 +156,7 @@ const FEATURED_PRODUCTS: Product[] = [
     features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
     description: ''
   },
-  {
-    id: 'fascilites-relief',
-    handle: 'fascilites-relief',
-    name: 'Fascilites Relief Kit',
-    tagline: 'Complete recovery system',
-    price: 48.00,
-    rating: 5.0,
-    reviews: 3200,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
-    features: ['Elite Insoles', 'Massage Ball', 'Instructional Guide'],
-    description: ''
-  },
+  getFascilitesBundleGridProduct(),
   {
     id: 'height-insoles',
     handle: 'height-insoles',

@@ -1,4 +1,5 @@
 import { Product } from '../types';
+import { BUNDLE_KITS } from './bundleKits';
 import { HEIGHT_BOOSTERS_PDP_COPY } from './heightBoostersCopy';
 
 /**
@@ -21,6 +22,30 @@ interface ShopifyProductInfo {
   /** Local/display product data */
   product: Omit<Product, 'id' | 'handle'>;
 }
+
+function bundleKitToShopifyProductInfo(
+  kit: (typeof BUNDLE_KITS)[number]
+): ShopifyProductInfo {
+  return {
+    shopifyId: kit.shopifyProductId,
+    handle: kit.handle,
+    product: {
+      name: kit.name,
+      tagline: 'Bundle kit — recovery essentials',
+      price: kit.price,
+      ...(kit.originalPrice > kit.price ? { compareAtPrice: kit.originalPrice } : {}),
+      rating: 5.0,
+      reviews: 3200,
+      image: kit.image,
+      features: [...kit.items],
+      description: kit.items.join('. ')
+    }
+  };
+}
+
+const BUNDLE_KIT_PRODUCT_ENTRIES: Record<string, ShopifyProductInfo> = Object.fromEntries(
+  BUNDLE_KITS.map((k) => [k.id, bundleKitToShopifyProductInfo(k)])
+) as Record<string, ShopifyProductInfo>;
 
 /**
  * Complete mapping of local product identifiers to Shopify data.
@@ -188,8 +213,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       description: 'Therapeutic gel formulated to relieve muscle tension and accelerate recovery.'
     }
   },
-  // Note: 'fascilites-relief' is a BUNDLE KIT, not a standalone Shopify product
-  // It's defined in BundleKitsPage.tsx as BUNDLE_KITS
+  ...BUNDLE_KIT_PRODUCT_ENTRIES
 };
 
 /**

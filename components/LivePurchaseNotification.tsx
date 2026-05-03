@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { BUNDLE_KITS } from '../utils/bundleKits';
 
 type PurchaseNotification = {
   id: number;
@@ -40,12 +41,7 @@ const CITIES = [
 
 const MAIN_PRODUCT = 'Massage Insoles';
 
-const BUNDLE_KITS = [
-  'Starter Recovery Kit',
-  'Runner Essentials Bundle',
-  'Athlete Bundle Kit',
-  'Daily Comfort Kit'
-];
+const BUNDLE_KIT_DISPLAY_NAMES = BUNDLE_KITS.map((k) => k.name);
 
 const OTHER_PRODUCTS = [
   'Recovery Gel',
@@ -67,7 +63,7 @@ const pickWeightedProduct = (): string => {
 
   // 45%: any bundle kit (0.25 -> 0.70)
   if (roll < 0.7) {
-    return randomItem(BUNDLE_KITS);
+    return randomItem(BUNDLE_KIT_DISPLAY_NAMES);
   }
 
   // 30%: all other products
