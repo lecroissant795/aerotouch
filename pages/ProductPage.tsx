@@ -15,6 +15,7 @@ import {
 import { useProductMetafields } from '../utils/useProductMetafields';
 import { productVideos } from '../utils/mediaUrls';
 import { isMassageRollerProduct } from '../utils/productDetection';
+import { DEFAULT_SIZES, DEFAULT_COLORS } from '../utils/productOptions';
 
 interface ProductPageProps {
   product: Product;
@@ -25,28 +26,9 @@ interface ProductPageProps {
   isLoading?: boolean;
   error?: string | null;
   onBuyNow?: (product: Product, size: string, color: string, quantity?: number) => void;
+  bundleItems?: string[];
+  backLabel?: string;
 }
-
-// Temporary fallback constants until fetching is fully verified for all products
-const DEFAULT_SIZES = [
-  { label: 'M 5 / W 6', detail: 'US Men 5 / US Women 6' },
-  { label: 'M 6 / W 7', detail: 'US Men 6 / US Women 7' },
-  { label: 'M 7 / W 8', detail: 'US Men 7 / US Women 8' },
-  { label: 'M 8 / W 9', detail: 'US Men 8 / US Women 9' },
-  { label: 'M 9 / W 10', detail: 'US Men 9 / US Women 10' },
-  { label: 'M 10 / W 11', detail: 'US Men 10 / US Women 11' },
-  { label: 'M 11 / W 12', detail: 'US Men 11 / US Women 12' },
-  { label: 'M 12 / W 13', detail: 'US Men 12 / US Women 13' },
-  { label: 'M 13 / W 14', detail: 'US Men 13 / US Women 14' },
-  { label: 'M 14 / W 15', detail: 'US Men 14 / US Women 15' },
-  { label: 'M 15 / W 16', detail: 'US Men 15 / US Women 16' }
-];
-
-const DEFAULT_COLORS = [
-  { name: 'Orange', value: '#FF5722', label: 'Signature Orange' },
-  { name: 'Grey', value: '#6B7280', label: 'Grey' },
-  { name: 'Black', value: '#1E293B', label: 'Stealth Black' }
-];
 
 const TESTIMONIALS = [
   {
@@ -91,7 +73,9 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   onNavigateToBlog,
   isLoading = false,
   error = null,
-  onBuyNow
+  onBuyNow,
+  bundleItems,
+  backLabel
 }) => {
   const [product, setProduct] = useState<Product>(initialProduct);
   const meta = useProductMetafields(product);
@@ -310,7 +294,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   // Shopify titles like "AeroTouch Insoles" and GID `id` must still match here.
   const isMainProductType =
     !isMassageRollerProduct(product) &&
-    (String(product.id) === 'massage-insoles' ||
+    ((bundleItems && bundleItems.length > 0) ||
+      String(product.id) === 'massage-insoles' ||
       handleLower === 'massage-insoles' ||
       nameLower.includes('massage insole') ||
       (nameLower.includes('insole') && !nameLower.includes('roller')));
@@ -364,7 +349,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
           className="group flex items-center text-sm font-medium text-slate-500 hover:text-brand-orange transition-colors"
         >
           <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
-          Back to Results
+          {backLabel || 'Back to Results'}
         </button>
         <a
           href="#best-for"
@@ -537,6 +522,25 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                       <span><span className="font-bold text-slate-900">Zero-risk purchase:</span> Try them with a <span className="font-bold text-brand-dark">60-Day Risk-Free Guarantee</span>.</span>
                     </li>
                   </ul>
+                )}
+
+                {/* What's Inside (bundle kits only) */}
+                {bundleItems && bundleItems.length > 0 && (
+                  <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <h2 className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                      What&apos;s inside
+                    </h2>
+                    <ul className="space-y-2">
+                      {bundleItems.map((item, i) => (
+                        <li key={i} className="flex items-center gap-3">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-lime/35 text-brand-dark">
+                            <Check className="h-3.5 w-3.5" />
+                          </span>
+                          <span className="text-sm font-semibold text-slate-700">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
 
                 {/* Bundle Selector - Dropshipping Style */}
