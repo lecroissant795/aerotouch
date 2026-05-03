@@ -12,6 +12,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { Button } from '../components/Button';
+import { bundleKitBadgeLabel } from '../utils/bundleKitBadge';
 
 interface KitProductPageProps {
   kit: BundleKit;
@@ -70,7 +71,7 @@ export const KitProductPage: React.FC<KitProductPageProps> = ({ kit, onBack, onA
               />
               <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-slate-200 bg-white/95 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-900 shadow-sm backdrop-blur-sm">
-                  {kit.badge}
+                  {bundleKitBadgeLabel(kit.badge)}
                 </span>
                 <span className="rounded-full bg-brand-orange px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-brand-orange/25">
                   Save {savingsPercent}%

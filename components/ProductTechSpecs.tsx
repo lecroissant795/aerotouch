@@ -96,6 +96,9 @@ const VIDEO_REVIEWS = [
 const MOBILE_BREAKPOINT = 768;
 const TABLET_BREAKPOINT = 1024;
 
+/** Pixel tweak per comfort hotspot (index matches map order); folded into tooltip center before viewport clamp. */
+const COMFORT_FEATURE_TOOLTIP_SHIFT_PX: readonly number[] = [2, 0, 0, 4];
+
 /** Regular vs AeroTouch — booleans = passes that criterion */
 const DIFFERENCE_COMPARISON_ROWS: {
   emoji: string;
@@ -175,27 +178,47 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
       const s = comfortInteractiveRef.current;
       const t = comfortTooltipRefs.current[activeFeature];
       if (!s || !t) return;
+      const wrap = t.parentElement;
+      if (!wrap) return;
+
       const shellRect = s.getBoundingClientRect();
+      const wrapRect = wrap.getBoundingClientRect();
       const tipRect = t.getBoundingClientRect();
-      const pad = 12;
-      let nudge = 0;
-      if (tipRect.left < shellRect.left + pad) {
-        nudge = shellRect.left + pad - tipRect.left;
-      } else if (tipRect.right > shellRect.right - pad) {
-        nudge = shellRect.right - pad - tipRect.right;
+      const cx = wrapRect.left + wrapRect.width / 2;
+      const halfW = tipRect.width / 2;
+
+      const vpPad = 10;
+      const shellPad = 12;
+      const vw = typeof window.visualViewport !== 'undefined' ? window.visualViewport.width : window.innerWidth;
+
+      const shift = COMFORT_FEATURE_TOOLTIP_SHIFT_PX[activeFeature] ?? 0;
+      const rawCenter = cx + shift;
+
+      const minCenter = Math.max(vpPad + halfW, shellRect.left + shellPad + halfW);
+      const maxCenter = Math.min(vw - vpPad - halfW, shellRect.right - shellPad - halfW);
+
+      if (minCenter > maxCenter) {
+        setComfortTooltipNudgeX(vw / 2 - cx);
+        return;
       }
-      setComfortTooltipNudgeX(nudge);
+
+      const clampedCenter = Math.min(Math.max(rawCenter, minCenter), maxCenter);
+      setComfortTooltipNudgeX(clampedCenter - cx);
     };
 
     measure();
-    const ro = new ResizeObserver(measure);
+    const ro = new ResizeObserver(() => requestAnimationFrame(measure));
     ro.observe(shell);
     window.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('scroll', measure);
     return () => {
       ro.disconnect();
       window.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('scroll', measure);
     };
-  }, [activeFeature]);
+  }, [activeFeature, isMobile]);
 
   const scrollVideoReviewTo = (index: number) => {
     const i = Math.max(0, Math.min(index, VIDEO_REVIEWS.length - 1));
@@ -351,7 +374,6 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                 desc: "Reduces fatigue and protects your joints from daily impact.",
                 icon: "☁️",
                 position: isMobile ? { top: '35%', left: '72%' } : { top: '35%', left: '75%' }, // Heel
-                tooltipShiftPx: 2,
               },
               {
                 id: "arch",
@@ -373,7 +395,6 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                 desc: "Molds perfectly to your unique foot shape over time.",
                 icon: "✨",
                 position: isMobile ? { top: '70%', left: '70%' } : { top: '75%', left: '70%' }, // Toe
-                tooltipShiftPx: 4,
               }
             ].map((f, i) => (
                <div
@@ -388,45 +409,46 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                    ref={(el) => {
                      comfortTooltipRefs.current[i] = el;
                    }}
-                   style={
-                     activeFeature === i
-                       ? {
-                           marginLeft:
-                             comfortTooltipNudgeX +
-                             ('tooltipShiftPx' in f && typeof f.tooltipShiftPx === 'number'
-                               ? f.tooltipShiftPx
-                               : 0),
-                         }
-                       : undefined
-                   }
-                   className={`absolute z-40 w-[min(280px,calc(100vw-2.5rem))] max-w-[calc(100vw-2.5rem)] left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] border border-slate-100/50 p-4 sm:p-6 transition-all duration-300 ${
+                   style={{
+                     transform:
+                       activeFeature === i
+                         ? `translateX(calc(-50% + ${comfortTooltipNudgeX}px)) translateY(0) scale(1)`
+                         : f.id === 'shock'
+                           ? 'translateX(-50%) translateY(1rem) scale(0.95)'
+                           : `translateX(-50%) translateY(${isMobile ? '-0.5rem' : '1rem'}) scale(0.95)`,
+                   }}
+                   className={`absolute z-40 w-[min(17.5rem,calc(100dvw-1.5rem))] left-1/2 box-border bg-white rounded-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] border border-slate-100/50 p-3 sm:p-5 md:p-6 max-h-[min(42dvh,20rem)] flex flex-col min-h-0 transition-[opacity,transform] duration-300 ${
                      f.id === 'shock' ? 'origin-bottom' : 'max-md:origin-top md:origin-bottom'
                    } ${
                      f.id === 'shock'
                        ? 'bottom-[calc(100%+16px)] top-auto mb-2 mt-0'
                        : 'top-[calc(100%+14px)] bottom-auto mt-0 md:bottom-[calc(100%+16px)] md:top-auto md:mb-2 md:mt-0'
                    } ${
-                     activeFeature === i
-                       ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
-                       : `opacity-0 scale-95 pointer-events-none ${
-                           f.id === 'shock' ? 'translate-y-4' : 'max-md:-translate-y-2 md:translate-y-4'
-                         }`
+                     activeFeature === i ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                    }`}
                  >
-                   <div className="text-2xl sm:text-3xl mb-3 sm:mb-4">{f.icon}</div>
-                   <h4 className="font-bold text-slate-900 text-base sm:text-[17px] mb-1.5 sm:mb-2">{f.title}</h4>
-                   <p className="text-sm sm:text-[15px] text-slate-600 leading-relaxed font-medium">{f.desc}</p>
+                   <div className="text-xl sm:text-3xl mb-2 sm:mb-4 shrink-0">{f.icon}</div>
+                   <h4 className="font-bold text-slate-900 text-sm sm:text-[17px] mb-1 sm:mb-2 shrink-0">{f.title}</h4>
+                   <p className="text-xs sm:text-[15px] text-slate-600 leading-relaxed font-medium overflow-y-auto overscroll-contain min-h-0 pr-0.5">{f.desc}</p>
                    {/* Triangle: up-caret when tooltip is below hotspot (mobile); down-caret when tooltip is above */}
                    <div
                      className={`absolute bottom-full -translate-x-1/2 mb-[-7px] w-4 h-4 bg-white rotate-45 border-l border-t border-slate-100/50 ${
                        f.id === 'shock' ? 'hidden' : 'block md:hidden'
-                     } ${f.id === 'custom' ? 'left-[52%]' : 'left-1/2'}`}
+                     }`}
+                     style={{
+                       left:
+                         activeFeature === i ? `calc(50% - ${comfortTooltipNudgeX}px)` : '50%',
+                     }}
                      aria-hidden
                    />
                    <div
-                     className={`absolute top-full left-1/2 -translate-x-1/2 -mt-1.5 w-4 h-4 bg-white rotate-45 border-r border-b border-slate-100/50 ${
+                     className={`absolute top-full -translate-x-1/2 -mt-1.5 w-4 h-4 bg-white rotate-45 border-r border-b border-slate-100/50 ${
                        f.id === 'shock' ? 'block' : 'hidden md:block'
                      }`}
+                     style={{
+                       left:
+                         activeFeature === i ? `calc(50% - ${comfortTooltipNudgeX}px)` : '50%',
+                     }}
                      aria-hidden
                    />
                  </div>

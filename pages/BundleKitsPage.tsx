@@ -2,6 +2,7 @@ import React from 'react';
 import { Zap, ShoppingCart, ShieldCheck } from 'lucide-react';
 import { BundleKit, Page } from '../types';
 import { createUrl } from '../utils/router';
+import { bundleKitBadgeLabel } from '../utils/bundleKitBadge';
 
 export const BUNDLE_KITS: BundleKit[] = [
   {
@@ -103,7 +104,7 @@ export const BundleKitsPage: React.FC<BundleKitsPageProps> = ({ onBack, onAddKit
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
                     <div className="absolute top-4 left-4">
                       <span className="bg-white/95 backdrop-blur-sm text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm border border-slate-100">
-                        {kit.badge}
+                        {bundleKitBadgeLabel(kit.badge)}
                       </span>
                     </div>
                     <div className="absolute bottom-4 right-4 bg-brand-orange text-white text-[10px] font-black w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-lg">

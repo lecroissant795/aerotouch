@@ -3,6 +3,7 @@ import { Zap, ArrowRight, ShieldCheck, Heart } from 'lucide-react';
 import { createUrl } from '../utils/router';
 import { Page } from '../types';
 import { bundleKitItemStockPhotos } from '../utils/mediaUrls';
+import { bundleKitBadgeLabel } from '../utils/bundleKitBadge';
 
 interface Kit {
   id: string;
@@ -126,7 +127,7 @@ const KitBundleCard: React.FC<KitBundleCardProps> = ({ kit, onKitSelect, onAddKi
           <div className="relative px-3 pb-2 pt-10 sm:px-4 sm:pb-3 sm:pt-11">
             {kit.badge && (
               <span className="absolute left-3 top-3 z-10 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-900 shadow-sm sm:left-4 sm:top-4 sm:text-[10px]">
-                {kit.badge}
+                {bundleKitBadgeLabel(kit.badge)}
               </span>
             )}
             {savePct > 0 && (

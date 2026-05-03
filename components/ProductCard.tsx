@@ -1,6 +1,6 @@
 import React from 'react';
 import { Product, Page } from '../types';
-import { Star, ShoppingBag, Sparkles } from 'lucide-react';
+import { Star, ShoppingBag } from 'lucide-react';
 import { createUrl } from '../utils/router';
 
 interface ProductCardProps {
@@ -58,8 +58,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
 
           {/* Bestseller badge */}
           {bestSeller && (
-            <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm px-2.5 py-1 shadow-sm border border-slate-100">
-              <Sparkles className="w-3.5 h-3.5 text-brand-orange" />
+            <div
+              className="absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm px-2.5 py-1 shadow-sm border border-slate-100"
+              aria-label="High demand bestseller"
+            >
+              <span className="text-sm leading-none" aria-hidden>
+                🔥
+              </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
                 Bestseller
               </span>
