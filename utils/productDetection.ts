@@ -25,8 +25,9 @@ const SECONDARY_NAME_KEYWORDS = [
   'massage-insoles', 'heel-cushion-pad', 'fascilites-relief'
 ];
 
-// Primary product keywords (fallback - more reliable)
-const PRIMARY_NAME_KEYWORDS = ['insole', 'insert', 'orthotic', 'height insole', 'height-booster', 'height booster'];
+// Primary product keywords (fallback — full insole / orthotic products only).
+// Do not use "height booster(s)" here: Height Boosters PDP uses SecondaryProductPage (handles below).
+const PRIMARY_NAME_KEYWORDS = ['insole', 'insert', 'orthotic', 'height insole'];
 
 /**
  * Check if any product tag contains a substring (case-insensitive)
@@ -63,6 +64,15 @@ const tagsMatchAny = (product: Product, keywords: string[]): boolean => {
 /** Shopify / local handle for the Massage Roller PDP (custom page + compare-at pricing). */
 export const MASSAGE_ROLLER_HANDLE = 'massage-roller';
 
+/** Height Boosters / lift insoles — accessory-style PDP (`SecondaryProductPage`), not full `ProductPage`. */
+export const HEIGHT_BOOSTER_HANDLES = ['height-insoles', 'height-insoles-1'] as const;
+
+export const isHeightBoosterProduct = (product: Product): boolean => {
+  const handle = (product.handle || '').toLowerCase();
+  const id = String(product.id || '').toLowerCase();
+  return HEIGHT_BOOSTER_HANDLES.some((h) => handle === h || id === h);
+};
+
 export const isMassageRollerProduct = (product: Product): boolean => {
   const handle = (product.handle || '').toLowerCase();
   if (handle === MASSAGE_ROLLER_HANDLE) return true;
@@ -74,6 +84,11 @@ export const isMassageRollerProduct = (product: Product): boolean => {
 };
 
 export const isSecondaryProduct = (product: Product): boolean => {
+  // Explicit PDP templates (override tag/name heuristics)
+  if (isHeightBoosterProduct(product)) {
+    return true;
+  }
+
   // 1. If product has 'insole' in tags, it's NOT secondary
   if (tagsMatchAny(product, MAIN_TAG_KEYWORDS)) {
     return false;
@@ -106,6 +121,10 @@ export const isSecondaryProduct = (product: Product): boolean => {
  * Determine if product is a main/primary product
  */
 export const isMainProduct = (product: Product): boolean => {
+  if (isHeightBoosterProduct(product)) {
+    return false;
+  }
+
   // 1. If has 'insole' tag, it's main
   if (tagsMatchAny(product, MAIN_TAG_KEYWORDS)) {
     return true;

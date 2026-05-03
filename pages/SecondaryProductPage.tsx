@@ -14,6 +14,12 @@ import {
 } from '../utils/shopifyVariantMoney';
 import { ProductDescription } from '../components/ProductDescription';
 import { useSocialProof } from '../hooks/useSocialProof';
+import { isHeightBoosterProduct } from '../utils/productDetection';
+import {
+  HEIGHT_BOOSTERS_PDP_COPY,
+  HEIGHT_BOOSTERS_STORY_BELOW_TESTIMONIALS,
+  HEIGHT_BOOSTER_FAQS
+} from '../utils/heightBoostersCopy';
 
 interface SecondaryProductPageProps {
   product: Product;
@@ -92,10 +98,30 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   faqs: faqsProp,
   testimonials: testimonialsProp
 }) => {
-  const faqItems = faqsProp ?? DEFAULT_FAQS;
   const testimonialItems = testimonialsProp ?? DEFAULT_TESTIMONIALS;
   const [product, setProduct] = useState<Product>(initialProduct);
   const meta = useProductMetafields(product);
+
+  const bundleQuantities = useMemo(() => {
+    const raw = meta.bundle_options_override;
+    if (Array.isArray(raw) && raw.length > 0) {
+      const qs = raw
+        .map((o) => o.quantity)
+        .filter((n): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 1);
+      const sorted = Array.from(new Set(qs)).sort((a, b) => a - b);
+      if (sorted.length > 0) return sorted;
+    }
+    return [1, 2, 3, 4];
+  }, [meta.bundle_options_override]);
+
+  const peakBundleQty = bundleQuantities[bundleQuantities.length - 1] ?? 1;
+
+  const faqItems = useMemo(() => {
+    if (faqsProp) return faqsProp;
+    if (meta.faq_override && meta.faq_override.length > 0) return meta.faq_override;
+    if (isHeightBoosterProduct(product)) return HEIGHT_BOOSTER_FAQS;
+    return DEFAULT_FAQS;
+  }, [faqsProp, meta.faq_override, product]);
   const [shopifyProduct, setShopifyProduct] = useState<any>(null);
   const [selectedSize, setSelectedSize] = useState<string>('One Size');
   const [selectedColor, setSelectedColor] = useState<string>('Black');
@@ -137,6 +163,11 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
               merged.compareAtPrice = shopifyMapped.compareAtPrice;
             } else {
               delete merged.compareAtPrice;
+            }
+            if (isHeightBoosterProduct(merged)) {
+              merged.tagline = HEIGHT_BOOSTERS_PDP_COPY.tagline;
+              merged.description = HEIGHT_BOOSTERS_PDP_COPY.description;
+              merged.features = [...HEIGHT_BOOSTERS_PDP_COPY.features];
             }
             return merged;
           });
@@ -204,6 +235,15 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   useEffect(() => {
     setActiveTestimonial(0);
   }, [initialProduct.id]);
+
+  useEffect(() => {
+    setBundle(1);
+  }, [initialProduct.id]);
+
+  useEffect(() => {
+    const maxQ = bundleQuantities[bundleQuantities.length - 1] ?? 1;
+    setBundle((b) => (b > maxQ ? maxQ : b));
+  }, [bundleQuantities]);
 
   const sizeOption = shopifyProduct?.options?.find((o: any) => o.name === 'Size');
   const colorOption = shopifyProduct?.options?.find((o: any) => o.name === 'Color');
@@ -432,7 +472,9 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                   <div className="mb-6">{detailCardBody}</div>
                 ) : (
                   <>
-                    <p className="text-slate-600 leading-relaxed mb-6">{meta.custom_description || product.tagline || product.description}</p>
+                    <p className="text-slate-600 leading-relaxed mb-6 whitespace-pre-line">
+                      {meta.custom_description || product.tagline || product.description}
+                    </p>
                     {meta.custom_description_points && meta.custom_description_points.length > 0 ? (
                       <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
                         {meta.custom_description_points.map((point: string, idx: number) => (
@@ -458,13 +500,25 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 {/* Bundle Selector - Dropshipping Style */}
                 <div className="space-y-3 mb-6">
                     <p className="text-xs font-bold text-slate-900 uppercase tracking-widest">Select Quantity</p>
-                    {[1, 2, 3].map((qty) => (
+                    {bundleQuantities.map((qty) => {
+                      const highlight = (() => {
+                        const raw = meta.bundle_options_override;
+                        if (Array.isArray(raw) && raw.length > 0) {
+                          const h = raw.find((o) => o.quantity === qty)?.highlight;
+                          if (h === 'popular') return 'popular';
+                          if (h === 'best-value') return 'best-value';
+                        }
+                        if (qty === 2) return 'popular';
+                        if (qty === peakBundleQty && peakBundleQty >= 3) return 'best-value';
+                        return null;
+                      })();
+                      return (
                       <div 
                           key={qty}
                           onClick={() => setBundle(qty)}
                           className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === qty ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
                       >
-                          {qty === 2 && (
+                          {highlight === 'popular' && (
                              <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(-3deg)' }}>
                                 <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
                                     <span className="text-base leading-none" aria-hidden>🔥</span>
@@ -472,7 +526,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                 </div>
                              </div>
                           )}
-                          {qty === 3 && (
+                          {highlight === 'best-value' && (
                              <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(3deg)' }}>
                                 <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
                                     <BadgeCheck className="h-4 w-4 shrink-0 text-brand-lime" />
@@ -509,7 +563,8 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                               </div>
                           </div>
                       </div>
-                    ))}
+                    );
+                    })}
                 </div>
 
                 {/* Color Selector */}
@@ -757,6 +812,14 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                             ))}
                         </div>
                     </div>
+
+                    {isHeightBoosterProduct(product) && (
+                      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                          {HEIGHT_BOOSTERS_STORY_BELOW_TESTIMONIALS}
+                        </p>
+                      </div>
+                    )}
 
                     {belowTestimonials}
 

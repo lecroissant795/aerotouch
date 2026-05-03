@@ -1,4 +1,5 @@
 import { Product } from '../types';
+import { HEIGHT_BOOSTERS_PDP_COPY } from './heightBoostersCopy';
 
 /**
  * Product mapping utility
@@ -57,18 +58,19 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       description: 'Professional-grade massage roller designed for targeted foot relief and recovery.'
     }
   },
+  // PDP: SecondaryProductPage (see `isHeightBoosterProduct` in productDetection.ts)
   'height-insoles': {
     shopifyId: '9037334675713',
     handle: 'height-insoles',
     product: {
       name: 'Height Boosters',
-      tagline: 'Discreet elevation with maximum comfort',
+      tagline: HEIGHT_BOOSTERS_PDP_COPY.tagline,
+      description: HEIGHT_BOOSTERS_PDP_COPY.description,
+      features: [...HEIGHT_BOOSTERS_PDP_COPY.features],
       price: 39.00,
       rating: 4.8,
       reviews: 1100,
-      image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
-      features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
-      description: 'Add height without the bulk. These discreet insoles provide comfortable elevation while maintaining stability.'
+      image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop'
     }
   },
   // Secondary/Accessory Products
@@ -156,19 +158,19 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       description: 'Professional-grade percussion massage gun for muscle recovery and relaxation.'
     }
   },
-  // Alternative height insoles (same product, different handle)
+  // Same Height Boosters line as `height-insoles`; PDP: SecondaryProductPage
   'height-insoles-1': {
     shopifyId: '9134691254529',
     handle: 'height-insoles-1',
     product: {
       name: 'Height Insoles',
-      tagline: 'Discreet elevation with maximum comfort',
+      tagline: HEIGHT_BOOSTERS_PDP_COPY.tagline,
+      description: HEIGHT_BOOSTERS_PDP_COPY.description,
+      features: [...HEIGHT_BOOSTERS_PDP_COPY.features],
       price: 39.00,
       rating: 4.8,
       reviews: 1100,
-      image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
-      features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
-      description: 'Add height without the bulk. These discreet insoles provide comfortable elevation while maintaining stability.'
+      image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop'
     }
   },
   // Recovery/Accessory Products
