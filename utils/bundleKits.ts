@@ -60,6 +60,18 @@ export const BUNDLE_KITS: BundleKit[] = [
   },
 ];
 
+const BUNDLE_KIT_HANDLE_SET = new Set(BUNDLE_KITS.map((k) => k.handle));
+
+/** True when the product is one of our Shopify bundle kit PDPs (by handle). */
+export function isBundleKitProductByHandle(handle: string | undefined): boolean {
+  if (!handle) return false;
+  return BUNDLE_KIT_HANDLE_SET.has(handle);
+}
+
+export function isBundleKitProductByProduct(product: { handle?: string }): boolean {
+  return isBundleKitProductByHandle(product.handle);
+}
+
 /** Featured grid / search card for the primary bundle (Plantar Fasciitis kit). */
 export function getFascilitesBundleGridProduct(): Product {
   const kit = BUNDLE_KITS.find((k) => k.id === 'fascilites-relief')!;

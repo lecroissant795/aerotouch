@@ -770,6 +770,7 @@ function AppShell() {
         {page === Page.KIT_PRODUCT && (
           selectedKit ? (
             <ProductPage
+              key={selectedKit.id}
               product={bundleKitToGridProduct(selectedKit)}
               onAddToCart={handleAddToCart}
               onBack={() => navigate(Page.BUNDLE_KITS)}

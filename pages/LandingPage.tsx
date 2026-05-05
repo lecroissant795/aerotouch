@@ -9,7 +9,7 @@ import { PressLogos } from '../components/PressLogos';
 import { Product, BundleKit } from '../types';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
-import { getFascilitesBundleGridProduct } from '../utils/bundleKits';
+import { BUNDLE_KITS } from '../utils/bundleKits';
 import { LimitedTimeKits } from '../components/LimitedTimeKits';
 import { ValueProps } from '../components/ValueProps';
 import { ComparisonTable } from '../components/ComparisonTable';
@@ -156,7 +156,6 @@ const FEATURED_PRODUCTS: Product[] = [
     features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
     description: ''
   },
-  getFascilitesBundleGridProduct(),
   {
     id: 'height-insoles',
     handle: 'height-insoles',
@@ -215,7 +214,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
         const shopifyProducts = await shopify.product.fetchAll(20);
         if (shopifyProducts && shopifyProducts.length > 0) {
            const mapped = shopifyProducts.map(mapShopifyProduct);
-           setProducts(mapped);
+           const bundleKitHandles = new Set(BUNDLE_KITS.map((k) => k.handle));
+           setProducts(
+             mapped.filter((p) => !p.handle || !bundleKitHandles.has(p.handle))
+           );
         }
       } catch (err) {
         // Fallback to local data if fetch fails (e.g. invalid creds)

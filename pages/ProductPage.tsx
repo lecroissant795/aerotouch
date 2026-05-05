@@ -16,6 +16,7 @@ import { useProductMetafields } from '../utils/useProductMetafields';
 import { productVideos } from '../utils/mediaUrls';
 import { isMassageRollerProduct } from '../utils/productDetection';
 import { DEFAULT_SIZES, DEFAULT_COLORS } from '../utils/productOptions';
+import { isBundleKitProductByProduct } from '../utils/bundleKits';
 
 interface ProductPageProps {
   product: Product;
@@ -78,6 +79,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   backLabel
 }) => {
   const [product, setProduct] = useState<Product>(initialProduct);
+  const isBundleKitPdp = isBundleKitProductByProduct(product);
   const meta = useProductMetafields(product);
   const [shopifyProduct, setShopifyProduct] = useState<any>(null);
   const [variants, setVariants] = useState<any[]>([]);
@@ -100,6 +102,13 @@ export const ProductPage: React.FC<ProductPageProps> = ({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isBundleKitProductByProduct(initialProduct)) return;
+    setSelectedSize('Standard');
+    setSelectedColor('One Size');
+    setBundle(1);
+  }, [initialProduct.handle]);
 
   useEffect(() => {
     const fetchShopifyData = async () => {
@@ -281,10 +290,14 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const currentTestimonial = TESTIMONIALS[activeTestimonial];
   
   const handleAddToCartWrapper = () => {
-      if(selectedSize) {
-          onAddToCart(product, selectedSize, selectedColor, bundle);
-      }
-  }
+    if (isBundleKitPdp) {
+      onAddToCart(product, 'Standard', 'One Size', 1);
+      return;
+    }
+    if (selectedSize) {
+      onAddToCart(product, selectedSize, selectedColor, bundle);
+    }
+  };
 
   // Guard against undefined product name during loading
   const productName = product.name || '';
@@ -294,7 +307,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   // Shopify titles like "AeroTouch Insoles" and GID `id` must still match here.
   const isMainProductType =
     !isMassageRollerProduct(product) &&
-    ((bundleItems && bundleItems.length > 0) ||
+    (isBundleKitPdp ||
+      (bundleItems && bundleItems.length > 0) ||
       String(product.id) === 'massage-insoles' ||
       handleLower === 'massage-insoles' ||
       nameLower.includes('massage insole') ||
@@ -469,14 +483,16 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                        ${formatPrice(compareAtEach)}
                      </div>
                    )}
-                   <div className="text-sm font-bold text-slate-500 mb-1">each</div>
+                   {!isBundleKitPdp && (
+                     <div className="text-sm font-bold text-slate-500 mb-1">each</div>
+                   )}
                    {savingsPercent > 0 && (
                      <div className="mb-2 bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">
                        Save {savingsPercent}% (${formatPrice(savingsEach)})
                      </div>
                    )}
                 </div>
-                {bundle > 1 && (
+                {!isBundleKitPdp && bundle > 1 && (
                   <p className="text-sm font-bold text-slate-700 mb-4 -mt-2">
                     {bundle} pairs —{' '}
                     <span className="text-slate-900">
@@ -497,35 +513,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                    </div>
                 </div>
 
-                {/* Description Snippet */}
-                {meta.custom_description_points && meta.custom_description_points.length > 0 ? (
-                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
-                    {meta.custom_description_points.map((point: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
-                    <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                      <span><span className="font-bold text-slate-900">Fast pain relief:</span> Cushions impact and supports your arch to reduce daily foot, heel, and knee discomfort.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                      <span><span className="font-bold text-slate-900">Better performance:</span> Improves stability and energy return so you can walk, train, and recover with less fatigue.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                      <span><span className="font-bold text-slate-900">Zero-risk purchase:</span> Try them with a <span className="font-bold text-brand-dark">60-Day Risk-Free Guarantee</span>.</span>
-                    </li>
-                  </ul>
-                )}
-
-                {/* What's Inside (bundle kits only) */}
-                {bundleItems && bundleItems.length > 0 && (
+                {/* Description / kit contents */}
+                {isBundleKitPdp && bundleItems && bundleItems.length > 0 ? (
                   <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <h2 className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
                       What&apos;s inside
@@ -541,9 +530,49 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                       ))}
                     </ul>
                   </div>
+                ) : isBundleKitPdp && product.features && product.features.length > 0 ? (
+                  <div className="mb-6">
+                    <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-900">
+                      What&apos;s included
+                    </p>
+                    <ul className="space-y-2 leading-relaxed text-slate-600">
+                      {product.features.map((line: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <Check className="mt-1 h-4 w-4 flex-shrink-0 text-brand-dark" />
+                          <span>{line}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : meta.custom_description_points && meta.custom_description_points.length > 0 ? (
+                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+                    {meta.custom_description_points.map((point: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  !isBundleKitPdp && (
+                  <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+                    <li className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                      <span><span className="font-bold text-slate-900">Fast pain relief:</span> Cushions impact and supports your arch to reduce daily foot, heel, and knee discomfort.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                      <span><span className="font-bold text-slate-900">Better performance:</span> Improves stability and energy return so you can walk, train, and recover with less fatigue.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                      <span><span className="font-bold text-slate-900">Zero-risk purchase:</span> Try them with a <span className="font-bold text-brand-dark">60-Day Risk-Free Guarantee</span>.</span>
+                    </li>
+                  </ul>
+                  )
                 )}
-
-                {/* Bundle Selector - Dropshipping Style */}
+                {/* Insole pair quantity tiers — not applicable to fixed-price bundle kits */}
+                {!isBundleKitPdp && (
                 <div className="space-y-3 mb-6">
                     <p className="text-xs font-bold text-slate-900 uppercase tracking-widest">Select Quantity</p>
                     
@@ -642,8 +671,10 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* Color Selector */}
+                {!isBundleKitPdp && (
                 <div className="mb-6">
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-xs font-bold text-slate-900 uppercase tracking-widest">Select Color: <span className="text-brand-orange">{selectedColor}</span></span>
@@ -668,8 +699,10 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         ))}
                     </div>
                 </div>
+                )}
 
                 {/* Size Selector */}
+                {!isBundleKitPdp && (
                 <div className="mb-6">
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-xs font-bold text-slate-900 uppercase tracking-widest">Select Size</span>
@@ -701,8 +734,10 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                       </div>
                    )}
                 </div>
+                )}
 
                 {/* Offer Ends Soon Section */}
+                {!isBundleKitPdp && (
                 <div className="mb-6 bg-brand-orange/5 border-2 border-dashed border-brand-orange/30 rounded-2xl p-4 overflow-hidden relative group hover:border-brand-orange/50 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 relative z-10">
                         <div className="flex items-center gap-2">
@@ -754,6 +789,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* Promo marquee strip */}
                 <div className="py-3.5 mb-6 rounded-2xl overflow-hidden border border-[#a5c918]" style={{ backgroundColor: '#C1F11D' }}>
@@ -794,16 +830,16 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     fullWidth
                     size="lg"
                     className={`h-16 text-xl shadow-xl relative overflow-hidden group bg-black text-white hover:bg-[#C1F11D] hover:text-white transition-all duration-300 ${isLoading ? 'opacity-90 cursor-wait' : ''}`}
-                    onClick={() => {
-                        if (selectedSize) {
-                            onAddToCart(product, selectedSize, selectedColor, bundle);
-                        }
-                    }}
-                    disabled={!selectedSize || isLoading}
+                    onClick={() => handleAddToCartWrapper()}
+                    disabled={(!selectedSize && !isBundleKitPdp) || isLoading}
                 >
                    <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
                        {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
-                       {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || 'ADD TO CART') : (meta.secondary_cta_text || 'SELECT SIZE'))}
+                       {isLoading
+                         ? 'PROCESSING...'
+                         : selectedSize || isBundleKitPdp
+                           ? (meta.primary_cta_text || 'ADD TO CART')
+                           : (meta.secondary_cta_text || 'SELECT SIZE')}
                    </span>
                        {/* Shine effect */}
                        {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
