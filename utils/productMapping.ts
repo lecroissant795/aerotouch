@@ -47,6 +47,28 @@ const BUNDLE_KIT_PRODUCT_ENTRIES: Record<string, ShopifyProductInfo> = Object.fr
   BUNDLE_KITS.map((k) => [k.id, bundleKitToShopifyProductInfo(k)])
 ) as Record<string, ShopifyProductInfo>;
 
+/** Local PDP + card copy for Massage Gun (re-applied after Shopify fetch in SecondaryProductPage). */
+export const MASSAGE_GUN_PDP_COPY = {
+  tagline: 'Percussion relief built for feet, arches, and calves',
+  customDescription:
+    'Your feet work overtime. Give them the recovery they deserve.\n' +
+    '\n' +
+    'You already know the pain — long shifts, endless walking, that deep ache in your arches that never quite lets up. Stretching only goes so far. Rolling a tennis ball under your desk only does so much.\n' +
+    '\n' +
+    'The AeroTouch massage gun delivers rapid, targeted deep-tissue relief right where your feet and lower legs need it most. Plantar fasciitis tension, sore arches, tight calves — aim, press, and feel tight spots release in minutes, not hours.\n' +
+    '\n' +
+    "What's included:",
+  features: [
+    '4 interchangeable massage heads: Ball, fork, bullet, and flat — each shaped for a different area of your foot and calf',
+    '6 speed settings: Dial intensity from a gentle flush to deep percussion you control',
+    'Lightweight, portable design: Stows in your gym bag, desk drawer, or nightstand so relief is always within reach',
+    'USB-C rechargeable: Skip the disposable batteries — plug in and you are ready for the next session',
+    'Whisper-quiet motor: Use it at home, after a shift, or before bed without rattling the room'
+  ],
+  description:
+    'Your feet work overtime. Give them the recovery they deserve. The AeroTouch massage gun delivers targeted deep-tissue relief for sore arches, tight calves, and tired lower legs — portable, USB-C rechargeable, and quiet enough for home or work.'
+} as const;
+
 /**
  * Complete mapping of local product identifiers to Shopify data.
  *
@@ -132,13 +154,24 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
     handle: 'toe-cushion-pds',
     product: {
       name: 'Toe Cushion Pads',
-      tagline: 'Protect vulnerable toe areas',
+      tagline: 'Low-profile protection where shoes rub most',
       price: 12.00,
       rating: 4.7,
       reviews: 890,
       image: 'https://images.unsplash.com/photo-1517760444937-1e5390c95d0a?q=80&w=800&auto=format&fit=crop',
-      features: ['Gel Cushioning', 'Hypoallergenic', 'Reusable'],
-      description: 'Soft gel pads that protect toes from rubbing, corns, and calluses.'
+      features: [
+        'Friction shield: Helps reduce rubbing and pressure on sensitive toe zones',
+        'Soft cushioning: Adds comfort without making your shoes feel tight',
+        'Invisible profile: Low‑key fit that stays discreet inside most footwear',
+        'Skin-friendly feel: Smooth material designed to minimize irritation',
+        'Reusable wear: Easy to clean and ready for repeat use'
+      ],
+      description:
+        'Shoes shouldn’t punish your toes.\n' +
+        '\n' +
+        'That sharp rubbing at the front of your shoe can turn a normal day into a painful one—especially when you’re walking, standing, or training. Toe Cushion Pads create a soft barrier between your toes and friction points so you can move without constantly thinking about discomfort.\n' +
+        '\n' +
+        'Built for all-day wear, they help cushion pressure, reduce irritation, and keep you comfortable in everything from sneakers to dress shoes.'
     }
   },
   'toe-spacers': {
@@ -152,7 +185,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       reviews: 1100,
       image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?q=80&w=800&auto=format&fit=crop',
       features: ['Ergonomic Design', 'Medical-Grade Silicone', 'Pain Relief'],
-      description: 'Toe spacers help realign toes, improve balance, and reduce foot pain.'
+      description: ''
     }
   },
   'heel-cushion-pds': {
@@ -160,13 +193,28 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
     handle: 'heel-cushion-pds',
     product: {
       name: 'Heel Cushions',
-      tagline: 'Shock absorption for high-impact activities',
+      tagline: 'Invisible heel protection for long days',
       price: 22.00,
       rating: 4.9,
       reviews: 2100,
       image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop',
-      features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'],
-      description: 'Premium heel cushions that absorb impact and provide all-day comfort.'
+      features: [
+        'Premium cotton cushioning: Soft, cloud-like layer between your heel and the shoe base',
+        'Friction-reducing design: Helps prevent rubbing that can lead to blisters and irritation',
+        'Self-adhesive backing: Sticks firmly inside your shoe — no sliding, no repositioning',
+        'Non-slip grip: Helps keep your foot stable so your shoe stays where it should',
+        'Universal fit: Works in sneakers, dress shoes, boots, heels, and more'
+      ],
+      description:
+        'Your heels take a beating every day — it’s time to protect them.\n' +
+        '\n' +
+        'Hard floors. Long shifts. Shoes that weren’t designed with your comfort in mind. By the end of the day, your heels feel it — that deep ache that makes every step a reminder.\n' +
+        '\n' +
+        'AeroTouch Heel Cushions sit quietly inside your shoe and absorb the punishment so your heels don’t have to.\n' +
+        '\n' +
+        'Small addition. Big difference.\n' +
+        '\n' +
+        'Slip them in before you leave the house and forget they’re there. That’s the point — invisible protection that lets you focus on your day, not your feet.'
     }
   },
   'massage-gun': {
@@ -174,13 +222,16 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
     handle: 'massage-gun',
     product: {
       name: 'Massage Gun',
-      tagline: 'Deep tissue percussion therapy',
+      tagline: MASSAGE_GUN_PDP_COPY.tagline,
       price: 79.00,
       rating: 4.8,
       reviews: 650,
       image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800&auto=format&fit=crop',
-      features: ['Multiple Speed Settings', 'Long Battery Life', 'Quiet Motor'],
-      description: 'Professional-grade percussion massage gun for muscle recovery and relaxation.'
+      features: [...MASSAGE_GUN_PDP_COPY.features],
+      description: MASSAGE_GUN_PDP_COPY.description,
+      metafields: {
+        custom_description: MASSAGE_GUN_PDP_COPY.customDescription
+      }
     }
   },
   // Same Height Boosters line as `height-insoles`; PDP: SecondaryProductPage

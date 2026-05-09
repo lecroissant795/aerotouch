@@ -1,5 +1,16 @@
 import type { BundleKit, Product } from '../types';
 
+/** Cart line attributes — fulfillment sees insole choice when the kit SKU is single-variant. */
+export const BUNDLE_KIT_INSOLE_SIZE_ATTR = 'Insole size';
+export const BUNDLE_KIT_INSOLE_COLOR_ATTR = 'Insole color';
+
+export function bundleKitInsoleLineAttributes(size: string, color: string) {
+  return [
+    { key: BUNDLE_KIT_INSOLE_SIZE_ATTR, value: size },
+    { key: BUNDLE_KIT_INSOLE_COLOR_ATTR, value: color },
+  ];
+}
+
 /**
  * Bundle kits: handles and numeric IDs match the live Shopify store (Storefront API).
  * Prices/compare-at are baseline; `useShopifyBundleKits` refreshes from Shopify on the client.
@@ -16,9 +27,8 @@ export const BUNDLE_KITS: BundleKit[] = [
       'https://cdn.shopify.com/s/files/1/0805/2332/9793/files/1777814018972-nhdkd6i9e0r_png.jpg?v=1777814051',
     badge: 'Best For Rehab',
     items: [
-      '1× AeroTouch massage insoles',
-      '1× Massage ball',
-      '1× Compression socks',
+      '1× AeroTouch Massage Insoles',
+      '1× Massage Roller',
     ],
   },
   {
@@ -30,7 +40,10 @@ export const BUNDLE_KITS: BundleKit[] = [
     originalPrice: 96,
     image: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=900&auto=format&fit=max',
     badge: 'Top Rated',
-    items: ['1× Heel cushions', '1× Daily insole', '1× Arch support'],
+    items: [
+      '1× AeroTouch Massage Insoles',
+      '2× Heel Cushions',
+    ],
   },
   {
     id: 'toe-relief',
@@ -41,7 +54,10 @@ export const BUNDLE_KITS: BundleKit[] = [
     originalPrice: 96,
     image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=900&auto=format&fit=max',
     badge: 'Doctor Choice',
-    items: ['1× Toe spacers', '1× Sport insole', '1× Fabric sleeve'],
+    items: [
+      '1× AeroTouch Massage Insoles',
+      '2× Toe Cushion Pads',
+    ],
   },
   {
     id: 'complete-recovery-kit',
@@ -53,9 +69,10 @@ export const BUNDLE_KITS: BundleKit[] = [
     image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=900&auto=format&fit=max',
     badge: 'Ultimate Value',
     items: [
-      '2× AeroTouch massage insoles',
-      '2× Compression socks',
-      '1× Massage roller',
+      '3× AeroTouch Massage Insoles',
+      '1× Massage Roller',
+      '2× Heel Cushions',
+      '2× Toe Cushion Pads',
     ],
   },
 ];

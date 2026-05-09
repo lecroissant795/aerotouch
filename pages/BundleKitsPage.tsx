@@ -2,7 +2,7 @@ import React from 'react';
 import { Zap, ShieldCheck } from 'lucide-react';
 import { BundleKit } from '../types';
 import { useShopifyBundleKits } from '../hooks/useShopifyBundleKits';
-import { KitBundleCard } from '../components/KitBundleCard';
+import { BundleKitCardsRow } from '../components/BundleKitCardsRow';
 import { BUNDLE_KITS } from '../utils/bundleKits';
 
 export { BUNDLE_KITS };
@@ -28,11 +28,7 @@ export const BundleKitsPage: React.FC<BundleKitsPageProps> = ({ onAddKitToCart, 
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {kits.map((kit) => (
-            <KitBundleCard key={kit.id} kit={kit} onKitSelect={onKitSelect} onAddKitToCart={onAddKitToCart} />
-          ))}
-        </div>
+        <BundleKitCardsRow kits={kits} onKitSelect={onKitSelect} onAddKitToCart={onAddKitToCart} />
 
         <div className="mt-16 flex flex-wrap justify-center gap-x-12 gap-y-6">
           {[

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Product } from '../types';
 import { Button } from '../components/Button';
-import { Star, ChevronLeft, Truck, RotateCcw, Check, ShoppingBag, ShieldCheck, Timer, Users, CreditCard, Lock, ChevronDown, ChevronUp, Flame, BadgeCheck, Smile, Headphones, X, Play, Volume2, VolumeX, MapPin, Box, CircleDollarSign, Activity, Wrench, Tag } from 'lucide-react';
+import { Star, Truck, RotateCcw, Check, ShoppingBag, ShieldCheck, Timer, Users, CreditCard, Lock, ChevronDown, ChevronUp, Flame, BadgeCheck, Smile, Headphones, X, Play, Volume2, VolumeX, MapPin, Box, CircleDollarSign, Activity, Wrench, Tag } from 'lucide-react';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { fetchProductByHandle } from '../utils/productFetcher';
@@ -19,8 +19,233 @@ import {
   HEIGHT_BOOSTERS_PDP_COPY,
   HEIGHT_BOOSTERS_STORY_BELOW_TESTIMONIALS,
   HEIGHT_BOOSTER_FAQS,
+  HEIGHT_BOOSTER_QUICK_USES,
   HEIGHT_BOOSTER_TESTIMONIALS
 } from '../utils/heightBoostersCopy';
+import { MASSAGE_GUN_PDP_COPY } from '../utils/productMapping';
+
+const BenefitBullet: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <li className="flex items-start gap-2">
+    <Check className="w-4 h-4 text-brand-dark mt-0.5 flex-shrink-0" strokeWidth={2.5} />
+    <span className="text-sm md:text-[15px] leading-relaxed text-slate-600">{children}</span>
+  </li>
+);
+
+const TOE_CUSHION_PADS_OVERRIDE = {
+  tagline: 'Low-profile protection where shoes rub most',
+  description:
+    'Shoes shouldn’t punish your toes.\n\n' +
+    'That sharp rubbing at the front of your shoe can turn a normal day into a painful one—especially when you’re walking, standing, or training. Toe Cushion Pads create a soft barrier between your toes and friction points so you can move without constantly thinking about discomfort.\n\n' +
+    'Built for all-day wear, they help cushion pressure, reduce irritation, and keep you comfortable in everything from sneakers to dress shoes.',
+  features: [
+    'Friction shield: Helps reduce rubbing and pressure on sensitive toe zones',
+    'Soft cushioning: Adds comfort without making your shoes feel tight',
+    'Invisible profile: Low‑key fit that stays discreet inside most footwear',
+    'Skin-friendly feel: Smooth material designed to minimize irritation',
+    'Reusable wear: Easy to clean and ready for repeat use'
+  ],
+};
+
+const HEEL_CUSHIONS_OVERRIDE = {
+  tagline: 'Invisible heel protection for long days',
+  description:
+    'Your heels take a beating every day — it’s time to protect them.\n\n' +
+    'Hard floors. Long shifts. Shoes that weren’t designed with your comfort in mind. By the end of the day, your heels feel it — that deep ache that makes every step a reminder.\n\n' +
+    'AeroTouch Heel Cushions sit quietly inside your shoe and absorb the punishment so your heels don’t have to.\n\n' +
+    'Slip them in before you leave the house and forget they’re there. That’s the point — invisible protection that lets you focus on your day, not your feet.',
+  features: [
+    'Premium cotton cushioning: Soft, cloud-like layer between your heel and the shoe base',
+    'Friction-reducing design: Helps prevent rubbing that can lead to blisters and irritation',
+    'Self-adhesive backing: Sticks firmly inside your shoe — no sliding, no repositioning',
+    'Non-slip grip: Helps keep your foot stable so your shoe stays where it should',
+    'Universal fit: Works in sneakers, dress shoes, boots, heels, and more'
+  ],
+};
+
+/** Toe Cushion Pads: match Massage Roller detail-card tone/format (headline + 5 scannable benefits). */
+const ToeCushionPadsDetailCardBody: React.FC = () => (
+  <div className="space-y-8 text-slate-600">
+    <div>
+      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">
+        Shoes Shouldn&apos;t Hurt Your Toes
+      </h3>
+      <p className="text-sm md:text-[15px] leading-relaxed">
+        That burning, rubbing feeling at the front of your shoe builds fast — on walks, during workouts, or after hours
+        on your feet. Toe Cushion Pads add a soft, invisible layer of comfort right where friction hits hardest, so you
+        can move through your day without the constant “hot spot” distraction.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">Designed for Invisible Comfort</h3>
+      <ul className="space-y-2.5">
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Friction &amp; pressure relief</span> helps prevent rubbing and
+          reduces discomfort on sensitive toe areas
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Soft cushioning that stays slim</span> — comfort without making
+          your shoes feel tight
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Low-profile, discreet wear</span> fits easily inside most sneakers,
+          flats, and dress shoes
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Smooth, skin-friendly feel</span> designed to minimize irritation
+          for all-day use
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Reusable &amp; easy to clean</span> — rinse, air dry, and wear again
+        </BenefitBullet>
+      </ul>
+    </div>
+
+    <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+      <p className="text-sm font-black text-slate-900 mb-2">AeroTouch 60-Day Money-Back Guarantee.</p>
+      <p className="text-sm md:text-[15px] leading-relaxed">
+        Try them for 60 days. If you don&apos;t feel the difference, AeroTouch will refund every penny.
+      </p>
+    </div>
+  </div>
+);
+
+/** Heel Cushions: match Toe Cushion Pads detail-card tone/format (headline + scannable benefits + use cases). */
+const HeelCushionsDetailCardBody: React.FC = () => (
+  <div className="space-y-8 text-slate-600">
+    <div>
+      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">
+        Your Heels Take a Beating Every Day
+      </h3>
+      <p className="text-sm md:text-[15px] leading-relaxed">
+        Hard floors. Long shifts. Shoes that weren’t built for comfort. By the end of the day, your heels feel it — that
+        deep ache that makes every step a reminder.{' '}
+        <span className="font-bold text-slate-900">AeroTouch Heel Cushions</span> sit quietly inside your shoe and absorb
+        the punishment so your heels don’t have to.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">What Makes Them Work</h3>
+      <ul className="space-y-2.5">
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Premium cotton cushioning</span> provides a soft, cloud-like layer
+          between your heel and the shoe base
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Friction-reducing design</span> helps prevent rubbing that can cause
+          blisters, calluses, and irritation
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Self-adhesive backing</span> sticks firmly inside your shoe — no
+          sliding, no repositioning
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Non-slip grip</span> helps keep your foot stable so your shoe stays
+          where it should
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Universal fit</span> works in sports shoes, leather shoes, boots,
+          heels, and more
+        </BenefitBullet>
+      </ul>
+    </div>
+
+    <div>
+      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">Small Addition. Big Difference.</h3>
+      <p className="text-sm md:text-[15px] leading-relaxed">
+        Slip them in before you leave the house and forget they’re there. That’s the point — invisible protection that
+        lets you focus on your day, not your feet.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Perfect For</p>
+      <ul className="mt-3 space-y-2 text-sm md:text-[15px] leading-relaxed">
+        {[
+          'Anyone breaking in new shoes',
+          'People with heel pain, bursitis, or sensitive skin',
+          'Shoes that are slightly too big and need a snugger fit',
+          'Long days on hard floors where every step counts'
+        ].map((item) => (
+          <li key={item} className="flex items-start gap-2">
+            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-brand-dark shrink-0" aria-hidden />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+      <p className="text-sm font-black text-slate-900 mb-2">AeroTouch 60-Day Money-Back Guarantee.</p>
+      <p className="text-sm md:text-[15px] leading-relaxed">
+        Try them for 60 days. If you don&apos;t feel the difference, AeroTouch will refund every penny.
+      </p>
+    </div>
+  </div>
+);
+
+/** Toe Spacers: long-form story (matches attached reference structure, styled to AeroTouch). */
+const ToeSpacersBelowTestimonials: React.FC = () => (
+  <div className="mt-8 space-y-8 text-slate-600 border-t border-slate-200 pt-8">
+    <div>
+      <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight leading-snug mb-3">
+        Give Your Toes the Space They Were Born With.
+      </h2>
+      <p className="text-sm md:text-[15px] leading-relaxed">
+        Modern shoes squeeze toes into narrow shapes. Over time, that constant compression can leave your forefoot
+        feeling tight, irritated, and unstable — making every step feel “off.”{' '}
+        <span className="font-bold text-slate-900">AeroTouch Toe Spacers</span> provide a gentle reset by encouraging a
+        more natural toe splay, helping your feet feel freer, more grounded, and more comfortable with consistent use.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">How They Work</h3>
+      <ul className="space-y-2.5">
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Soft, medical‑grade silicone</span> rests comfortably between toes
+          to encourage separation without harsh pressure
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Releases built-up tension</span> by helping toes and the forefoot
+          relax after long days on your feet or restrictive footwear
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Improves toe splay &amp; balance</span> to support a more stable
+          base and better “grounding” during low-impact movement
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Low-impact versatility</span> — ideal for lounging, stretching,
+          mobility work, or winding down after training
+        </BenefitBullet>
+        <BenefitBullet>
+          <span className="font-bold text-slate-900">Reusable &amp; easy to clean</span> — rinse with mild soap, air dry,
+          and wear again
+        </BenefitBullet>
+      </ul>
+    </div>
+
+    <div>
+      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">The Recovery Ritual Your Feet Need</h3>
+      <p className="text-sm md:text-[15px] leading-relaxed">
+        Wear them for 20–30 minutes a day during downtime — watching TV, reading, or after workouts. Many people notice
+        less “cramped” forefoot tension within the first few sessions, with longer-term improvements in comfort and toe
+        alignment over weeks of consistent use.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">Perfect For</h3>
+      <ul className="space-y-2.5">
+        <BenefitBullet>Bunion-prone feet and overlapping toes — a simple, non-invasive reset routine</BenefitBullet>
+        <BenefitBullet>Runners and athletes who feel tight, compressed toes after training</BenefitBullet>
+        <BenefitBullet>Long days in narrow shoes (dress shoes, heels, rigid boots)</BenefitBullet>
+        <BenefitBullet>Yoga, Pilates, and balance work — to improve toe dexterity and grounding</BenefitBullet>
+      </ul>
+    </div>
+  </div>
+);
 
 interface SecondaryProductPageProps {
   product: Product;
@@ -86,6 +311,206 @@ const DEFAULT_FAQS = [
   }
 ];
 
+const TOE_SPACERS_TESTIMONIALS = [
+  {
+    name: 'Jordan P.',
+    role: 'Runner • Post-training recovery',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'My feet feel “unlocked” after 20 minutes. The tight, cramped feeling after runs is way less noticeable now.',
+    result: 'Less post-run tightness'
+  },
+  {
+    name: 'Maya S.',
+    role: 'Office & dress shoes',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'I wear heels for work and my toes used to feel smashed by the end of the day. These are a simple reset at night.',
+    result: 'Comfortable nightly reset'
+  },
+  {
+    name: 'Ethan R.',
+    role: 'Yoga • Balance work',
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'Didn’t expect the balance difference. Spacing my toes out makes grounding feel more stable in poses.',
+    result: 'Improved stability & grounding'
+  }
+];
+
+const TOE_SPACERS_FAQS = [
+  {
+    question: 'How long should I wear toe spacers each day?',
+    answer:
+      'Start with 10–15 minutes and work up to 20–30 minutes as your feet adapt. Consistency matters more than doing long sessions.'
+  },
+  {
+    question: 'Can I walk or work out in them?',
+    answer:
+      'They’re best for lounging and low-impact movement (stretching, floor work, light mobility). Avoid intense training or tight shoes unless your podiatrist recommends it.'
+  },
+  {
+    question: 'Will they help with cramped toes or forefoot tension?',
+    answer:
+      'That’s the goal: gentle separation can reduce the “compressed” sensation and help your toes relax after restrictive footwear. Results improve with steady use over several weeks.'
+  },
+  {
+    question: 'How do I clean them?',
+    answer:
+      'Wash with mild soap and warm water, then air dry. Keep them away from high heat to preserve the silicone’s flexibility.'
+  }
+];
+
+const TOE_CUSHION_PADS_TESTIMONIALS = [
+  {
+    name: 'Chloe M.',
+    role: 'New shoes • break-in days',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'I used to get hot spots at the front of my sneakers within 20 minutes. These pads made the rubbing basically disappear.',
+    result: 'Fewer blisters and less toe irritation'
+  },
+  {
+    name: 'Ryan D.',
+    role: 'Long walks • daily errands',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'They feel soft but not bulky. I forget they’re there — which is exactly what I wanted.',
+    result: 'Comfort without the “tight shoe” feeling'
+  },
+  {
+    name: 'Ava K.',
+    role: 'Work shoes • all-day standing',
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'My toes used to feel raw after long shifts. With these, I get cushioning where I need it and no constant adjusting.',
+    result: 'All-day comfort for toe pressure points'
+  }
+];
+
+const TOE_CUSHION_PADS_FAQS = [
+  {
+    question: 'Where do Toe Cushion Pads sit?',
+    answer:
+      'Place them where you feel rubbing or pressure at the front of the shoe—typically around the toe area. They’re designed to stay low-profile and comfortable while you move.'
+  },
+  {
+    question: 'Will they fit in tight shoes?',
+    answer:
+      'They’re made to be slim and discreet, but fit can vary by shoe. If your footwear is very tight, we recommend using them with roomier pairs first for the best comfort.'
+  },
+  {
+    question: 'Do they help prevent blisters and hot spots?',
+    answer:
+      'Yes—by creating a soft barrier that reduces friction and pressure, they help minimize rubbing that often leads to blisters and irritation.'
+  },
+  {
+    question: 'Can I reuse them?',
+    answer:
+      'Yes. Rinse with mild soap and warm water, then air dry. With regular care, they’re built for repeat use.'
+  }
+];
+
+const HEEL_CUSHIONS_TESTIMONIALS = [
+  {
+    name: 'Danielle R.',
+    role: 'Retail • 8-hour shifts',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'Concrete floors used to wreck my heels by closing time. These pads are the first thing I put in my work shoes now — the ache at the back of my foot is way less noticeable.',
+    result: 'Less heel fatigue after long shifts'
+  },
+  {
+    name: 'Marcus T.',
+    role: 'New leather boots • break-in',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'My boots were rubbing the back of my heels raw. I stuck these in and finally stopped dreading every step during the break-in period.',
+    result: 'Fewer heel blisters while breaking in shoes'
+  },
+  {
+    name: 'Priya N.',
+    role: 'Slightly loose sneakers',
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'Half a size too big and my heel was slipping. These filled the gap without feeling bulky — snugger fit, no sliding up and down.',
+    result: 'More stable heel lock-in'
+  }
+];
+
+const HEEL_CUSHIONS_FAQS = [
+  {
+    question: 'Where should I place Heel Cushions in my shoes?',
+    answer:
+      'Peel the backing and press the pad firmly onto the inside heel counter — the part of the shoe that cups the back of your heel. Center it so your heel lands on the cushioning. Let the adhesive set for a minute before wearing.'
+  },
+  {
+    question: 'Will they slip or bunch up while I walk?',
+    answer:
+      'They’re designed with a self-adhesive backing and grip to stay put in most footwear. For best results, make sure the inside of the shoe is clean and dry before applying. If a pair starts to lift at the edges after heavy use, replace it for a fresh stick.'
+  },
+  {
+    question: 'Can they help with heel rubbing, blisters, or sore heels?',
+    answer:
+      'Yes — the soft cushioning and friction-reducing design help absorb impact and cut down on rubbing at the heel, which many people notice on hard floors, long shifts, or when breaking in stiff shoes. They’re for comfort, not a substitute for medical care; see a professional for persistent pain.'
+  },
+  {
+    question: 'Are they reusable? How do I remove them?',
+    answer:
+      'They’re intended as semi-durable wear: you can often move them once or twice while the adhesive is fresh, but repeated removal will weaken the stick. To take them out, peel slowly from one edge; any residue can usually be rolled off or cleaned with a gentle shoe-safe wipe. When adhesion fades, replace with a new pair.'
+  }
+];
+
+const MASSAGE_GUN_TESTIMONIALS = [
+  {
+    name: 'Danielle K.',
+    role: 'Nurse • 12-hour shifts',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'My arches and calves used to feel cemented after a shift. Five minutes with this on low speed under the arch and up the calf — I can actually relax instead of limping to the car.',
+    result: 'Faster post-shift leg and foot relief'
+  },
+  {
+    name: 'Marcus L.',
+    role: 'Weekend runner • tight calves',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'I tried lacrosse balls and foam rollers; this is the first thing that hits the spot without wrecking my hands. Quiet enough that I don’t annoy my partner after a long run.',
+    result: 'Targeted percussion without the noise'
+  },
+  {
+    name: 'Elena R.',
+    role: 'Plantar fasciitis • desk + walking commute',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=100&auto=format&fit=crop',
+    quote:
+      'Mornings were the worst. I use the fork head along the arch and the ball on the heel — gentle at first, then a bit deeper. It’s part of my routine now.',
+    result: 'More manageable morning foot tension'
+  }
+];
+
+const MASSAGE_GUN_FAQS = [
+  {
+    question: 'How do I use the massage gun on my feet and calves?',
+    answer:
+      'Start on the lowest speed and keep the head flat against the muscle — never on bone or the front of the shin. For the foot, glide slowly along the arch and heel pad for 30–60 seconds per area. For calves, work the belly of the muscle in short passes, moving up toward the knee. If anything feels sharp or wrong, stop and ask a clinician — this is for comfort and recovery, not a substitute for medical treatment.'
+  },
+  {
+    question: 'How long does the battery last and how do I charge it?',
+    answer:
+      'Runtime depends on speed and pressure, but most people get multiple sessions per charge for daily foot and calf use. Recharge with the included USB-C cable — no disposable batteries. Top up before travel or long weeks on your feet so it’s ready when you need it.'
+  },
+  {
+    question: 'Is it safe to use every day? What about intensity?',
+    answer:
+      'Many customers use it daily for short sessions. Use the six speeds to stay in a comfortable range: lighter for sensitive areas like the arch, firmer only where soft tissue can handle it. Avoid injured, swollen, or numb areas, and don’t use it over varicose veins or if your doctor has advised against percussion massage.'
+  },
+  {
+    question: 'What if I’m not happy with it?',
+    answer:
+      'You’re covered by AeroTouch’s 60-day money-back guarantee. Try it on your recovery routine — if it’s not right for you, reach out and we’ll help with a full refund.'
+  }
+];
+
 export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   product: initialProduct,
   onAddToCart,
@@ -101,12 +526,61 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
 }) => {
   const [product, setProduct] = useState<Product>(initialProduct);
   const meta = useProductMetafields(product);
+  const isGripSocksProduct = useMemo(() => {
+    const handle = (product.handle || '').toLowerCase();
+    const id = String(product.id || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    return handle === 'grip-socks' || id === 'grip-socks' || name.includes('grip socks');
+  }, [product.handle, product.id, product.name]);
+  const isToeCushionPadsProduct = useMemo(() => {
+    const handle = (product.handle || '').toLowerCase();
+    const id = String(product.id || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    return handle === 'toe-cushion-pds' || id === 'toe-cushion-pds' || name.includes('toe cushion');
+  }, [product.handle, product.id, product.name]);
+  const isHeelCushionsProduct = useMemo(() => {
+    const handle = (product.handle || '').toLowerCase();
+    const id = String(product.id || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    return (
+      handle === 'heel-cushion-pds' ||
+      handle === 'heel-cushion-pad' ||
+      id === 'heel-cushion-pds' ||
+      id === 'heel-cushion-pad' ||
+      name.includes('heel cushion')
+    );
+  }, [product.handle, product.id, product.name]);
+  const isToeSpacersProduct = useMemo(() => {
+    const handle = (product.handle || '').toLowerCase();
+    const id = String(product.id || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    return handle === 'toe-spacers' || id === 'toe-spacers' || name.includes('toe spacers');
+  }, [product.handle, product.id, product.name]);
+  const isMassageGunProduct = useMemo(() => {
+    const handle = (product.handle || '').toLowerCase();
+    const id = String(product.id || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    return handle === 'massage-gun' || id === 'massage-gun' || name.includes('massage gun');
+  }, [product.handle, product.id, product.name]);
+
+  const quantityUsesPairs = isToeSpacersProduct || isHeightBoosterProduct(product);
 
   const testimonialItems = useMemo(() => {
     if (testimonialsProp) return testimonialsProp;
+    if (isToeCushionPadsProduct) return TOE_CUSHION_PADS_TESTIMONIALS;
+    if (isHeelCushionsProduct) return HEEL_CUSHIONS_TESTIMONIALS;
+    if (isToeSpacersProduct) return TOE_SPACERS_TESTIMONIALS;
+    if (isMassageGunProduct) return MASSAGE_GUN_TESTIMONIALS;
     if (isHeightBoosterProduct(product)) return HEIGHT_BOOSTER_TESTIMONIALS;
     return DEFAULT_TESTIMONIALS;
-  }, [testimonialsProp, product]);
+  }, [
+    testimonialsProp,
+    isToeCushionPadsProduct,
+    isHeelCushionsProduct,
+    isToeSpacersProduct,
+    isMassageGunProduct,
+    product
+  ]);
 
   const bundleQuantities = useMemo(() => {
     const raw = meta.bundle_options_override;
@@ -117,17 +591,87 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
       const sorted = Array.from(new Set(qs)).sort((a, b) => a - b);
       if (sorted.length > 0) return sorted;
     }
-    return [1, 2, 3, 4];
-  }, [meta.bundle_options_override]);
+    if (isToeSpacersProduct) return [1, 2, 3, 5];
+    if (isHeelCushionsProduct) return [1, 2, 3, 5];
+    if (isHeightBoosterProduct(product)) return [1, 2, 3, 5];
+    // Default: 3 options for most secondary items.
+    return [1, 2, 3];
+  }, [meta.bundle_options_override, isToeSpacersProduct, isHeelCushionsProduct, product]);
 
   const peakBundleQty = bundleQuantities[bundleQuantities.length - 1] ?? 1;
 
   const faqItems = useMemo(() => {
     if (faqsProp) return faqsProp;
     if (meta.faq_override && meta.faq_override.length > 0) return meta.faq_override;
+    if (isToeCushionPadsProduct) return TOE_CUSHION_PADS_FAQS;
+    if (isHeelCushionsProduct) return HEEL_CUSHIONS_FAQS;
+    if (isToeSpacersProduct) return TOE_SPACERS_FAQS;
+    if (isMassageGunProduct) return MASSAGE_GUN_FAQS;
     if (isHeightBoosterProduct(product)) return HEIGHT_BOOSTER_FAQS;
     return DEFAULT_FAQS;
-  }, [faqsProp, meta.faq_override, product]);
+  }, [
+    faqsProp,
+    meta.faq_override,
+    isToeCushionPadsProduct,
+    isHeelCushionsProduct,
+    isToeSpacersProduct,
+    isMassageGunProduct,
+    product
+  ]);
+
+  /** Long-form PDP description: rendered below the rotating testimonial card (not above quantity). */
+  const productDetailBelowTestimonials = useMemo(() => {
+    if (detailCardBody) return detailCardBody;
+    if (isToeCushionPadsProduct) return <ToeCushionPadsDetailCardBody />;
+    if (isHeelCushionsProduct) return <HeelCushionsDetailCardBody />;
+    if (isToeSpacersProduct) return null;
+    const descText = (meta.custom_description || product.tagline || product.description || '').trim();
+    const hasPoints = Boolean(meta.custom_description_points && meta.custom_description_points.length > 0);
+    const hasFeatures = Boolean(product.features && product.features.length > 0);
+    if (!descText && !hasPoints && !hasFeatures) return null;
+    return (
+      <>
+        {descText ? (
+          <p className="text-slate-600 leading-relaxed mb-6 whitespace-pre-line">
+            {meta.custom_description || product.tagline || product.description}
+          </p>
+        ) : null}
+        {hasPoints ? (
+          <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+            {meta.custom_description_points!.map((point: string, idx: number) => (
+              <li key={idx} className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+        ) : hasFeatures ? (
+          <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
+            {product.features!.map((feature, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
+                <span>
+                  <span className="font-bold text-slate-900">{feature.split(':')[0]}:</span>{' '}
+                  {feature.split(':').slice(1).join(':')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </>
+    );
+  }, [
+    detailCardBody,
+    isToeCushionPadsProduct,
+    isHeelCushionsProduct,
+    isToeSpacersProduct,
+    meta.custom_description,
+    meta.custom_description_points,
+    product.tagline,
+    product.description,
+    product.features
+  ]);
+
   const [shopifyProduct, setShopifyProduct] = useState<any>(null);
   const [selectedSize, setSelectedSize] = useState<string>('One Size');
   const [selectedColor, setSelectedColor] = useState<string>('Black');
@@ -174,6 +718,28 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
               merged.tagline = HEIGHT_BOOSTERS_PDP_COPY.tagline;
               merged.description = HEIGHT_BOOSTERS_PDP_COPY.description;
               merged.features = [...HEIGHT_BOOSTERS_PDP_COPY.features];
+            }
+            if ((merged.handle || '').toLowerCase() === 'toe-cushion-pds') {
+              merged.tagline = TOE_CUSHION_PADS_OVERRIDE.tagline;
+              merged.description = TOE_CUSHION_PADS_OVERRIDE.description;
+              merged.features = [...TOE_CUSHION_PADS_OVERRIDE.features];
+            }
+            {
+              const h = (merged.handle || '').toLowerCase();
+              if (h === 'heel-cushion-pds' || h === 'heel-cushion-pad') {
+                merged.tagline = HEEL_CUSHIONS_OVERRIDE.tagline;
+                merged.description = HEEL_CUSHIONS_OVERRIDE.description;
+                merged.features = [...HEEL_CUSHIONS_OVERRIDE.features];
+              }
+              if (h === 'massage-gun') {
+                merged.tagline = MASSAGE_GUN_PDP_COPY.tagline;
+                merged.description = MASSAGE_GUN_PDP_COPY.description;
+                merged.features = [...MASSAGE_GUN_PDP_COPY.features];
+                merged.metafields = {
+                  ...(merged.metafields || {}),
+                  custom_description: MASSAGE_GUN_PDP_COPY.customDescription
+                };
+              }
             }
             return merged;
           });
@@ -291,8 +857,14 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   const savingsEach = compareAtEach != null ? compareAtEach - unitPrice : 0;
   const savingsPercent =
     compareAtEach != null && compareAtEach > 0
-      ? Math.round((savingsEach / compareAtEach) * 100)
+      ? Math.round((Math.max(0, savingsEach) / compareAtEach) * 100)
       : 0;
+  const savingsLabelForQty = (qty: number) => {
+    const saved = Math.max(0, savingsEach) * qty;
+    const fmt = (v: number) => v.toFixed(2);
+    if (saved <= 0) return `You save $${fmt(0)}`;
+    return `You save $${fmt(saved)}`;
+  };
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -325,29 +897,27 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
     testimonialItems[Math.min(activeTestimonial, testimonialItems.length - 1)] ?? testimonialItems[0];
 
   return (
-    <div className="min-h-screen bg-slate-50 animate-in fade-in duration-500 pb-24 md:pb-0">
+    <div
+      className="min-h-screen bg-slate-50 animate-in fade-in duration-500 pb-24 md:pb-0"
+      style={{ paddingTop: 'var(--navbar-height, 72px)' }}
+    >
       
       {/* Sticky Promo Bar */}
-      <div className="bg-brand-dark text-white text-center py-2 text-xs font-bold uppercase tracking-widest sticky top-[64px] z-30">
+      <div
+        className="bg-brand-dark text-white text-center py-2 text-xs font-bold uppercase tracking-widest sticky z-30"
+        style={{ top: 'var(--navbar-height, 72px)' }}
+      >
         <span className="animate-pulse text-brand-lime mr-2">●</span> High Demand: {viewers} Sold in the last hour
       </div>
 
-      {/* Breadcrumb / Back Navigation */}
-      <div className="pt-8 md:pt-16 pb-4 px-4 md:px-6 container mx-auto flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button 
-          onClick={onBack}
-          className="group flex items-center text-sm font-medium text-slate-500 hover:text-brand-orange transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
-          Back to Shop
-        </button>
-      </div>
-
-      <div className="container mx-auto px-4 md:px-6 lg:flex lg:gap-12 xl:gap-16 mb-24">
+      <div className="container mx-auto px-4 md:px-6 pt-6 md:pt-10 lg:flex lg:gap-12 xl:gap-16 mb-24">
         
         {/* Left Col: Image Gallery - Sticky on Desktop */}
         <div className="lg:w-3/5">
-             <div className="lg:sticky lg:top-40 space-y-4 md:max-w-[550px] lg:max-w-none mx-auto">
+             <div
+               className="lg:sticky space-y-4 md:max-w-[550px] lg:max-w-none mx-auto"
+               style={{ top: 'calc(var(--navbar-height, 72px) + 32px)' }}
+             >
                 {/* --- MOBILE: Carousel View --- */}
                 <div className="md:hidden">
                     <div className="aspect-[10/9.92] md:aspect-square bg-slate-50 rounded-2xl overflow-hidden shadow-sm relative border border-slate-100">
@@ -456,7 +1026,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 </div>
                 {bundle > 1 && (
                   <p className="text-sm font-bold text-slate-700 mb-4 -mt-2">
-                    {bundle} items —{' '}
+                    {bundle} {quantityUsesPairs ? 'pairs' : 'items'} —{' '}
                     <span className="text-slate-900">${(unitPrice * bundle).toFixed(2)} at checkout</span>
                   </p>
                 )}
@@ -473,34 +1043,101 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                    </div>
                 </div>
 
-                {/* Description / custom long-form copy */}
-                {detailCardBody ? (
-                  <div className="mb-6">{detailCardBody}</div>
-                ) : (
-                  <>
-                    <p className="text-slate-600 leading-relaxed mb-6 whitespace-pre-line">
-                      {meta.custom_description || product.tagline || product.description}
-                    </p>
-                    {meta.custom_description_points && meta.custom_description_points.length > 0 ? (
-                      <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
-                        {meta.custom_description_points.map((point: string, idx: number) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                            <span>{point}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : product.features && product.features.length > 0 && (
-                      <ul className="text-slate-600 leading-relaxed mb-6 space-y-2">
-                        {product.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <Check className="w-4 h-4 text-brand-dark mt-1 flex-shrink-0" />
-                            <span><span className="font-bold text-slate-900">{feature.split(':')[0]}:</span> {feature.split(':').slice(1).join(':')}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
+                {isGripSocksProduct && (
+                  <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Ideal For</p>
+                    <ul className="mt-3 space-y-2 text-sm text-slate-600 leading-relaxed">
+                      <li className="flex gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-dark shrink-0" aria-hidden />
+                        <span>Football, basketball, tennis, and training sports</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-dark shrink-0" aria-hidden />
+                        <span>Running, hiking, and active recovery</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-dark shrink-0" aria-hidden />
+                        <span>Yoga, Pilates, and studio workouts</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-dark shrink-0" aria-hidden />
+                        <span>Everyday wear for anyone wanting extra comfort and stability</span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                {isToeSpacersProduct && (
+                  <div className="mb-6">
+                    <ul className="space-y-2.5">
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">Corrective Realignment:</span> They act as a physical
+                        &quot;reset&quot; for your feet, gently guiding toes back to their natural, wide-splayed position
+                        to counteract the structural damage and narrowing caused by modern footwear.
+                      </BenefitBullet>
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">Active Tension Relief:</span> By stretching the plantar
+                        fascia and toe flexors, they help alleviate the chronic &quot;cramped&quot; sensation often felt
+                        after long periods of standing, walking, or wearing restrictive sports boots and dress shoes.
+                      </BenefitBullet>
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">Effortless Integration:</span> Designed to fit into your
+                        existing downtime, they require no extra effort—simply wear them for 20–30 minutes while relaxing,
+                        reading, or winding down in the evening to promote long-term foot health.
+                      </BenefitBullet>
+                    </ul>
+                  </div>
+                )}
+
+                {isHeelCushionsProduct && (
+                  <div className="mb-6 text-slate-600">
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">Great uses</h3>
+                    <ul className="space-y-2.5">
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">Long days on hard floors</span> — extra cushioning at
+                        the heel for standing, walking, and busy shifts where every step adds up.
+                      </BenefitBullet>
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">Breaking in stiff shoes</span> — softens heel rub so
+                        new boots, dress shoes, or rigid sneakers are easier on your skin.
+                      </BenefitBullet>
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">A slightly loose fit</span> — fills a bit of heel
+                        space for a snugger feel and less slipping up and down.
+                      </BenefitBullet>
+                    </ul>
+                  </div>
+                )}
+
+                {isMassageGunProduct && (
+                  <div className="mb-6 text-slate-600">
+                    <ul className="space-y-2.5">
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">After long shifts &amp; standing</span> — loosen
+                        tight arches, soles, and calves when you finally get off your feet.
+                      </BenefitBullet>
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">Warm-up &amp; cool-down</span> — quick percussion
+                        before activity or after a run or workout to calm hot spots in your lower legs.
+                      </BenefitBullet>
+                      <BenefitBullet>
+                        <span className="font-bold text-slate-900">Plantar fasciitis &amp; stubborn tension</span> —{' '}
+                        targeted relief at home, at work, or before bed without a trip to the spa.
+                      </BenefitBullet>
+                    </ul>
+                  </div>
+                )}
+
+                {isHeightBoosterProduct(product) && (
+                  <div className="mb-6 text-slate-600">
+                    <ul className="space-y-2.5">
+                      {HEIGHT_BOOSTER_QUICK_USES.map((u) => (
+                        <BenefitBullet key={u.title}>
+                          <span className="font-bold text-slate-900">{u.title}</span> — {u.body}
+                        </BenefitBullet>
+                      ))}
+                    </ul>
+                  </div>
                 )}
 
                 {/* Bundle Selector - Dropshipping Style */}
@@ -547,12 +1184,15 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                   </div>
                                   <div className="flex flex-col">
                                       <div className="flex items-center">
-                                          <span className="text-xl font-black text-slate-900 leading-none">{qty} {qty === 1 ? 'Item' : 'Items'}</span>
+                                          <span className="text-xl font-black text-slate-900 leading-none">
+                                            {qty}{' '}
+                                            {quantityUsesPairs
+                                              ? (qty === 1 ? 'Pair' : 'Pairs')
+                                              : (qty === 1 ? 'Item' : 'Items')}
+                                          </span>
                                       </div>
                                       <p className="text-sm font-bold text-slate-600 mt-1.5">
-                                        {qty === 1
-                                          ? `Total ${unitPrice.toFixed(2)} at checkout`
-                                          : `${qty} × ${unitPrice.toFixed(2)} at checkout`}
+                                        {savingsLabelForQty(qty)}
                                       </p>
                                   </div>
                               </div>
@@ -560,7 +1200,9 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                   <span className="font-bold text-brand-orange block text-xl">
                                     ${(unitPrice * qty).toFixed(2)}
                                   </span>
-                                  <span className="text-xs text-slate-500 font-bold">${unitPrice.toFixed(2)} /item</span>
+                                  <span className="text-xs text-slate-500 font-bold">
+                                    ${unitPrice.toFixed(2)} /{quantityUsesPairs ? 'pair' : 'item'}
+                                  </span>
                                   {qty === 1 && compareAtEach != null && compareAtEach > unitPrice && (
                                     <span className="text-xs text-slate-400 line-through font-bold block">
                                       ${compareAtEach.toFixed(2)} MSRP
@@ -679,7 +1321,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 </Button>
 
                 {/* Payment methods under buy button - link opens popup */}
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex flex-col items-center gap-3">
                     <button
                         type="button"
                         onClick={() => setPaymentMethodsOpen(true)}
@@ -688,6 +1330,12 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                         <Lock className="w-4 h-4 shrink-0" aria-hidden />
                         <span>Pay securely with these payment methods</span>
                     </button>
+                    <p
+                        className="w-fit text-center border border-brand-orange bg-white px-3 py-2.5 sm:px-3.5 sm:py-3 text-sm sm:text-base font-black uppercase tracking-wide text-brand-orange"
+                        role="status"
+                    >
+                        Not sold on Amazon/eBay
+                    </p>
                 </div>
 
                 {/* Payment methods popup */}
@@ -819,6 +1467,84 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                         </div>
                     </div>
 
+                    {productDetailBelowTestimonials != null && (
+                      <div className="mt-8 border-t border-slate-200 pt-8">
+                        {productDetailBelowTestimonials}
+                      </div>
+                    )}
+
+                    {isGripSocksProduct && (
+                      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">
+                          Stay Grounded. Move With Confidence.
+                        </h3>
+                        <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                          Whether you’re training hard, flowing through yoga, or pushing through your daily routine,
+                          slipping socks can throw off your balance and focus. Our Grip Socks are designed to stay
+                          secure through every movement, helping you feel stable, supported, and comfortable from start
+                          to finish.
+                        </p>
+
+                        <h4 className="mt-6 text-sm font-black text-slate-900 uppercase tracking-tight">
+                          Designed for Comfort. Engineered for Performance.
+                        </h4>
+                        <ul className="mt-3 space-y-2 text-sm text-slate-600 leading-relaxed">
+                          <li className="flex gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-orange shrink-0" aria-hidden />
+                            <span>
+                              Dual-grip traction technology helps reduce slipping inside your shoes while keeping your
+                              footing secure on smooth surfaces
+                            </span>
+                          </li>
+                          <li className="flex gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-orange shrink-0" aria-hidden />
+                            <span>
+                              Soft breathable fabric blend delivers lightweight comfort and helps keep your feet cool
+                              and dry during intense sessions
+                            </span>
+                          </li>
+                          <li className="flex gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-orange shrink-0" aria-hidden />
+                            <span>
+                              Supportive compression fit hugs the arch and midfoot for a locked-in feel without
+                              restricting movement
+                            </span>
+                          </li>
+                          <li className="flex gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-orange shrink-0" aria-hidden />
+                            <span>
+                              Smooth seamless toe design minimizes rubbing and irritation for all-day comfort
+                            </span>
+                          </li>
+                          <li className="flex gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-orange shrink-0" aria-hidden />
+                            <span>
+                              Flexible stretch construction adapts naturally to different foot shapes and sizes
+                            </span>
+                          </li>
+                        </ul>
+
+                        <h4 className="mt-6 text-sm font-black text-slate-900 uppercase tracking-tight">
+                          Made to Move Anywhere
+                        </h4>
+                        <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                          From gym workouts to outdoor activities, these grip socks are built to handle movement in
+                          every direction. The anti-slip grip supports quick cuts, jumps, balance work, and long
+                          sessions without constant adjusting.
+                        </p>
+
+                        <h4 className="mt-6 text-sm font-black text-slate-900 uppercase tracking-tight">Ideal For</h4>
+                        {/* moved above quantity selector */}
+
+                        <h4 className="mt-6 text-sm font-black text-slate-900 uppercase tracking-tight">
+                          Once You Try Them, Regular Socks Won’t Feel the Same.
+                        </h4>
+                        <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                          Experience a more secure fit, better comfort, and confidence in every step.
+                        </p>
+                      </div>
+                    )}
+
                     {isHeightBoosterProduct(product) && (
                       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                         <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
@@ -826,6 +1552,10 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                         </p>
                       </div>
                     )}
+
+                    {/* Toe Spacers: no long-form description block */}
+
+                    {isToeSpacersProduct && <ToeSpacersBelowTestimonials />}
 
                     {belowTestimonials}
 

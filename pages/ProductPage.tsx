@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
 import { Product } from '../types';
 import { Button } from '../components/Button';
 import { Star, Check, Truck, RotateCcw, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Ruler, Users, Timer, ShieldCheck, Flame, CreditCard, Smile, Headphones, Tag, Box, CircleDollarSign, BadgeCheck, ShoppingBag, MapPin, Play, X, Lock, Volume2, VolumeX } from 'lucide-react';
@@ -17,6 +17,18 @@ import { productVideos } from '../utils/mediaUrls';
 import { isMassageRollerProduct } from '../utils/productDetection';
 import { DEFAULT_SIZES, DEFAULT_COLORS } from '../utils/productOptions';
 import { isBundleKitProductByProduct } from '../utils/bundleKits';
+import { getShopifyHandle } from '../utils/productMapping';
+import { ProductStickyAddToCart } from '../components/ProductStickyAddToCart';
+import {
+  SHIPPING_REGION_LABELS,
+  SHIPPING_DAY_RANGES,
+  SHIPPING_REGION_ORDER,
+  readShippingRegionOverride,
+  writeShippingRegionOverride,
+  getEffectiveShippingRegion,
+  isShippingRegionId,
+  type ShippingRegionId
+} from '../utils/shippingEstimates';
 
 interface ProductPageProps {
   product: Product;
@@ -82,6 +94,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const isBundleKitPdp = isBundleKitProductByProduct(product);
   const meta = useProductMetafields(product);
   const [shopifyProduct, setShopifyProduct] = useState<any>(null);
+  /** Massage Insoles Shopify product — drives Size/Color options on bundle kit PDPs. */
+  const [insolesShopifyProduct, setInsolesShopifyProduct] = useState<any>(null);
   const [variants, setVariants] = useState<any[]>([]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('Orange');
@@ -99,15 +113,29 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const expandedVideoRef = useRef<HTMLVideoElement | null>(null);
   const [builtForIndex, setBuiltForIndex] = useState(0);
   const builtForScrollRef = useRef<HTMLDivElement>(null);
+  const [shippingRegionOverride, setShippingRegionOverride] = useState<ShippingRegionId | null>(() =>
+    typeof window !== 'undefined' ? readShippingRegionOverride() : null
+  );
+  const effectiveShippingRegion = getEffectiveShippingRegion(shippingRegionOverride);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
+  const mainPurchaseRef = useRef<HTMLDivElement>(null);
+  const [stickyPurchaseBar, setStickyPurchaseBar] = useState(false);
 
   useEffect(() => {
-    if (!isBundleKitProductByProduct(initialProduct)) return;
-    setSelectedSize('Standard');
-    setSelectedColor('One Size');
-    setBundle(1);
+    if (!isBundleKitProductByProduct(initialProduct)) {
+      setInsolesShopifyProduct(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const fetched = await fetchProductByHandle(getShopifyHandle('massage-insoles'));
+      if (!cancelled && fetched) setInsolesShopifyProduct(fetched);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [initialProduct.handle]);
 
   useEffect(() => {
@@ -161,9 +189,34 @@ export const ProductPage: React.FC<ProductPageProps> = ({
     fetchShopifyData();
   }, [initialProduct.id, initialProduct.handle]);
 
-  // Derived options from Shopify Variants or Fallback
-  const availableSizes = shopifyProduct?.options?.find((o: any) => o.name === 'Size')?.values.map((v: any) => ({ label: v.value, detail: v.value })) || DEFAULT_SIZES;
-  const availableColors = shopifyProduct?.options?.find((o: any) => o.name === 'Color')?.values.map((v: any) => ({ name: v.value, value: v.value, label: v.value })) || DEFAULT_COLORS;
+  // Derived options from Shopify (bundle kits use Massage Insoles options) or fallback
+  const optionSourceProduct = isBundleKitPdp ? insolesShopifyProduct : shopifyProduct;
+  const availableSizes =
+    optionSourceProduct?.options?.find((o: any) => o.name === 'Size')?.values.map((v: any) => ({
+      label: v.value ?? v,
+      detail: v.value ?? v
+    })) || DEFAULT_SIZES;
+  const availableColors =
+    optionSourceProduct?.options?.find((o: any) => o.name === 'Color')?.values.map((v: any) => {
+      const val = v.value ?? v;
+      return { name: val, value: val, label: val };
+    }) || DEFAULT_COLORS;
+
+  useEffect(() => {
+    const labels = availableSizes.map((s: any) => s.label);
+    if (labels.length === 0) return;
+    if (selectedSize && !labels.includes(selectedSize)) {
+      setSelectedSize(null);
+    }
+  }, [selectedSize, optionSourceProduct]);
+
+  useEffect(() => {
+    const names = availableColors.map((c: any) => c.name || c);
+    if (names.length === 0) return;
+    if (!names.includes(selectedColor)) {
+      setSelectedColor(names[0]);
+    }
+  }, [selectedColor, optionSourceProduct]);
 
   // Scroll to section when opening product page with hash (#engineered-for-everyone or #best-for)
   useEffect(() => {
@@ -248,7 +301,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
 
   // Bundles for dropshipping vibe
   const [bundle, setBundle] = useState(1); // 1 = 1 pair, 2 = 2 pairs, 3 = 3 pairs
-  
+
+  useEffect(() => {
+    if (!isBundleKitProductByProduct(initialProduct)) return;
+    setBundle(1);
+  }, [initialProduct.handle]);
+
   const formatPrice = (amount: number) => amount.toFixed(2);
 
   const resolvedVariant = useMemo(
@@ -273,8 +331,13 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const savingsEach = compareAtEach != null ? compareAtEach - unitPrice : 0;
   const savingsPercent =
     compareAtEach != null && compareAtEach > 0
-      ? Math.round((savingsEach / compareAtEach) * 100)
+      ? Math.round((Math.max(0, savingsEach) / compareAtEach) * 100)
       : 0;
+  const savingsLabelForQty = (qty: number) => {
+    const saved = Math.max(0, savingsEach) * qty;
+    if (saved <= 0) return `You save $${formatPrice(0)}`;
+    return `You save $${formatPrice(saved)}`;
+  };
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
 
   useEffect(() => {
@@ -290,13 +353,29 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const currentTestimonial = TESTIMONIALS[activeTestimonial];
   
   const handleAddToCartWrapper = () => {
-    if (isBundleKitPdp) {
-      onAddToCart(product, 'Standard', 'One Size', 1);
+    if (!selectedSize) return;
+    const qty = bundle;
+    onAddToCart(product, selectedSize, selectedColor, qty);
+  };
+
+  const scrollToSizeSection = useCallback(() => {
+    const el = document.getElementById('product-size-section');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.setTimeout(() => {
+      const sizeBtn = el?.querySelector<HTMLButtonElement>(
+        'div.grid button.h-11'
+      );
+      sizeBtn?.focus({ preventScroll: true });
+    }, 450);
+  }, []);
+
+  const handleStickyBarCta = () => {
+    if (isLoading) return;
+    if (!selectedSize) {
+      scrollToSizeSection();
       return;
     }
-    if (selectedSize) {
-      onAddToCart(product, selectedSize, selectedColor, bundle);
-    }
+    handleAddToCartWrapper();
   };
 
   // Guard against undefined product name during loading
@@ -314,13 +393,36 @@ export const ProductPage: React.FC<ProductPageProps> = ({
       nameLower.includes('massage insole') ||
       (nameLower.includes('insole') && !nameLower.includes('roller')));
 
+  useLayoutEffect(() => {
+    if (!isMainProductType) {
+      setStickyPurchaseBar(false);
+      return;
+    }
+    const el = mainPurchaseRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const pastMainCta =
+          !entry.isIntersecting && entry.boundingClientRect.bottom < 0;
+        setStickyPurchaseBar(pastMainCta);
+      },
+      { threshold: [0, 0.01, 0.5, 1], root: null, rootMargin: '0px' }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [isMainProductType, product.id, initialProduct.id]);
+
   if (!isMainProductType) {
     return (
-      <div className="min-h-screen bg-slate-50 pt-28 pb-24">
-        <div className="container mx-auto px-4 md:px-6">
-          <button onClick={onBack} className="mb-8 flex items-center text-sm font-medium text-slate-500 hover:text-brand-orange transition-colors">
-            <ChevronLeft className="w-4 h-4 mr-1" /> Back to Results
-          </button>
+      <div
+        className="min-h-screen bg-slate-50 pb-24"
+        style={{ paddingTop: 'var(--navbar-height, 72px)' }}
+      >
+        <div className="container mx-auto px-4 md:px-6 pt-6 md:pt-10">
           <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm max-w-5xl mx-auto flex flex-col md:flex-row gap-8 md:gap-16">
             <div className="md:w-1/2">
               <div className="aspect-square bg-slate-50 rounded-2xl border border-slate-100 p-8 flex items-center justify-center">
@@ -349,39 +451,27 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 animate-in fade-in duration-500 pb-24 md:pb-0">
+    <div
+      className="min-h-screen bg-slate-50 animate-in fade-in duration-500 pb-24 md:pb-0"
+      style={{ paddingTop: 'var(--navbar-height, 72px)' }}
+    >
       
       {/* Sticky Promo Bar */}
-      <div className="bg-brand-dark text-white text-center py-2 text-xs font-bold uppercase tracking-widest sticky top-[64px] z-30">
+      <div
+        className="bg-brand-dark text-white text-center py-2 text-xs font-bold uppercase tracking-widest sticky z-30"
+        style={{ top: 'var(--navbar-height, 72px)' }}
+      >
         <span className="animate-pulse text-brand-lime mr-2">●</span> High Demand: {viewers} Sold in the last hour
       </div>
 
-      {/* Breadcrumb / Back Navigation */}
-      <div className="pt-20 md:pt-28 pb-4 px-4 md:px-6 container mx-auto flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button 
-          onClick={onBack}
-          className="group flex items-center text-sm font-medium text-slate-500 hover:text-brand-orange transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
-          {backLabel || 'Back to Results'}
-        </button>
-        <a
-          href="#best-for"
-          onClick={(e) => {
-            e.preventDefault();
-            document.getElementById('best-for')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }}
-          className="text-sm font-medium text-slate-500 hover:text-brand-orange transition-colors"
-        >
-          Jump to: Best for (Running, Walking, Training)
-        </a>
-      </div>
-
-      <div className="container mx-auto px-4 md:px-6 lg:flex lg:gap-12 xl:gap-16 mb-24">
+      <div className="container mx-auto px-4 md:px-6 pt-6 md:pt-10 lg:flex lg:gap-12 xl:gap-16 mb-24">
         
         {/* Left Col: Image Gallery - Sticky on Desktop */}
         <div className="lg:w-3/5">
-             <div className="lg:sticky lg:top-40 space-y-4 md:max-w-[550px] lg:max-w-none mx-auto">
+             <div
+               className="lg:sticky space-y-4 md:max-w-[550px] lg:max-w-none mx-auto"
+               style={{ top: 'calc(var(--navbar-height, 72px) + 32px)' }}
+             >
 
 
                 {/* --- MOBILE: Carousel View --- */}
@@ -515,17 +605,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
 
                 {/* Description / kit contents */}
                 {isBundleKitPdp && bundleItems && bundleItems.length > 0 ? (
-                  <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <h2 className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                      What&apos;s inside
-                    </h2>
-                    <ul className="space-y-2">
+                  <div className="mb-6">
+                    <ul className="text-slate-600 leading-relaxed space-y-2">
                       {bundleItems.map((item, i) => (
-                        <li key={i} className="flex items-center gap-3">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-lime/35 text-brand-dark">
-                            <Check className="h-3.5 w-3.5" />
-                          </span>
-                          <span className="text-sm font-semibold text-slate-700">{item}</span>
+                        <li key={i} className="flex items-start gap-2">
+                          <Check className="mt-1 h-4 w-4 flex-shrink-0 text-brand-dark" />
+                          <span>{item}</span>
                         </li>
                       ))}
                     </ul>
@@ -571,110 +656,139 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                   </ul>
                   )
                 )}
-                {/* Insole pair quantity tiers — not applicable to fixed-price bundle kits */}
-                {!isBundleKitPdp && (
+                {/* Quantity tiers (insoles = pairs, kits = kits) */}
                 <div className="space-y-3 mb-6">
-                    <p className="text-xs font-bold text-slate-900 uppercase tracking-widest">Select Quantity</p>
-                    
-                    {/* Bundle 1 */}
-                    <div 
-                        onClick={() => setBundle(1)}
-                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === 1 ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
-                    >
-                        <div className="flex justify-between items-center w-full">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${bundle === 1 ? 'border-brand-orange' : 'border-slate-300'}`}>
-                                    {bundle === 1 && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
-                                </div>
-                                <div className="flex flex-col">
-                                    <div className="flex items-center">
-                                        <span className="text-xl font-black text-slate-900 leading-none">1 Pair</span>
-                                    </div>
-                                    <p className="text-sm font-bold text-slate-600 mt-1.5">
-                                        Per pair · total ${formatPrice(unitPrice)}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice)}</span>
-                                <span className="text-xs text-slate-500 font-bold">/pair</span>
-                                {compareAtEach != null && compareAtEach > unitPrice && (
-                                  <span className="text-xs text-slate-400 line-through font-bold block">
-                                    ${formatPrice(compareAtEach)} MSRP
-                                  </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                  <p className="text-xs font-bold text-slate-900 uppercase tracking-widest">Select Quantity</p>
 
-                    {/* Bundle 2 */}
-                    <div 
-                        onClick={() => setBundle(2)}
-                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === 2 ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
-                    >
-                         <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(-3deg)' }}>
-                            <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
-                                <span className="text-base leading-none" aria-hidden>🔥</span>
-                                <span className="text-[11px] font-bold text-white">Most Popular</span>
-                            </div>
-                         </div>
-                        <div className="flex justify-between items-center w-full">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${bundle === 2 ? 'border-brand-orange' : 'border-slate-300'}`}>
-                                    {bundle === 2 && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
-                                </div>
-                                <div className="flex flex-col">
-                                    <div className="flex items-center">
-                                        <span className="text-xl font-black text-slate-900 leading-none">2 Pairs</span>
-                                    </div>
-                                    <p className="text-sm font-bold text-slate-600 mt-1.5">
-                                        2 × ${formatPrice(unitPrice)} at checkout
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 2)}</span>
-                                <span className="text-xs text-slate-500 font-bold">${formatPrice(unitPrice)} /pair</span>
-                            </div>
+                  {/* Option 1 */}
+                  <div
+                    onClick={() => setBundle(1)}
+                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === 1 ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
+                  >
+                    <div className="flex justify-between items-center w-full">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${bundle === 1 ? 'border-brand-orange' : 'border-slate-300'}`}>
+                          {bundle === 1 && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
                         </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center">
+                            <span className="text-xl font-black text-slate-900 leading-none">
+                              {isBundleKitPdp ? '1 Kit' : '1 Pair'}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-slate-600 mt-1.5">{savingsLabelForQty(1)}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 1)}</span>
+                        <span className="text-xs text-slate-500 font-bold">{isBundleKitPdp ? '/kit' : '/pair'}</span>
+                        {compareAtEach != null && compareAtEach > unitPrice && bundle === 1 && (
+                          <span className="text-xs text-slate-400 line-through font-bold block">
+                            ${formatPrice(compareAtEach)} MSRP
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  </div>
 
-                    {/* Bundle 3 */}
-                    <div 
-                        onClick={() => setBundle(3)}
-                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === 3 ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
-                    >
-                         <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(3deg)' }}>
-                            <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
-                                <BadgeCheck className="h-4 w-4 shrink-0 text-brand-lime" />
-                                <span className="text-[11px] font-bold text-white">Best Value</span>
-                            </div>
-                         </div>
-                        <div className="flex justify-between items-center w-full">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${bundle === 3 ? 'border-brand-orange' : 'border-slate-300'}`}>
-                                    {bundle === 3 && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
-                                </div>
-                                <div className="flex flex-col">
-                                    <div className="flex items-center">
-                                        <span className="text-xl font-black text-slate-900 leading-none">3 Pairs</span>
-                                    </div>
-                                    <p className="text-sm font-bold text-slate-600 mt-1.5">
-                                        3 × ${formatPrice(unitPrice)} at checkout
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 3)}</span>
-                                <span className="text-xs text-slate-500 font-bold">${formatPrice(unitPrice)} /pair</span>
-                            </div>
-                        </div>
+                  {/* Option 2 */}
+                  <div
+                    onClick={() => setBundle(2)}
+                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === 2 ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
+                  >
+                    <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(-3deg)' }}>
+                      <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
+                        <span className="text-base leading-none" aria-hidden>🔥</span>
+                        <span className="text-[11px] font-bold text-white">Most Popular</span>
+                      </div>
                     </div>
+                    <div className="flex justify-between items-center w-full">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${bundle === 2 ? 'border-brand-orange' : 'border-slate-300'}`}>
+                          {bundle === 2 && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center">
+                            <span className="text-xl font-black text-slate-900 leading-none">
+                              {isBundleKitPdp ? '2 Kits' : '2 Pairs'}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-slate-600 mt-1.5">{savingsLabelForQty(2)}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 2)}</span>
+                        <span className="text-xs text-slate-500 font-bold">
+                          ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Option 3 */}
+                  <div
+                    onClick={() => setBundle(3)}
+                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === 3 ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
+                  >
+                    <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(3deg)' }}>
+                      <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
+                        <BadgeCheck className="h-4 w-4 shrink-0 text-brand-lime" />
+                        <span className="text-[11px] font-bold text-white">Best Value</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center w-full">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${bundle === 3 ? 'border-brand-orange' : 'border-slate-300'}`}>
+                          {bundle === 3 && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center">
+                            <span className="text-xl font-black text-slate-900 leading-none">
+                              {isBundleKitPdp ? '3 Kits' : '3 Pairs'}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-slate-600 mt-1.5">{savingsLabelForQty(3)}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 3)}</span>
+                        <span className="text-xs text-slate-500 font-bold">
+                          ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Option 5 */}
+                  <div
+                    onClick={() => setBundle(5)}
+                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === 5 ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
+                  >
+                    <div className="flex justify-between items-center w-full">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${bundle === 5 ? 'border-brand-orange' : 'border-slate-300'}`}>
+                          {bundle === 5 && <div className="w-2.5 h-2.5 rounded-full bg-brand-orange" />}
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center">
+                            <span className="text-xl font-black text-slate-900 leading-none">
+                              {isBundleKitPdp ? '5 Kits' : '5 Pairs'}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-slate-600 mt-1.5">{savingsLabelForQty(5)}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 5)}</span>
+                        <span className="text-xs text-slate-500 font-bold">
+                          ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                )}
 
                 {/* Color Selector */}
-                {!isBundleKitPdp && (
                 <div className="mb-6">
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-xs font-bold text-slate-900 uppercase tracking-widest">Select Color: <span className="text-brand-orange">{selectedColor}</span></span>
@@ -699,11 +813,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         ))}
                     </div>
                 </div>
-                )}
 
                 {/* Size Selector */}
-                {!isBundleKitPdp && (
-                <div className="mb-6">
+                <div
+                  id="product-size-section"
+                  className="mb-6 scroll-mt-28 md:scroll-mt-32"
+                >
                     <div className="flex justify-between items-center mb-3">
                         <span className="text-xs font-bold text-slate-900 uppercase tracking-widest">Select Size</span>
                         <button 
@@ -734,7 +849,6 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                       </div>
                    )}
                 </div>
-                )}
 
                 {/* Offer Ends Soon Section */}
                 {!isBundleKitPdp && (
@@ -825,28 +939,30 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     </div>
                 )}
 
-                {/* Main Action - Add to Cart */}
-                <Button
+                {/* Main Action - Add to Cart (scroll sentinel for sticky bar) */}
+                <div ref={mainPurchaseRef} className="w-full">
+                  <Button
                     fullWidth
                     size="lg"
                     className={`h-16 text-xl shadow-xl relative overflow-hidden group bg-black text-white hover:bg-[#C1F11D] hover:text-white transition-all duration-300 ${isLoading ? 'opacity-90 cursor-wait' : ''}`}
                     onClick={() => handleAddToCartWrapper()}
-                    disabled={(!selectedSize && !isBundleKitPdp) || isLoading}
-                >
-                   <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
-                       {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
-                       {isLoading
-                         ? 'PROCESSING...'
-                         : selectedSize || isBundleKitPdp
-                           ? (meta.primary_cta_text || 'ADD TO CART')
-                           : (meta.secondary_cta_text || 'SELECT SIZE')}
-                   </span>
-                       {/* Shine effect */}
-                       {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
-                    </Button>
+                    disabled={!selectedSize || isLoading}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
+                      {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
+                      {isLoading
+                        ? 'PROCESSING...'
+                        : selectedSize
+                          ? (meta.primary_cta_text || 'ADD TO CART')
+                          : (meta.secondary_cta_text || 'SELECT SIZE')}
+                    </span>
+                    {/* Shine effect */}
+                    {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
+                  </Button>
+                </div>
 
                 {/* Payment methods under buy button - link opens popup */}
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex flex-col items-center gap-3">
                     <button
                         type="button"
                         onClick={() => setPaymentMethodsOpen(true)}
@@ -855,6 +971,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         <Lock className="w-4 h-4 shrink-0" aria-hidden />
                         <span>Pay securely with these payment methods</span>
                     </button>
+                    <p
+                        className="w-fit text-center border border-brand-orange bg-white px-3 py-2.5 sm:px-3.5 sm:py-3 text-sm sm:text-base font-black uppercase tracking-wide text-brand-orange"
+                        role="status"
+                    >
+                        Not sold on Amazon/eBay
+                    </p>
                 </div>
 
                 {/* Payment methods popup */}
@@ -909,13 +1031,47 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     {(() => {
                         const now = new Date();
                         const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                        const ordered = new Date(now); ordered.setDate(ordered.getDate() - 10);
-                        const shippedStart = new Date(now); shippedStart.setDate(shippedStart.getDate() - 6);
-                        const shippedEnd = new Date(now); shippedEnd.setDate(shippedEnd.getDate() - 4);
-                        const deliveredStart = new Date(now); deliveredStart.setDate(deliveredStart.getDate() - 1);
-                        const deliveredEnd = new Date(now); deliveredEnd.setDate(deliveredEnd.getDate() + 6);
+                        const addDays = (base: Date, days: number) => {
+                            const d = new Date(base);
+                            d.setDate(d.getDate() + days);
+                            return d;
+                        };
+                        const ranges = SHIPPING_DAY_RANGES[effectiveShippingRegion];
+                        const ordered = now;
+                        const shippedStart = addDays(now, ranges.shipped[0]);
+                        const shippedEnd = addDays(now, ranges.shipped[1]);
+                        const deliveredStart = addDays(now, ranges.delivered[0]);
+                        const deliveredEnd = addDays(now, ranges.delivered[1]);
                         return (
                     <div className="mt-10 pt-8 border-t border-slate-200">
+                        <div className="max-w-2xl mx-auto mb-4 flex flex-wrap items-center justify-center gap-2">
+                            <label htmlFor="shipping-region-estimate" className="text-xs text-slate-600 font-medium">
+                                Shipping to
+                            </label>
+                            <select
+                                id="shipping-region-estimate"
+                                aria-label="Region for shipping estimates"
+                                value={shippingRegionOverride ?? ''}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    if (v === '') {
+                                        writeShippingRegionOverride(null);
+                                        setShippingRegionOverride(null);
+                                    } else if (isShippingRegionId(v)) {
+                                        writeShippingRegionOverride(v);
+                                        setShippingRegionOverride(v);
+                                    }
+                                }}
+                                className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-medium text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 max-w-[min(100%,220px)]"
+                            >
+                                <option value="">Auto-detect</option>
+                                {SHIPPING_REGION_ORDER.map((id) => (
+                                    <option key={id} value={id}>
+                                        {SHIPPING_REGION_LABELS[id]}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                         <div className="flex items-start justify-between gap-4 max-w-2xl mx-auto mb-8">
                             <div className="flex flex-col items-center flex-1">
                                 <div className="w-12 h-12 rounded-full bg-brand-dark flex items-center justify-center text-white shadow-md">
@@ -1330,7 +1486,32 @@ export const ProductPage: React.FC<ProductPageProps> = ({
       {meta.show_tech_specs && (
         <ProductTechSpecs currentProductId={product.id} onProductSelect={onProductSelect} onNavigateToBlog={onNavigateToBlog} />
       )}
-      
+
+      <ProductStickyAddToCart
+        visible={stickyPurchaseBar}
+        imageSrc={images[activeImgIndex] || images[0] || fallbackGalleryImage}
+        imageAlt={productName || 'Product'}
+        productName={productName || 'Product'}
+        lineTotal={unitPrice * bundle}
+        variantSummary={
+          selectedSize
+            ? isBundleKitPdp
+              ? `${selectedSize} · ${selectedColor} · Bundle kit`
+              : `${selectedSize} · ${selectedColor} · ${bundle} ${bundle === 1 ? 'pair' : 'pairs'}`
+            : 'Select size and options above'
+        }
+        ctaLabel={
+          selectedSize ? meta.primary_cta_text || 'Add to cart' : meta.secondary_cta_text || 'Select size'
+        }
+        ctaAriaLabel={
+          !selectedSize
+            ? 'Choose your size — go to size options on this page'
+            : `${meta.primary_cta_text || 'Add to cart'} — ${productName || 'product'}`
+        }
+        isLoading={isLoading}
+        disabled={!selectedSize}
+        onCtaClick={handleStickyBarCta}
+      />
     </div>
   );
 };

@@ -19,10 +19,11 @@ const SECONDARY_NAME_KEYWORDS = [
   // Multi-word phrases
   'massage roller', 'massage-roller', 'compression sock', 'compression socks', 'recovery gel',
   'massage ball', 'foot cream', 'heel cushion', 'heel pad', 'fascilites relief', 'plantar fasciitis',
+  'toe spacer', 'toe spacers', 'toe-spacer', 'toe-spacers',
   // Single-word indicators
   'massage', 'compression', 'recovery', 'roller', 'ball', 'gel', 'cream', 'sock', 'socks', 'pad', 'cushion',
   // Specific product IDs (hyphenated)
-  'massage-insoles', 'heel-cushion-pad', 'fascilites-relief'
+  'massage-insoles', 'heel-cushion-pad', 'fascilites-relief', 'toe-spacers'
 ];
 
 // Primary product keywords (fallback — full insole / orthotic products only).

@@ -28,6 +28,22 @@ export const HEIGHT_BOOSTERS_PDP_COPY = {
   ]
 } as const;
 
+/** Three bullets above quantity on SecondaryProductPage. */
+export const HEIGHT_BOOSTER_QUICK_USES: readonly { title: string; body: string }[] = [
+  {
+    title: 'Work & first impressions',
+    body: 'Add a subtle lift for interviews, client meetings, and presentations — stand straighter and feel less “looked past” in the room.'
+  },
+  {
+    title: 'Nights out & photos',
+    body: 'Natural-looking height inside your own shoes for dates, weddings, and group shots — no obvious platform or bulky external lift.'
+  },
+  {
+    title: 'Daily comfort, not a gimmick',
+    body: 'Cushioned support zones and breathable materials so you can wear them from your commute through a full day on your feet.'
+  }
+];
+
 /** Rotating testimonial cards on SecondaryProductPage (unless overridden by props). */
 export const HEIGHT_BOOSTER_TESTIMONIALS = [
   {

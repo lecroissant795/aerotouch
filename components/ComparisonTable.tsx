@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, X, ArrowRight } from 'lucide-react';
 
 const comparisonData = [
   {
@@ -65,7 +65,31 @@ export const ComparisonTable: React.FC<{ onShopNow: () => void }> = ({ onShopNow
 
           {/* Bottom Section: Table Card Full Width */}
           <div className="w-full bg-white rounded-[2rem] shadow-2xl shadow-slate-900/5 overflow-hidden border border-slate-100">
-            <div className="overflow-x-auto">
+            {/* Mobile hint: show scroll affordance */}
+            <div className="px-5 pt-5 md:hidden">
+              <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <span className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-600">
+                  Swipe to compare
+                </span>
+                <span className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-brand-orange">
+                  <span>Scroll</span>
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              </div>
+            </div>
+
+            <div className="relative">
+              {/* Subtle edge fades (mobile only) to suggest horizontal scroll */}
+              <div
+                className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-white to-transparent md:hidden"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent md:hidden"
+                aria-hidden
+              />
+
+              <div className="comparison-scroll overflow-x-auto scroll-smooth md:scrollbar-hide">
               <table className="w-full min-w-[900px] border-collapse">
                 <thead>
                   <tr className="bg-white">
@@ -152,6 +176,12 @@ export const ComparisonTable: React.FC<{ onShopNow: () => void }> = ({ onShopNow
                   </tr>
                 </tbody>
               </table>
+            </div>
+            </div>
+
+            {/* Visible scrollbar affordance (mobile only) */}
+            <div className="md:hidden px-5 pb-5 pt-3">
+              <div className="h-2 w-full rounded-full bg-slate-100" />
             </div>
           </div>
 

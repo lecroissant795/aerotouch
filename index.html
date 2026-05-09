@@ -68,6 +68,27 @@
       display: none;
     }
 
+    /* Mobile-friendly visible horizontal scrollbar (comparison table) */
+    .comparison-scroll {
+      -webkit-overflow-scrolling: touch;
+      scrollbar-gutter: stable;
+    }
+
+    @media (max-width: 767px) {
+      .comparison-scroll::-webkit-scrollbar {
+        height: 10px;
+      }
+      .comparison-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9; /* slate-100 */
+        border-radius: 9999px;
+        margin: 16px 20px; /* align with px-5 container */
+      }
+      .comparison-scroll::-webkit-scrollbar-thumb {
+        background: #0f172a; /* brand dark-ish */
+        border-radius: 9999px;
+      }
+    }
+
     .fade-in-up {
       animation: fadeInUp 0.8s ease-out forwards;
       opacity: 0;

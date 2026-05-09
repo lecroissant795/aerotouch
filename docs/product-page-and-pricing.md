@@ -136,10 +136,10 @@ These are **hardcoded** when adding the “Complete Recovery Kit” from the pro
 
 | Kit ID                  | Name                      | Price | Original price | Contents (summary)                          |
 |-------------------------|---------------------------|-------|----------------|----------------------------------------------|
-| `fascilites-relief`     | Fascilites Relief Kit     | $48.00| $75.00         | 1× Pro Insole, 1× Massage Ball, 1× compression sock |
-| `heel-relief`           | Heel Relief Kit           | $39.00| $60.00         | 1× Heel Cushion, 1× Daily Insole, 1× Arch Support |
-| `toe-relief`            | Toe Relief Kit            | $39.00| $60.00         | 1× Toe Spreader, 1× Sport Insole, 1× Fabric sleeve |
-| `complete-recovery-kit` | The Complete Recovery Kit | $97.00| $150.00        | 2× AeroTouch Massage Insoles, 2× Compression Socks, 1× Massage Roller |
+| `fascilites-relief`     | Fascilites Relief Kit     | $48.00| $75.00         | 1× AeroTouch Massage Insoles, 1× Massage Roller |
+| `heel-relief`           | Heel Relief Kit           | $39.00| $60.00         | 1× AeroTouch Massage Insoles, 2× Heel Cushions |
+| `toe-relief`            | Toe Relief Kit            | $39.00| $60.00         | 1× AeroTouch Massage Insoles, 2× Toe Cushion Pads |
+| `complete-recovery-kit` | The Complete Recovery Kit | $97.00| $150.00        | 3× AeroTouch Massage Insoles, 1× Massage Roller, 2× Heel Cushions, 2× Toe Cushion Pads |
 
 - **Kit product page:** `KitProductPage` uses `kit.price` and `kit.originalPrice`; savings % = `(1 - kit.price / kit.originalPrice) * 100`; line total = `kit.price * quantity`.
 - **Add to cart:** App’s `handleAddKitToCart(kit, quantity)` maps the kit to a single “product” and calls `onAddToCart` with that product, `'Standard'`, `'One Size'`, and the chosen quantity (no size/color selector for kits in this flow).
@@ -163,7 +163,7 @@ These are **hardcoded** when adding the “Complete Recovery Kit” from the pro
 - **Kit:** Fascilites Relief Kit  
 - **Price:** $48  
 - **Original price:** $75  
-- **Blurb:** “Pro insole + massage ball + compression sock. Save more when you bundle.”
+- **Blurb:** “Massage Insoles + Massage Roller. Save more when you bundle.”
 
 ---
 

@@ -57,7 +57,7 @@ const MAKE_IT_A_KIT_OFFER = {
   price: primaryBundleKit.price,
   originalPrice: primaryBundleKit.originalPrice,
   image: primaryBundleKit.image,
-  blurb: 'Pro insole + massage ball + compression sock. Save more when you bundle.'
+  blurb: 'Massage Insoles + Massage Roller. Save more when you bundle.'
 };
 
 const MAKE_IT_A_KIT_EXCLUDED_HANDLES = new Set<string>([

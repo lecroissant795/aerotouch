@@ -27,7 +27,11 @@ import { OrderStatusPage } from './pages/OrderStatusPage';
 import { ReturnsExchangePage } from './pages/ReturnsExchangePage';
 import { SizeGuidePage } from './pages/SizeGuidePage';
 import { BundleKitsPage } from './pages/BundleKitsPage';
-import { bundleKitToGridProduct } from './utils/bundleKits';
+import {
+  bundleKitToGridProduct,
+  bundleKitInsoleLineAttributes,
+  isBundleKitProductByHandle
+} from './utils/bundleKits';
 import { AccessoriesPage } from './pages/AccessoriesPage';
 import { WarrantyPage } from './pages/WarrantyPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
@@ -48,6 +52,7 @@ import {
 } from './utils/productMapping';
 import { useShopifyBundleKits } from './hooks/useShopifyBundleKits';
 import { resolveMassageInsoleUpsell } from './utils/checkoutUpsell';
+import { DEFAULT_COLORS, DEFAULT_SIZES } from './utils/productOptions';
 import { extractDiscountCodesFromCheckout } from './utils/checkoutPromo';
 import { sumCartFinalSubtotals } from './utils/cartLineDisplay';
 
@@ -72,6 +77,23 @@ function findCheckoutVariant(shopifyProduct: any, size: string, color: string): 
 
   if (match) return match;
   if (variants.length === 1) return variants[0];
+  return undefined;
+}
+
+/** Prefer exact Size/Color match; bundle kits may use a single SKU — then line attributes carry insole options. */
+function resolveVariantForAddToCart(shopifyProduct: any, size: string, color: string): any | undefined {
+  const strict = findCheckoutVariant(shopifyProduct, size, color);
+  if (strict) return strict;
+  const handle = shopifyProduct?.handle as string | undefined;
+  if (!isBundleKitProductByHandle(handle)) return undefined;
+  const variants = shopifyProduct?.variants;
+  if (!variants?.length) return undefined;
+  const allLackSizeAndColor = variants.every((v: any) => {
+    const opts = v.selectedOptions || [];
+    const names = new Set(opts.map((o: any) => o.name));
+    return !names.has('Size') && !names.has('Color');
+  });
+  if (allLackSizeAndColor) return variants[0];
   return undefined;
 }
 
@@ -413,13 +435,24 @@ function AppShell() {
         return null;
       }
 
-      const variant = findCheckoutVariant(shopifyProduct, size, color);
+      const variant = resolveVariantForAddToCart(shopifyProduct, size, color);
+      const isBundleKitLine = isBundleKitProductByHandle(shopifyProduct.handle);
+      const variantOpts = variant?.selectedOptions || [];
+      const variantHasSize = variantOpts.some((o: any) => o.name === 'Size');
+      const variantHasColor = variantOpts.some((o: any) => o.name === 'Color');
+      const bundleInsoleAttrs =
+        isBundleKitLine && (!variantHasSize || !variantHasColor)
+          ? bundleKitInsoleLineAttributes(size, color)
+          : undefined;
 
       if (variant) {
-        const lineItemsToAdd = [{
-          variantId: variant.id,
-          quantity: quantity
-        }];
+        const lineItemsToAdd = [
+          {
+            variantId: variant.id,
+            quantity: quantity,
+            ...(bundleInsoleAttrs ? { customAttributes: bundleInsoleAttrs } : {})
+          }
+        ];
 
         const checkout = await shopify.checkout.addLineItems(checkoutId, lineItemsToAdd);
         applyCartCheckout(checkout);
@@ -578,12 +611,29 @@ function AppShell() {
     setCartError("Checkout link not ready yet. Please try again.");
   };
 
-  const handleAddKitToCart = (
+  const handleAddKitToCart = async (
     kit: BundleKit,
-    size: string = 'Standard',
-    color: string = 'One Size',
+    size?: string,
+    color?: string,
     quantity = 1
   ) => {
+    let resolvedSize = size;
+    let resolvedColor = color;
+    if (resolvedSize == null || resolvedColor == null) {
+      const insolesHandle = getShopifyHandle('massage-insoles');
+      const insoles = await fetchProductByHandle(insolesHandle);
+      const sizeVals = insoles?.options?.find((o: any) => o.name === 'Size')?.values || [];
+      const colorVals = insoles?.options?.find((o: any) => o.name === 'Color')?.values || [];
+      resolvedSize =
+        resolvedSize ?? sizeVals[0]?.value ?? sizeVals[0] ?? DEFAULT_SIZES[0]?.label;
+      resolvedColor =
+        resolvedColor ?? colorVals[0]?.value ?? colorVals[0] ?? DEFAULT_COLORS[0]?.name;
+      if (!resolvedSize || !resolvedColor) {
+        setCartError('Could not load insole options. Please open the kit page to choose size and color.');
+        return;
+      }
+    }
+
     const kitAsProduct: Product = {
       id: kit.shopifyProductId,
       handle: kit.handle,
@@ -597,7 +647,7 @@ function AppShell() {
       reviews: 0,
       tagline: 'Bundle Kit'
     };
-    handleAddToCart(kitAsProduct, size, color, quantity);
+    await handleAddToCart(kitAsProduct, resolvedSize, resolvedColor, quantity);
   };
 
   return (
@@ -605,12 +655,8 @@ function AppShell() {
       <Navbar
         cartCount={cartItems.reduce((a,c) => a + c.quantity, 0)}
         onCartClick={() => setIsCartOpen(true)}
-        onNavigate={(page, category) => {
-          if (page === Page.CATEGORY && category) {
-            navigate(page, { category });
-          } else {
-            navigate(page);
-          }
+        onNavigate={(page, params, query) => {
+          navigate(page, params, query);
         }}
         onSearch={(query) => {
           navigate(Page.SEARCH, {}, { q: query });
@@ -682,6 +728,8 @@ function AppShell() {
           <ShopPage
             onProductSelect={handleProductSelect}
             onQuickAddToCart={handleQuickAddToCart}
+            onKitSelect={(kit) => navigate(Page.KIT_PRODUCT, { kitId: kit.id })}
+            onAddKitToCart={handleAddKitToCart}
           />
         )}
 

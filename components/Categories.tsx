@@ -8,11 +8,6 @@ const categories = [
     description: 'Peak comfort'
   },
   {
-    id: 'footwear',
-    name: 'Footwear',
-    description: 'Professional grade'
-  },
-  {
     id: 'tools',
     name: 'Tools',
     description: 'Advanced recovery'
@@ -26,6 +21,12 @@ const categories = [
     id: 'socks',
     name: 'Socks',
     description: 'Everyday support'
+  },
+  {
+    id: 'bundle',
+    name: 'Bundle',
+    routeCategory: 'Bundle Kits',
+    description: 'Limited edition kits'
   }
 ];
 
@@ -74,7 +75,7 @@ export const Categories: React.FC<CategoriesProps> = ({ onCategoryClick }) => {
               <div 
               key={cat.id} 
               className="flex-none w-[70vw] md:w-full group relative aspect-[3/4.41] md:aspect-[4/5.51] overflow-hidden rounded-2xl cursor-pointer snap-start bg-brand-dark border border-white/5 hover:border-brand-lime/30 transition-all duration-500"
-              onClick={() => onCategoryClick?.(cat.name)}
+              onClick={() => onCategoryClick?.(('routeCategory' in cat ? (cat as any).routeCategory : cat.name) as string)}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-brand-dark via-brand-dark/95 to-[#1c2433] group-hover:bg-brand-dark/90 transition-all duration-500" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(193,241,29,0.05),transparent)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />

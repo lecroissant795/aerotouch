@@ -19,7 +19,7 @@ const FALLBACK_SUGGESTIONS = [
 interface NavbarProps {
   cartCount: number;
   onCartClick: () => void;
-  onNavigate: (page: Page, category?: string) => void;
+  onNavigate: (page: Page, params?: Record<string, string>, query?: Record<string, string>) => void;
   onSearch?: (query: string) => void;
   searchQuery?: string;
   transparentMode?: boolean;
@@ -34,6 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
   const [searchInput, setSearchInput] = useState(searchQuery);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
 
   const [allProductNames, setAllProductNames] = useState<{ id: string; name: string }[]>(FALLBACK_SUGGESTIONS);
   const [suggestions, setSuggestions] = useState<{ id: string; name: string }[]>([]);
@@ -104,6 +105,27 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Expose live navbar height as a CSS variable for sticky offsets.
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+
+    const setVar = () => {
+      const h = el.offsetHeight || 0;
+      document.documentElement.style.setProperty('--navbar-height', `${h}px`);
+    };
+
+    setVar();
+    const ro = new ResizeObserver(() => setVar());
+    ro.observe(el);
+    window.addEventListener('resize', setVar);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', setVar);
+    };
+  }, [isScrolled, isMobileMenuOpen, isShopHovered, isSearchOpen, transparentMode, forceWhite]);
+
   const getTextColor = () => {
     if (isMobileMenuOpen) return 'text-brand-dark'; 
     if (isShopHovered) return 'text-brand-dark'; 
@@ -126,8 +148,8 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
   const isTransparentState = !isScrolled && transparentMode && !isShopHovered && !isMobileMenuOpen;
 
   const handleNavClick = (item: string) => {
-    if (item === 'Blog') {
-      onNavigate(Page.BLOG);
+    if (item === 'Massage Insoles') {
+      onNavigate(Page.PRODUCT, { handle: 'massage-insoles' });
       setIsMobileMenuOpen(false);
     } else if (item === 'Support') {
       onNavigate(Page.SUPPORT);
@@ -140,6 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
 
   return (
     <nav 
+      ref={navRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${getBgColor()}`}
       onMouseLeave={() => setIsShopHovered(false)}
     >
@@ -172,9 +195,9 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                 </a>
             </div>
 
-            {['Blog', 'Support', 'Track Your Order'].map((item) => {
+            {['Massage Insoles', 'Support', 'Track Your Order'].map((item) => {
               const getHref = () => {
-                if (item === 'Blog') return createUrl(Page.BLOG);
+                if (item === 'Massage Insoles') return createUrl(Page.PRODUCT, { handle: 'massage-insoles' });
                 if (item === 'Support') return createUrl(Page.SUPPORT);
                 if (item === 'Track Your Order') return createUrl(Page.TRACK_ORDER);
                 return '#';
@@ -302,9 +325,9 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                             } else if (item === 'Accessories & Recovery') {
                               onNavigate(Page.ACCESSORIES);
                             } else if (item === 'Gift Cards') {
-                              onNavigate(Page.CATEGORY, 'Gift Cards');
+                              onNavigate(Page.CATEGORY, { category: 'Gift Cards' });
                             } else {
-                              onNavigate(Page.CATEGORY, item);
+                              onNavigate(Page.CATEGORY, { category: item });
                             }
                             setIsShopHovered(false);
                           };
@@ -335,7 +358,7 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                                 className="text-slate-700 hover:text-brand-orange font-medium text-sm transition-colors block"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  onNavigate(Page.CATEGORY, item);
+                                  onNavigate(Page.CATEGORY, { category: item });
                                   setIsShopHovered(false);
                                 }}
                               >
@@ -358,7 +381,7 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                                   className="text-xs text-slate-500 hover:text-brand-orange transition-colors block"
                                   onClick={(e) => {
                                     e.preventDefault();
-                                    onNavigate(Page.CATEGORY, condition);
+                                    onNavigate(Page.CATEGORY, { category: condition });
                                     setIsShopHovered(false);
                                   }}
                                 >
@@ -425,9 +448,9 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                 )}
               </div>
               <ul className="space-y-0">
-                {['Blog', 'Support', 'Track Your Order'].map((label) => {
+                {['Massage Insoles', 'Support', 'Track Your Order'].map((label) => {
                   const getHref = () => {
-                    if (label === 'Blog') return createUrl(Page.BLOG);
+                    if (label === 'Massage Insoles') return createUrl(Page.PRODUCT, { handle: 'massage-insoles' });
                     if (label === 'Support') return createUrl(Page.SUPPORT);
                     if (label === 'Track Your Order') return createUrl(Page.TRACK_ORDER);
                     return '#';
@@ -474,7 +497,7 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                     if (subItem === 'Accessories & Recovery') {
                       onNavigate(Page.ACCESSORIES);
                     } else {
-                      onNavigate(Page.CATEGORY, subItem);
+                      onNavigate(Page.CATEGORY, { category: subItem });
                     }
                     setIsMobileMenuOpen(false);
                   };

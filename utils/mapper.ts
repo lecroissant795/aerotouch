@@ -1,5 +1,6 @@
 import { Product } from '../types';
 import { getVariantsArray, variantSalePrice, variantCompareAt } from './shopifyVariantMoney';
+import { BUNDLE_KIT_INSOLE_COLOR_ATTR, BUNDLE_KIT_INSOLE_SIZE_ATTR } from './bundleKits';
 
 const generateReviewCount = (id: string | number | undefined = ''): number => {
     // Convert to string if it's not already
@@ -177,6 +178,8 @@ export const mapShopifyLineItem = (lineItem: any): any => {
     const compareAtPrice = cap != null && cap > sale ? cap : undefined;
     const productRef = lineItem.variant?.product;
     const promoDiscount = sumLineItemDiscountAllocations(lineItem);
+    const attrs = lineItem.customAttributes || [];
+    const attrVal = (key: string) => attrs.find((a: any) => a.key === key)?.value;
 
     return {
         id: lineItem.id,
@@ -187,8 +190,14 @@ export const mapShopifyLineItem = (lineItem: any): any => {
         ...(compareAtPrice != null ? { compareAtPrice } : {}),
         ...(promoDiscount > 0 ? { linePromoDiscountTotal: promoDiscount } : {}),
         image: lineItem.variant?.image?.src || '',
-        selectedSize: lineItem.variant?.selectedOptions?.find((o: any) => o.name === 'Size')?.value || '',
-        selectedColor: lineItem.variant?.selectedOptions?.find((o: any) => o.name === 'Color')?.value || '',
+        selectedSize:
+            lineItem.variant?.selectedOptions?.find((o: any) => o.name === 'Size')?.value ||
+            attrVal(BUNDLE_KIT_INSOLE_SIZE_ATTR) ||
+            '',
+        selectedColor:
+            lineItem.variant?.selectedOptions?.find((o: any) => o.name === 'Color')?.value ||
+            attrVal(BUNDLE_KIT_INSOLE_COLOR_ATTR) ||
+            '',
         ...(productRef?.id ? { productShopifyId: productRef.id } : {}),
         ...(productRef?.handle ? { productHandle: productRef.handle } : {}),
         tagline: '',

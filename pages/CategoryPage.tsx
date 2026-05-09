@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { ProductCard } from '../components/ProductCard';
-import { KitBundleCard } from '../components/KitBundleCard';
+import { BundleKitCardsRow } from '../components/BundleKitCardsRow';
 import { Product, BundleKit } from '../types';
 import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
-import { getFascilitesBundleGridProduct } from '../utils/bundleKits';
+import { BUNDLE_KITS } from '../utils/bundleKits';
 import { isBundleKitsCategory } from '../utils/bundleKitsCategory';
 import { useShopifyBundleKits } from '../hooks/useShopifyBundleKits';
 import { ReferralSection } from '../components/ReferralSection';
@@ -61,7 +61,6 @@ const FEATURED_PRODUCTS: Product[] = [
     features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
     description: ''
   },
-  getFascilitesBundleGridProduct(),
   {
     id: 'height-insoles',
     handle: 'height-insoles',
@@ -76,8 +75,7 @@ const FEATURED_PRODUCTS: Product[] = [
   }
 ];
 
-
-// ... (existing imports and FEATURED_PRODUCTS)
+const BUNDLE_KIT_HANDLE_SET = new Set(BUNDLE_KITS.map((k) => k.handle));
 
 interface CategoryPageProps {
     category: string;
@@ -130,7 +128,9 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                const tagMatches = p.tags?.some(tag => tag.toLowerCase().includes(catLower));
                return nameMatches || tagMatches;
            });
-           setProducts(filtered);
+           setProducts(
+             filtered.filter((p) => !p.handle || !BUNDLE_KIT_HANDLE_SET.has(p.handle))
+           );
         }
       } catch (err) {
         console.warn('Failed to fetch Shopify products, using local data:', err);
@@ -141,7 +141,9 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
             const idMatches = p.id.toLowerCase().includes(catLower);
             return nameMatches || tagMatches || featureMatches || idMatches;
         });
-        setProducts(filteredLocal);
+        setProducts(
+          filteredLocal.filter((p) => !p.handle || !BUNDLE_KIT_HANDLE_SET.has(p.handle))
+        );
       } finally {
         setLoading(false);
       }
@@ -157,16 +159,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
     <div className="animate-in fade-in duration-500 pt-24">
       <div className="container mx-auto px-4 md:px-6 py-12">
         {showBundleKits ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {bundleKits.map((kit) => (
-              <KitBundleCard
-                key={kit.id}
-                kit={kit}
-                onKitSelect={onKitSelect}
-                onAddKitToCart={onAddKitToCart}
-              />
-            ))}
-          </div>
+          <BundleKitCardsRow kits={bundleKits} onKitSelect={onKitSelect} onAddKitToCart={onAddKitToCart} />
         ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
