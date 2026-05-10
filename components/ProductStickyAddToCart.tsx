@@ -70,12 +70,12 @@ export const ProductStickyAddToCart: React.FC<ProductStickyAddToCartProps> = ({
       role="region"
       aria-label="Quick add to cart"
       aria-hidden={!visible}
-      className={`fixed bottom-0 left-0 right-0 z-[45] border-t border-slate-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)] ${
+      className={`fixed bottom-0 left-0 right-0 z-[45] rounded-t-2xl border-t border-slate-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)] ${
         reducedMotion ? '' : 'transition-transform duration-300 ease-out'
       } ${visible ? 'translate-y-0' : 'translate-y-full pointer-events-none'}`}
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))' }}
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 md:px-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3.5 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 md:px-6">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 sm:h-16 sm:w-16">
             <img
@@ -86,15 +86,19 @@ export const ProductStickyAddToCart: React.FC<ProductStickyAddToCartProps> = ({
               decoding="async"
             />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-slate-900 md:text-base">{productName}</p>
-            <p className="mt-0.5 truncate text-xs text-slate-600 md:text-sm">{variantSummary}</p>
-            <p className="mt-1 text-base font-black text-brand-orange md:text-lg">
-              ${formatMoney(lineTotal)}
-            </p>
+          <div className="min-w-0 flex-1 text-left">
+            <div className="flex min-w-0 items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-slate-900 md:text-base">{productName}</p>
+                <p className="mt-0.5 truncate text-xs text-slate-600 md:text-sm">{variantSummary}</p>
+              </div>
+              <p className="mt-[0.35rem] shrink-0 text-right text-base font-black text-brand-orange md:mt-2 md:text-xl md:font-black">
+                ${formatMoney(lineTotal)}
+              </p>
+            </div>
           </div>
         </div>
-        <div className="flex-shrink-0 sm:min-w-[200px]">
+        <div className="w-full flex-shrink-0 sm:min-w-[200px] sm:w-auto">
           <Button
             type="button"
             variant="primary"
