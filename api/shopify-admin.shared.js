@@ -67,10 +67,11 @@ export async function adminGraphQL({ shopDomain, accessToken, query, variables }
 }
 
 export function readShopifyConfig(getEnv) {
+  const pick = (...keys) => keys.map(getEnv).find(v => v) || ''
   return {
-    shopDomain: normalizeShopDomain(getEnv('SHOPIFY_STORE_DOMAIN')),
-    staticToken: getEnv('SHOPIFY_ADMIN_ACCESS_TOKEN'),
-    clientId: getEnv('SHOPIFY_CLIENT_ID'),
-    clientSecret: getEnv('SHOPIFY_CLIENT_SECRET'),
+    shopDomain: normalizeShopDomain(pick('SHOPIFY_STORE_DOMAIN', 'VITE_SHOPIFY_STORE_DOMAIN')),
+    staticToken: pick('SHOPIFY_ADMIN_ACCESS_TOKEN', 'VITE_SHOPIFY_ADMIN_ACCESS_TOKEN'),
+    clientId: pick('SHOPIFY_ADMIN_CLIENT_ID', 'VITE_SHOPIFY_ADMIN_CLIENT_ID'),
+    clientSecret: pick('SHOPIFY_ADMIN_CLIENT_SECRET', 'VITE_SHOPIFY_ADMIN_CLIENT_SECRET'),
   }
 }
