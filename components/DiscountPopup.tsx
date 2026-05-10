@@ -9,6 +9,7 @@ export const DiscountPopup: React.FC = () => {
   const [closing, setClosing] = useState(false);
   const [emailSendStatus, setEmailSendStatus] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
   const [submitError, setSubmitError] = useState('');
+  const [issuedCode, setIssuedCode] = useState('');
 
   useEffect(() => {
     const dismissed = sessionStorage.getItem('discount_popup_dismissed');
@@ -34,7 +35,6 @@ export const DiscountPopup: React.FC = () => {
 
     setEmailSendStatus('sending');
     setSubmitError('');
-    const personalizedCode = `${firstName.trim().toUpperCase()}20`;
     const trimmedFirstName = firstName.trim();
     const trimmedEmail = email.trim();
 
@@ -45,7 +45,6 @@ export const DiscountPopup: React.FC = () => {
         body: JSON.stringify({
           firstName: trimmedFirstName,
           email: trimmedEmail,
-          discountCode: personalizedCode,
         }),
       });
 
@@ -64,6 +63,14 @@ export const DiscountPopup: React.FC = () => {
         setEmailSendStatus('failed');
         setSubmitError(errorMessage);
       } else {
+        try {
+          const data = await response.json();
+          if (typeof data?.code === 'string' && data.code.trim()) {
+            setIssuedCode(data.code.trim());
+          }
+        } catch {
+          // success without code in body — still treat as sent
+        }
         setEmailSendStatus('sent');
         setSubmitted(true);
 
@@ -184,6 +191,11 @@ export const DiscountPopup: React.FC = () => {
                 <p className="text-slate-500 text-sm leading-relaxed mb-4">
                   Success! Your discount code has been sent to <span className="font-bold text-slate-700">{email}</span>.
                 </p>
+                {issuedCode && (
+                  <div className="mx-auto inline-block px-4 py-3 rounded-xl bg-orange-50 border border-orange-200 mb-2">
+                    <span className="text-2xl font-black tracking-wider text-brand-orange">{issuedCode}</span>
+                  </div>
+                )}
                 <p className="mt-4 text-xs font-semibold text-green-600">
                   Check your inbox (and spam folder) in a moment.
                 </p>

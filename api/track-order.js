@@ -8,70 +8,12 @@
  * Always: SHOPIFY_STORE_DOMAIN (e.g. your-store.myshopify.com, no https://)
  */
 
-let cachedClientCredentials = { token: null, expiresAtMs: 0 }
+import {
+  getShopifyAdminAccessToken,
+  readShopifyConfig,
+} from './shopify-admin.shared.js'
 
-function normalizeShopDomain(domain) {
-  if (!domain) return ''
-  let d = String(domain).trim().toLowerCase()
-  d = d.replace(/^https?:\/\//, '')
-  d = d.split('/')[0]
-  return d
-}
-
-async function getShopifyAdminAccessToken(shopDomain) {
-  const staticToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN?.trim()
-  if (staticToken) {
-    return staticToken
-  }
-
-  const clientId = process.env.SHOPIFY_CLIENT_ID?.trim()
-  const clientSecret = process.env.SHOPIFY_CLIENT_SECRET?.trim()
-  if (!clientId || !clientSecret) {
-    return null
-  }
-
-  const bufferMs = 5 * 60 * 1000 // refresh 5 min before expiry
-  if (
-    cachedClientCredentials.token &&
-    Date.now() < cachedClientCredentials.expiresAtMs - bufferMs
-  ) {
-    return cachedClientCredentials.token
-  }
-
-  const body = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: clientId,
-    client_secret: clientSecret,
-  })
-
-  const url = `https://${shopDomain}/admin/oauth/access_token`
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString(),
-  })
-
-  const text = await response.text()
-  if (!response.ok) {
-    console.error('Shopify client_credentials failed:', response.status, text)
-    throw new Error('Failed to obtain Shopify access token')
-  }
-
-  let json
-  try {
-    json = JSON.parse(text)
-  } catch {
-    console.error('Shopify token response not JSON:', text)
-    throw new Error('Invalid Shopify token response')
-  }
-
-  const expiresIn = Number(json.expires_in) || 86399
-  cachedClientCredentials = {
-    token: json.access_token,
-    expiresAtMs: Date.now() + expiresIn * 1000,
-  }
-  return cachedClientCredentials.token
-}
+const getProcessEnv = (name) => process.env[name]?.trim() || ''
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -96,7 +38,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Order number and email are required.' })
   }
 
-  const shopDomain = normalizeShopDomain(process.env.SHOPIFY_STORE_DOMAIN)
+  const shopifyConfig = readShopifyConfig(getProcessEnv)
+  const shopDomain = shopifyConfig.shopDomain
 
   if (!shopDomain) {
     console.error('Missing SHOPIFY_STORE_DOMAIN')
@@ -105,7 +48,7 @@ export default async function handler(req, res) {
 
   let adminAccessToken
   try {
-    adminAccessToken = await getShopifyAdminAccessToken(shopDomain)
+    adminAccessToken = await getShopifyAdminAccessToken(shopifyConfig)
   } catch {
     return res.status(500).json({ error: 'Server configuration error.' })
   }
