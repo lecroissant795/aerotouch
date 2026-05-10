@@ -1433,9 +1433,9 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                 },
                 {
                   id: 10,
-                  name: "Sarah Mitchell",
+                  name: "Queenie Hong",
                   role: "Retail Associate",
-                  image: reviewPhotos.sarahMitchell,
+                  image: reviewAvatars.queenieHong,
                   rating: 4,
                   title: "Great heel support",
                   content: "I clock in 8+ hours on concrete floors daily. These insoles make such a difference - my heels feel supported and I don't dread the afternoon slump anymore.",

@@ -14,10 +14,10 @@ interface Review {
 const REVIEWS: Review[] = [
   {
     id: 1,
-    name: 'Sarah Mitchell',
+    name: 'Queenie Hong',
     role: 'Marathon Runner',
     quote: '"I\'ve tried every insole on the market. AeroTouch is the only one that actually eliminated my plantar fasciitis pain after the first week."',
-    image: reviewAvatars.sarahJ,
+    image: reviewAvatars.queenieHong,
   },
   {
     id: 2,

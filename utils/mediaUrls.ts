@@ -49,6 +49,8 @@ export const sectionImages = {
 // ── Review avatars (large PNGs) ─────────────────────────────────────────────
 export const reviewAvatars = {
     michaelT: `${STORAGE_BASE}/reviews/Michael%20T.png`,
+    /** Mega-menu / Queenie Hong testimonial */
+    queenieHong: `${STORAGE_BASE}/avatar/navbar/1778434730560-8y1eo7qh94n.png`,
     sarahJ: `${STORAGE_BASE}/reviews/Sarah%20J.png`,
     emmaW: `${STORAGE_BASE}/reviews/Emma%20W.png`,
     marcusT: `${STORAGE_BASE}/reviews/Marcus%20T.png`,
