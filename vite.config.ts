@@ -2,9 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import { sendPopupEmail } from './api/send-popup-email.shared.js';
-import { createWelcomeDiscount } from './api/create-discount-code.shared.js';
-import { readShopifyConfig } from './api/shopify-admin.shared.js';
+import { handlePopupDiscountRequest } from './api/send-popup-email.handler.shared.js';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -69,49 +67,20 @@ export default defineConfig(({ mode }) => {
                 req.on('error', reject);
               });
 
-              const parsed = body ? JSON.parse(body) : {};
-              const firstName = parsed.firstName;
-              const email = parsed.email;
-
-              if (!firstName || !email) {
+              let parsed: Record<string, unknown> = {};
+              try {
+                parsed = body.trim() ? JSON.parse(body) : {};
+              } catch {
                 res.statusCode = 400;
                 res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ error: 'firstName and email are required.' }));
+                res.end(JSON.stringify({ error: 'Invalid JSON body.' }));
                 return;
               }
-
-              const resendApiKey =
-                getConfigEnv('RESEND_API_KEY') || getConfigEnv('VITE_RESEND_API_KEY');
-              const fromEmail =
-                getConfigEnv('RESEND_FROM_EMAIL') ||
-                getConfigEnv('VITE_RESEND_FROM_EMAIL') ||
-                'AeroTouch <onboarding@resend.dev>';
-
-              const shopifyConfig = readShopifyConfig(getConfigEnv);
-
-              const discountResult = await createWelcomeDiscount({ firstName, shopifyConfig });
-              if (!discountResult.ok) {
-                res.statusCode = discountResult.status;
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ error: discountResult.error }));
-                return;
-              }
-
-              const result = await sendPopupEmail({
-                firstName,
-                email,
-                discountCode: discountResult.code,
-                resendApiKey,
-                fromEmail,
-              });
+              const result = await handlePopupDiscountRequest(parsed, getConfigEnv);
 
               res.statusCode = result.status;
               res.setHeader('Content-Type', 'application/json');
-              if (!result.ok) {
-                res.end(JSON.stringify({ error: result.error }));
-                return;
-              }
-              res.end(JSON.stringify({ ok: true, id: result.id || null, code: discountResult.code }));
+              res.end(JSON.stringify(result.body));
             } catch (error) {
               console.error('dev-popup-email-api error:', error);
               res.statusCode = 500;

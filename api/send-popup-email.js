@@ -1,6 +1,4 @@
-import { sendPopupEmail } from './send-popup-email.shared.js'
-import { createWelcomeDiscount } from './create-discount-code.shared.js'
-import { readShopifyConfig } from './shopify-admin.shared.js'
+import { handlePopupDiscountRequest } from './send-popup-email.handler.shared.js'
 import fs from 'fs'
 import path from 'path'
 
@@ -46,45 +44,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed.' })
   }
 
-  const resendApiKey =
-    getEnvValue('RESEND_API_KEY') ||
-    getEnvValue('VITE_RESEND_API_KEY') ||
-    readDotEnvValue('RESEND_API_KEY') ||
-    readDotEnvValue('VITE_RESEND_API_KEY')
-  const fromEmail =
-    getEnvValue('RESEND_FROM_EMAIL') ||
-    getEnvValue('VITE_RESEND_FROM_EMAIL') ||
-    readDotEnvValue('RESEND_FROM_EMAIL') ||
-    readDotEnvValue('VITE_RESEND_FROM_EMAIL') ||
-    'AeroTouch <onboarding@resend.dev>'
+  const getEnv = (name) => getEnvValue(name) || readDotEnvValue(name)
 
-  const firstName = req.body?.firstName
-  const email = req.body?.email
+  const payload =
+    req.body && typeof req.body === 'object' ? req.body : {}
 
-  if (!firstName || !email) {
-    return res.status(400).json({ error: 'firstName and email are required.' })
-  }
-
-  const getEnv = (name) =>
-    getEnvValue(name) || readDotEnvValue(name)
-
-  const shopifyConfig = readShopifyConfig(getEnv)
-
-  const discountResult = await createWelcomeDiscount({ firstName, shopifyConfig })
-  if (!discountResult.ok) {
-    return res.status(discountResult.status).json({ error: discountResult.error })
-  }
-
-  const result = await sendPopupEmail({
-    firstName,
-    email,
-    discountCode: discountResult.code,
-    resendApiKey,
-    fromEmail,
-  })
-
-  if (!result.ok) {
-    return res.status(result.status).json({ error: result.error })
-  }
-  return res.status(200).json({ ok: true, id: result.id, code: discountResult.code })
+  const result = await handlePopupDiscountRequest(payload, getEnv)
+  return res.status(result.status).json(result.body)
 }
