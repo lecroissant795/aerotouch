@@ -66,11 +66,30 @@ export async function adminGraphQL({ shopDomain, accessToken, query, variables }
   return response.json()
 }
 
+/** Resolve Admin API credentials from env. Supports aliases used elsewhere in this repo / Vercel. */
 export function readShopifyConfig(getEnv) {
+  const shopDomain = normalizeShopDomain(
+    getEnv('SHOPIFY_STORE_DOMAIN') || getEnv('VITE_SHOPIFY_STORE_DOMAIN')
+  )
+  const staticToken =
+    getEnv('SHOPIFY_ADMIN_ACCESS_TOKEN') ||
+    getEnv('SHOPIFY_ACCESS_TOKEN') ||
+    /* common typo seen in env files */
+    getEnv('ADIMN_ACCESS_TOKEN')
+  const clientId =
+    getEnv('SHOPIFY_CLIENT_ID') ||
+    getEnv('SHOPIFY_ADMIN_CLIENT_ID') ||
+    getEnv('VITE_SHOPIFY_CLIENT_ID')
+  const clientSecret =
+    getEnv('SHOPIFY_CLIENT_SECRET') ||
+    getEnv('SHOPIFY_ADMIN_CLIENT_SECRET') ||
+    getEnv('VITE_SHOPIFY_CLIENT_SECRET') ||
+    getEnv('VITE_VITE_SHOPIFY_CLIENT_SECRET')
+
   return {
-    shopDomain: normalizeShopDomain(getEnv('SHOPIFY_STORE_DOMAIN')),
-    staticToken: getEnv('SHOPIFY_ADMIN_ACCESS_TOKEN'),
-    clientId: getEnv('SHOPIFY_CLIENT_ID'),
-    clientSecret: getEnv('SHOPIFY_CLIENT_SECRET'),
+    shopDomain,
+    staticToken,
+    clientId,
+    clientSecret,
   }
 }
