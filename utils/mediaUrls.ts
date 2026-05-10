@@ -70,6 +70,7 @@ export const reviewPhotos = {
     jamesR: `${STORAGE_BASE}/reviews/James%20R.jpg`,
     lisaThompson: `${STORAGE_BASE}/reviews/Lisa%20Thompson.jpg`,
     davidMiller: `${STORAGE_BASE}/reviews/David%20Miller.jpg`,
+    sarahMitchell: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/render/image/public/media/real_reasults_from_real_people/sarah%20mitchel.avif?format=webp`,
     fitnessCoach: `${STORAGE_BASE}/reviews/Fitness%20Coach.png`,
     productClose: '/images/IMG_4813-removebg-preview.png',
 };

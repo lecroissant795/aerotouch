@@ -137,6 +137,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
   const [playingVideoId, setPlayingVideoId] = useState<number | null>(null);
   const [videoReviewSlideIndex, setVideoReviewSlideIndex] = useState(0);
   const [textReviewSlideIndex, setTextReviewSlideIndex] = useState(0);
+  const [visibleRealResultReviews, setVisibleRealResultReviews] = useState(6);
   const splitRef = useRef<HTMLDivElement>(null);
   const comfortInteractiveRef = useRef<HTMLDivElement>(null);
   const comfortTooltipRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -147,6 +148,9 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
   const textReviewScrollRef = useRef<HTMLDivElement>(null);
   const textReviewCardRefs = useRef<(HTMLElement | null)[]>([]);
   const TEXT_REVIEW_COUNT = 6;
+  const INITIAL_REAL_RESULTS_COUNT = 6;
+  const REAL_RESULTS_BATCH_SIZE = 6;
+  const REAL_RESULTS_TOTAL_COUNT = 57;
 
   useEffect(() => {
     const handleResize = () => {
@@ -1396,15 +1400,531 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                   title: "Perfect for boots",
                   content: "Slipped these into my hiking boots and just finished a 10-mile trek. Usually my heels are killing me by mile 5, but today was painless. Best investment ever.",
                   date: "2 weeks ago"
+                },
+                {
+                  id: 7,
+                  name: "James Carter",
+                  role: "Nurse",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 5,
+                  title: "Shift saver",
+                  content: "I'm on my feet for 12-hour shifts and these insoles have been a game changer. My feet no longer ache by the end of the day. Highly recommend to any healthcare worker!",
+                  date: "3 days ago"
+                },
+                {
+                  id: 8,
+                  name: "Maria Lopez",
+                  role: "Teacher",
+                  image: reviewPhotos.michaelChen,
+                  rating: 5,
+                  title: "Less fatigue all day",
+                  content: "Standing at the whiteboard all day used to leave my feet throbbing. Since switching to these insoles, I barely notice any fatigue. My students probably wonder why I'm so much more energetic now!",
+                  date: "4 days ago"
+                },
+                {
+                  id: 9,
+                  name: "David Kim",
+                  role: "Chef",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Kitchen approved",
+                  content: "Working in a kitchen means constant standing on hard floors. These insoles provide incredible cushioning and arch support. Best investment I've made for my comfort at work.",
+                  date: "6 days ago"
+                },
+                {
+                  id: 10,
+                  name: "Sarah Mitchell",
+                  role: "Retail Associate",
+                  image: reviewPhotos.sarahMitchell,
+                  rating: 4,
+                  title: "Great heel support",
+                  content: "I clock in 8+ hours on concrete floors daily. These insoles make such a difference - my heels feel supported and I don't dread the afternoon slump anymore.",
+                  date: "1 week ago"
+                },
+                {
+                  id: 11,
+                  name: "Tom Nguyen",
+                  role: "Police Officer",
+                  image: reviewPhotos.lisaThompson,
+                  rating: 5,
+                  title: "Built for long patrols",
+                  content: "During long patrols and foot beats, comfort is everything. These insoles keep my feet fresh even on the longest shifts. Solid build quality too - they've held up well after months of heavy use.",
+                  date: "1 week ago"
+                },
+                {
+                  id: 12,
+                  name: "Linda Brown",
+                  role: "Hair Stylist",
+                  image: reviewPhotos.davidMiller,
+                  rating: 5,
+                  title: "Back and feet feel better",
+                  content: "I stand behind the chair all day and my lower back used to suffer. These insoles improved my posture noticeably and the back pain has mostly gone. Absolutely worth every cent.",
+                  date: "2 weeks ago"
+                },
+                {
+                  id: 13,
+                  name: "Carlos Rivera",
+                  role: "Warehouse Worker",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 5,
+                  title: "Built for hard floors",
+                  content: "Moving packages all day on concrete is brutal without proper support. These insoles absorbed the shock beautifully. My coworkers saw the difference and several have ordered their own pairs!",
+                  date: "2 days ago"
+                },
+                {
+                  id: 14,
+                  name: "Emily Zhang",
+                  role: "Dental Hygienist",
+                  image: reviewPhotos.michaelChen,
+                  rating: 5,
+                  title: "Comfort through long shifts",
+                  content: "Leaning over patients for hours puts strain on your whole body. Having proper arch support from these insoles has helped reduce the fatigue I feel in my legs. Very impressed.",
+                  date: "3 days ago"
+                },
+                {
+                  id: 15,
+                  name: "Mark Thompson",
+                  role: "Firefighter",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Our boots are heavy and we're on our feet constantly during calls and training. These insoles fit perfectly and provide excellent stability. My feet feel far less fatigued after a 24-hour shift.",
+                  date: "4 days ago"
+                },
+                {
+                  id: 16,
+                  name: "Jessica Patel",
+                  role: "Flight Attendant",
+                  image: reviewPhotos.jamesR,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Walking thousands of steps per flight used to destroy my feet. These insoles fit right in my work shoes and the cushioning is phenomenal. I no longer dread long-haul flights!",
+                  date: "5 days ago"
+                },
+                {
+                  id: 17,
+                  name: "Brian O'Connor",
+                  role: "Construction Worker",
+                  image: reviewPhotos.lisaThompson,
+                  rating: 4,
+                  title: "Built for hard floors",
+                  content: "Spending all day on uneven terrain and hard surfaces, I needed real support. These insoles delivered. My knees and ankles feel much better since I started using them.",
+                  date: "6 days ago"
+                },
+                {
+                  id: 18,
+                  name: "Angela Torres",
+                  role: "Pharmacist",
+                  image: reviewPhotos.davidMiller,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Standing behind the dispensing counter for hours is tough. These insoles provide the perfect balance of cushioning and arch support. I recommended them to my entire team.",
+                  date: "1 week ago"
+                },
+                {
+                  id: 19,
+                  name: "Kevin Pham",
+                  role: "Security Guard",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Walking and standing for an 8-hour shift used to leave my feet in pain. Now I barely notice any discomfort. These insoles are excellent value and have genuinely improved my workday.",
+                  date: "2 weeks ago"
+                },
+                {
+                  id: 20,
+                  name: "Natalie Owens",
+                  role: "Veterinarian",
+                  image: reviewPhotos.michaelChen,
+                  rating: 5,
+                  title: "Comfort through long shifts",
+                  content: "Between surgeries and consultations I'm on my feet all day. These insoles keep me comfortable and focused. The anti-fatigue design is real - I feel a genuine difference by end of day.",
+                  date: "2 days ago"
+                },
+                {
+                  id: 21,
+                  name: "Ryan Henderson",
+                  role: "Mail Carrier",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Reliable daily comfort",
+                  content: "Walking 10+ miles a day means your insoles need to be tough and comfortable. These checked every box. My feet feel great even on the longest routes - absolutely essential gear.",
+                  date: "3 days ago"
+                },
+                {
+                  id: 22,
+                  name: "Michelle Park",
+                  role: "Barista",
+                  image: reviewPhotos.jamesR,
+                  rating: 4,
+                  title: "Great for busy days",
+                  content: "Standing on tile floors during a busy cafe shift used to wear me out. These insoles add just the right cushion and support. My feet thank me every morning I put them in.",
+                  date: "4 days ago"
+                },
+                {
+                  id: 23,
+                  name: "Derek Williams",
+                  role: "Plumber",
+                  image: reviewPhotos.lisaThompson,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Kneeling and standing on hard floors all day puts a lot of strain on your body. These insoles have reduced the foot fatigue significantly. Tough, durable, and genuinely effective.",
+                  date: "5 days ago"
+                },
+                {
+                  id: 24,
+                  name: "Sandra Lee",
+                  role: "Physical Therapist",
+                  image: reviewPhotos.davidMiller,
+                  rating: 5,
+                  title: "Comfort through long shifts",
+                  content: "I treat patients with foot pain all day, so I know how important good insoles are! These are the real deal - excellent arch support, great cushioning, and they fit well in clinical footwear.",
+                  date: "6 days ago"
+                },
+                {
+                  id: 25,
+                  name: "Aaron Flores",
+                  role: "Electrician",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Working on job sites all day in steel-toed boots can be rough. These insoles transformed the experience - my feet stay comfortable even during the longest days on site.",
+                  date: "1 week ago"
+                },
+                {
+                  id: 26,
+                  name: "Rachel Brooks",
+                  role: "Event Coordinator",
+                  image: reviewPhotos.michaelChen,
+                  rating: 4,
+                  title: "Excellent comfort and support",
+                  content: "Running around venues all day for events is exhausting on the feet. These insoles provided great support and I made it through a 14-hour wedding day without any foot pain. Amazing!",
+                  date: "2 weeks ago"
+                },
+                {
+                  id: 27,
+                  name: "Jason Murray",
+                  role: "Bus Driver",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Reliable daily comfort",
+                  content: "Even seated roles involve a lot of foot engagement and long hours. On my breaks when I walk around, my feet feel supported and fresh. These insoles are an underrated comfort upgrade.",
+                  date: "2 days ago"
+                },
+                {
+                  id: 28,
+                  name: "Tiffany Grant",
+                  role: "Personal Trainer",
+                  image: reviewPhotos.jamesR,
+                  rating: 5,
+                  title: "Support you can feel",
+                  content: "Demonstrating exercises and being on my feet all day in the gym demands quality insoles. These deliver on cushioning and stability. My clients have started asking what brand they are!",
+                  date: "3 days ago"
+                },
+                {
+                  id: 29,
+                  name: "Patrick Sullivan",
+                  role: "Sous Chef",
+                  image: reviewPhotos.lisaThompson,
+                  rating: 5,
+                  title: "Great for busy days",
+                  content: "Restaurant kitchens are brutal on feet - hard floors, long hours, constant movement. These insoles are a must-have. The arch support alone made a huge difference to how I feel at end of shift.",
+                  date: "4 days ago"
+                },
+                {
+                  id: 30,
+                  name: "Vanessa Hart",
+                  role: "School Counselor",
+                  image: reviewPhotos.davidMiller,
+                  rating: 5,
+                  title: "All-day support",
+                  content: "Walking the halls and standing in meetings all day adds up. These insoles made my shoes significantly more comfortable. I have more energy at the end of the day now. Very happy with this purchase.",
+                  date: "5 days ago"
+                },
+                {
+                  id: 31,
+                  name: "Chris Yamamoto",
+                  role: "Paramedic",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 5,
+                  title: "Comfort through long shifts",
+                  content: "Emergency medical work means you're on your feet and moving fast for hours. These insoles kept me comfortable through back-to-back calls. Durable, supportive, and highly recommended for any first responder.",
+                  date: "6 days ago"
+                },
+                {
+                  id: 32,
+                  name: "Olivia Bennett",
+                  role: "Surgeon",
+                  image: reviewPhotos.michaelChen,
+                  rating: 5,
+                  title: "Comfort through long shifts",
+                  content: "Standing at the operating table for 6-8 hour procedures is exhausting on the feet. These insoles provide the arch support I desperately needed. My concentration is better when I'm not fighting foot fatigue - truly a quality product.",
+                  date: "1 week ago"
+                },
+                {
+                  id: 33,
+                  name: "Marcus Johnson",
+                  role: "Factory Worker",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Built for hard floors",
+                  content: "Ten-hour shifts on a concrete factory floor used to wreck my feet and knees. These insoles absorbed the impact perfectly. I've gone from dreading my shift to barely noticing the floor. Excellent product.",
+                  date: "2 weeks ago"
+                },
+                {
+                  id: 34,
+                  name: "Priya Sharma",
+                  role: "Real Estate Agent",
+                  image: reviewPhotos.jamesR,
+                  rating: 4,
+                  title: "Excellent comfort and support",
+                  content: "Walking through properties all day in heels or flats takes its toll. These insoles fit in all my shoes and the cushioning is fantastic. My clients probably wonder how I'm so energetic by the fifth showing of the day!",
+                  date: "2 days ago"
+                },
+                {
+                  id: 35,
+                  name: "Nathan Cole",
+                  role: "Landscaper",
+                  image: reviewPhotos.lisaThompson,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Outdoor work on uneven terrain all day is brutal without proper foot support. These insoles kept my feet stable and comfortable even during the most demanding jobs. My legs feel much less fatigued at the end of the day.",
+                  date: "3 days ago"
+                },
+                {
+                  id: 36,
+                  name: "Fiona Walsh",
+                  role: "Midwife",
+                  image: reviewPhotos.davidMiller,
+                  rating: 5,
+                  title: "Comfort through long shifts",
+                  content: "Long, unpredictable shifts on maternity wards mean you need reliable comfort. These insoles are outstanding - great cushioning and they've held up through months of daily use. I recommended them to my whole department.",
+                  date: "4 days ago"
+                },
+                {
+                  id: 37,
+                  name: "Ethan Brooks",
+                  role: "Airport Ground Crew",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 5,
+                  title: "Reliable daily comfort",
+                  content: "Running across tarmac and standing on jet bridges all day in heavy boots is tough on the feet. These insoles made a huge difference in comfort and reduced end-of-shift aches considerably. Well worth it.",
+                  date: "5 days ago"
+                },
+                {
+                  id: 38,
+                  name: "Chloe Nguyen",
+                  role: "Occupational Therapist",
+                  image: reviewPhotos.michaelChen,
+                  rating: 5,
+                  title: "Comfort through long shifts",
+                  content: "I spend my days walking between patients and standing during therapy sessions. These insoles provide exactly the right support without being bulky. My colleagues noticed I stopped complaining about tired feet - says it all!",
+                  date: "6 days ago"
+                },
+                {
+                  id: 39,
+                  name: "Samuel Davis",
+                  role: "Postal Worker",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Built for hard floors",
+                  content: "Delivering mail across a large route on foot every day demands serious insole support. These deliver on every front - cushioning, durability, and arch support. My feet feel fresh even on the longest delivery days.",
+                  date: "1 week ago"
+                },
+                {
+                  id: 40,
+                  name: "Amelia Foster",
+                  role: "Zoo Keeper",
+                  image: reviewPhotos.jamesR,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Walking enclosures and standing for animal care all day adds up quickly. These insoles turned my work boots into something I actually look forward to wearing. Incredible difference in how my feet and back feel.",
+                  date: "2 weeks ago"
+                },
+                {
+                  id: 41,
+                  name: "Leo Martinez",
+                  role: "Automotive Technician",
+                  image: reviewPhotos.lisaThompson,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Standing on concrete workshop floors under cars all day used to destroy my feet. Since using these insoles my foot pain has almost completely gone. Great quality and they fit perfectly in my steel-capped boots.",
+                  date: "2 days ago"
+                },
+                {
+                  id: 42,
+                  name: "Hannah Scott",
+                  role: "Librarian",
+                  image: reviewPhotos.davidMiller,
+                  rating: 4,
+                  title: "All-day support",
+                  content: "Shelving books and assisting patrons means more walking than people realise. These insoles made my sensible work shoes feel like clouds. Comfortable, discreet, and long-lasting. I've ordered a second pair already.",
+                  date: "3 days ago"
+                },
+                {
+                  id: 43,
+                  name: "Isaac Turner",
+                  role: "Military Personnel",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Marching and standing at attention for long periods demands serious foot support. These insoles outperformed everything I've tried before. Even during the toughest field exercises, my feet stayed comfortable and supported.",
+                  date: "4 days ago"
+                },
+                {
+                  id: 44,
+                  name: "Gabriella Ross",
+                  role: "Social Worker",
+                  image: reviewPhotos.michaelChen,
+                  rating: 5,
+                  title: "Built for hard floors",
+                  content: "Home visits and office work mean I'm constantly on the go. These insoles provided the comfort boost my feet needed. My lower back pain has noticeably reduced since I started wearing them - genuinely life-changing.",
+                  date: "5 days ago"
+                },
+                {
+                  id: 45,
+                  name: "Dylan Hughes",
+                  role: "Fishing Boat Crew",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Reliable daily comfort",
+                  content: "Standing on wet deck surfaces for long hauls is no joke. These insoles fit snugly in my waterproof boots and provided excellent grip and cushioning. Far less foot and leg fatigue on the long trips now.",
+                  date: "6 days ago"
+                },
+                {
+                  id: 46,
+                  name: "Sophia Clark",
+                  role: "Dance Instructor",
+                  image: reviewPhotos.jamesR,
+                  rating: 5,
+                  title: "Support you can feel",
+                  content: "Teaching dance classes back-to-back means hours of standing, jumping and demonstrating. These insoles cushion everything beautifully and my feet recover so much faster after class. My students have started asking about them too!",
+                  date: "1 week ago"
+                },
+                {
+                  id: 47,
+                  name: "Owen Murphy",
+                  role: "Dock Worker",
+                  image: reviewPhotos.lisaThompson,
+                  rating: 5,
+                  title: "Built for hard floors",
+                  content: "Loading and unloading cargo all day on hard surfaces is gruelling work. These insoles absorb the shock with every step and my ankles feel far more stable. Genuinely the best insoles I've ever used - buy them.",
+                  date: "2 weeks ago"
+                },
+                {
+                  id: 48,
+                  name: "Isabella Reed",
+                  role: "Childcare Worker",
+                  image: reviewPhotos.davidMiller,
+                  rating: 5,
+                  title: "All-day support",
+                  content: "Chasing toddlers around all day keeps you on your feet non-stop. These insoles keep my feet comfortable through the busiest days. I have so much more energy in the afternoons now that foot pain isn't wearing me down.",
+                  date: "2 days ago"
+                },
+                {
+                  id: 49,
+                  name: "Felix Morgan",
+                  role: "Geologist",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 4,
+                  title: "Excellent comfort and support",
+                  content: "Fieldwork means hiking across rough terrain for hours carrying heavy equipment. These insoles provided superb support and cushioning even on the most demanding survey days. My hiking boots have never felt better.",
+                  date: "3 days ago"
+                },
+                {
+                  id: 50,
+                  name: "Charlotte Price",
+                  role: "Tattoo Artist",
+                  image: reviewPhotos.michaelChen,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Standing over clients for long sessions used to leave my feet and lower back aching. These insoles sorted the foot pain completely. I can focus entirely on my work without discomfort creeping in. Absolutely recommend.",
+                  date: "4 days ago"
+                },
+                {
+                  id: 51,
+                  name: "Adrian Bell",
+                  role: "Train Driver",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Reliable daily comfort",
+                  content: "Even with a seated role, the standing and walking during checks and platform time adds up. On rest breaks my feet feel great thanks to these insoles. A simple upgrade that makes the working day noticeably better.",
+                  date: "5 days ago"
+                },
+                {
+                  id: 52,
+                  name: "Megan Cooper",
+                  role: "Cruise Ship Staff",
+                  image: reviewPhotos.jamesR,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Working on a ship means walking on hard deck surfaces all day across huge distances. These insoles are brilliant - the arch support is excellent and they've lasted months of daily wear. My feet thank me every morning.",
+                  date: "6 days ago"
+                },
+                {
+                  id: 53,
+                  name: "Tyler Jenkins",
+                  role: "Baker",
+                  image: reviewPhotos.lisaThompson,
+                  rating: 5,
+                  title: "Great for busy days",
+                  content: "Early morning starts on tiled bakery floors make good insoles essential. These provided brilliant cushioning from the first day. My feet no longer ache by the time the morning rush is over. Brilliant product.",
+                  date: "1 week ago"
+                },
+                {
+                  id: 54,
+                  name: "Naomi Watson",
+                  role: "Speech Therapist",
+                  image: reviewPhotos.davidMiller,
+                  rating: 5,
+                  title: "Comfort through long shifts",
+                  content: "Moving between therapy rooms and schools all day means plenty of walking. These insoles made my shoes so much more comfortable. I have more energy left at the end of the day to actually enjoy my evenings.",
+                  date: "2 weeks ago"
+                },
+                {
+                  id: 55,
+                  name: "Callum Shaw",
+                  role: "Ski Instructor",
+                  image: reviewPhotos.sarahJenkins,
+                  rating: 5,
+                  title: "Support you can feel",
+                  content: "Standing on slopes in ski boots all day is incredibly demanding on feet and ankles. These insoles added the support and warmth I needed. My feet feel genuinely better at the end of a full day on the mountain.",
+                  date: "2 days ago"
+                },
+                {
+                  id: 56,
+                  name: "Destiny King",
+                  role: "Correction Officer",
+                  image: reviewPhotos.michaelChen,
+                  rating: 5,
+                  title: "Excellent comfort and support",
+                  content: "Walking prison blocks and standing post for hours requires dependable foot support. These insoles delivered exactly that. My feet and knees feel significantly better after shifts. Every officer in my unit should have a pair.",
+                  date: "3 days ago"
+                },
+                {
+                  id: 57,
+                  name: "Leo Timber",
+                  role: "Professor",
+                  image: reviewPhotos.hungNguyen,
+                  rating: 5,
+                  title: "Comfort through long lecture days",
+                  content: "Between long lectures, office hours, and walking across campus, I spend most of the day on my feet. These insoles add consistent support and cushioning, so I finish the day with far less foot fatigue.",
+                  date: "2 days ago"
                 }
-              ].map((review) => (
+              ]
+                .slice(0, visibleRealResultReviews)
+                .map((review) => (
                 <div key={review.id} className="group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl cursor-pointer transition-shadow duration-500" style={{ height: '480px' }}>
-                  {/* Full-bleed image with zoom on hover */}
-                  <img 
-                    src={review.image} 
-                    alt={review.name + " using AeroTouch"}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                  />
+                  {/* Keep photos only for the original six reviews; newer entries are text-first until dedicated photos are assigned */}
+                  {review.id <= INITIAL_REAL_RESULTS_COUNT ? (
+                    <img 
+                      src={review.image} 
+                      alt={review.name + " using AeroTouch"}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900" aria-hidden />
+                  )}
                   {/* Dark gradient overlay – deepens on hover */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -1445,12 +1965,18 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
               ))}
             </div>
 
-            <div className="mt-12 text-center">
-              <button className="inline-flex items-center gap-2 bg-white border-2 border-slate-200 px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest hover:border-brand-orange hover:text-brand-orange transition-all group">
-                View More Reviews
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </button>
-            </div>
+            {visibleRealResultReviews < REAL_RESULTS_TOTAL_COUNT && (
+              <div className="mt-12 text-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleRealResultReviews((prev) => Math.min(prev + REAL_RESULTS_BATCH_SIZE, REAL_RESULTS_TOTAL_COUNT))}
+                  className="inline-flex items-center gap-2 bg-white border-2 border-slate-200 px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest hover:border-brand-orange hover:text-brand-orange transition-all group"
+                >
+                  View More Reviews
+                  <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>

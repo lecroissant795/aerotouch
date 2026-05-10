@@ -45,7 +45,7 @@ interface ProductPageProps {
 
 const TESTIMONIALS = [
   {
-    name: 'James R.',
+    name: 'Marcus T',
     role: 'Marathon Runner',
     image: reviewAvatars.marcusT,
     quote:
@@ -53,7 +53,7 @@ const TESTIMONIALS = [
     result: 'Pain noticeably reduced in 1 week'
   },
   {
-    name: 'Sofia M.',
+    name: 'Sarah J',
     role: 'Nurse, 12hr shifts',
     image: reviewAvatars.sarahJ,
     quote:

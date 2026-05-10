@@ -37,6 +37,7 @@ import { WarrantyPage } from './pages/WarrantyPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
 import { MassageRollerPage } from './pages/MassageRollerPage';
 import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
+import { applyPageSeo } from './utils/seo';
 import { isSecondaryProduct, isMassageRollerProduct, getProductClassificationDebug } from './utils/productDetection';
 import { SizeSelectorModal } from './components/SizeSelectorModal';
 import { RouterProvider, useRouter } from './utils/router';
@@ -177,6 +178,18 @@ function AppShell() {
   useEffect(() => {
     logPageView();
   }, [page, params, query]);
+
+  useEffect(() => {
+    applyPageSeo({
+      page,
+      params,
+      query,
+      category,
+      searchQuery,
+      selectedProduct,
+      selectedBlogPost
+    });
+  }, [page, params, query, category, searchQuery, selectedProduct, selectedBlogPost]);
 
   // Diagnostic: Log all Shopify products on startup + hydrate cart upsell catalog
   useEffect(() => {

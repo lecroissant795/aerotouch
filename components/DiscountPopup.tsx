@@ -7,6 +7,8 @@ export const DiscountPopup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [emailSendStatus, setEmailSendStatus] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     const dismissed = sessionStorage.getItem('discount_popup_dismissed');
@@ -30,30 +32,65 @@ export const DiscountPopup: React.FC = () => {
     e.preventDefault();
     if (!firstName.trim() || !email.trim()) return;
 
-    // Optimistically show success
-    setSubmitted(true);
+    setEmailSendStatus('sending');
+    setSubmitError('');
+    const personalizedCode = `${firstName.trim().toUpperCase()}20`;
+    const trimmedFirstName = firstName.trim();
+    const trimmedEmail = email.trim();
 
-    if (supabase) {
-      try {
-        const { error } = await supabase.from('leads').insert([
-          { first_name: firstName, email: email }
-        ]);
-        
-        if (error) {
-           console.error('Error saving lead:', error);
-           // If it's a duplicate email (code 23505), we can maybe just ignore or log it
-           // For now we keep the optimistic success UI to not disrupt the user experience
+    try {
+      const response = await fetch('/api/send-popup-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: trimmedFirstName,
+          email: trimmedEmail,
+          discountCode: personalizedCode,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Could not send email right now. Please try again in a moment.';
+        try {
+          const data = await response.json();
+          if (typeof data?.error === 'string' && data.error.trim()) {
+            errorMessage = data.error;
+          }
+        } catch {
+          const body = await response.text();
+          if (body.trim()) errorMessage = body;
         }
-      } catch (err) {
-        console.error('Unexpected error saving lead:', err);
-      }
-    } else {
-        console.warn('Supabase client not initialized - lead not saved to DB');
-    }
+        console.error('Failed to send popup email:', response.status, errorMessage);
+        setEmailSendStatus('failed');
+        setSubmitError(errorMessage);
+      } else {
+        setEmailSendStatus('sent');
+        setSubmitted(true);
 
-    setTimeout(() => {
-      handleClose();
-    }, 4000);
+        if (supabase) {
+          try {
+            const { error } = await supabase.from('leads').insert([
+              { first_name: trimmedFirstName, email: trimmedEmail }
+            ]);
+            if (error) {
+              console.error('Error saving lead:', error);
+            }
+          } catch (err) {
+            console.error('Unexpected error saving lead:', err);
+          }
+        } else {
+          console.warn('Supabase client not initialized - lead not saved to DB');
+        }
+
+        setTimeout(() => {
+          handleClose();
+        }, 5000);
+      }
+    } catch (err) {
+      console.warn('Popup email endpoint unavailable:', err);
+      setEmailSendStatus('failed');
+      setSubmitError('Could not connect to email service. Please try again.');
+    }
   };
 
   if (!visible) return null;
@@ -119,12 +156,19 @@ export const DiscountPopup: React.FC = () => {
                   </div>
                   <button
                     type="submit"
+                    disabled={emailSendStatus === 'sending'}
                     className="w-full text-brand-dark font-black uppercase tracking-wider text-sm py-4 rounded-xl hover:brightness-95 transition-all shadow-lg flex items-center justify-center gap-2"
                     style={{ backgroundColor: '#C1F11D', boxShadow: '0 10px 25px -5px rgba(193, 241, 29, 0.4)' }}
                   >
-                    🔓 Get My Personal Code
+                    {emailSendStatus === 'sending' ? 'Sending...' : '🔓 Get My Personal Code'}
                   </button>
                 </form>
+
+                {emailSendStatus === 'failed' && (
+                  <p className="text-red-600 text-xs font-semibold text-center mt-3">
+                    {submitError || 'Could not send email right now. Please try again in a moment.'}
+                  </p>
+                )}
 
                 <p className="text-slate-400 text-[10px] text-center mt-4">
                   🔒 No spam, ever. Unsubscribe anytime. By submitting you agree to our terms.
@@ -138,12 +182,11 @@ export const DiscountPopup: React.FC = () => {
                   You're In, {firstName}! 🎉
                 </h3>
                 <p className="text-slate-500 text-sm leading-relaxed mb-4">
-                  Check your inbox at <span className="font-bold text-slate-700">{email}</span> — your personalized discount code <span className="font-black text-brand-orange">{firstName.toUpperCase()}20</span> is on its way! 🚀
+                  Success! Your discount code has been sent to <span className="font-bold text-slate-700">{email}</span>.
                 </p>
-                <div className="inline-block bg-slate-50 border border-slate-200 rounded-xl px-6 py-3">
-                  <span className="text-xs text-slate-500 font-bold uppercase tracking-widest block mb-1">🏷️ Your Code</span>
-                  <span className="text-2xl font-black text-brand-orange tracking-wider">{firstName.toUpperCase()}20</span>
-                </div>
+                <p className="mt-4 text-xs font-semibold text-green-600">
+                  Check your inbox (and spam folder) in a moment.
+                </p>
               </div>
             )}
           </div>
