@@ -11,6 +11,7 @@
  *   ├── reviews/         ← customer review photos + videos + avatars
  *   ├── sections/        ← section background / feature images
  *   ├── testimonials/    ← testimonial photos
+ *   ├── hero_section/    ← landing hero background
  *   └── misc/            ← foam-pad, runner bg, alignment diagrams, etc.
  */
 
@@ -93,6 +94,7 @@ export const testimonialImages = {
 // ── Misc ────────────────────────────────────────────────────────────────────
 export const miscImages = {
     foamPad: `${STORAGE_BASE}/misc/foam-pad.png`,
+    hero: `${STORAGE_BASE}/hero_section/hf_20260510_081240_247a17a4-2e87-4156-a40c-846415feeb49.png`,
     runner: `${STORAGE_BASE}/misc/58-runner-jogging-outdoors.jpg`,
     aerotouchAlignment: `${STORAGE_BASE}/misc/aerotouch-alignment.png`,
     genericAlignment: `${STORAGE_BASE}/misc/generic-alignment.png`,

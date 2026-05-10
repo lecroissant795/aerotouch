@@ -33,9 +33,9 @@ export const Hero: React.FC<HeroProps> = ({ onShopMassageInsolesClick, onShopAll
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src={miscImages.runner} 
-            alt="Runner on wet asphalt" 
-            className="w-full h-full object-cover object-[70%_top] md:object-top"
+            src={miscImages.hero} 
+            alt="Hands inserting AeroTouch insoles into sneakers on grass" 
+            className="w-full h-full object-cover object-[75%_100%] md:object-[58%_42%] lg:object-center"
           />
           {/* Dark Overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
