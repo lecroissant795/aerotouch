@@ -238,7 +238,7 @@ export const TechnologyPage: React.FC<TechnologyPageProps> = ({ onShopNow }) => 
                 {/* Insole image with zone overlays — positions match forefoot (top), core (middle), heel (bottom) */}
                 <div className="relative z-10 w-full max-w-md aspect-[3/5] flex items-center justify-center">
                   <img
-                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop"
+                    src=""
                     alt="Insole technology layers"
                     className="w-full h-full object-contain drop-shadow-2xl"
                   />

@@ -38,7 +38,7 @@ export const BUNDLE_KITS: BundleKit[] = [
     name: 'Heel Relief Kit',
     price: 63,
     originalPrice: 96,
-    image: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=900&auto=format&fit=max',
+    image: '',
     badge: 'Top Rated',
     items: [
       '1× AeroTouch Massage Insoles',
@@ -52,7 +52,7 @@ export const BUNDLE_KITS: BundleKit[] = [
     name: 'Toe Relief Kit',
     price: 63,
     originalPrice: 96,
-    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=900&auto=format&fit=max',
+    image: '',
     badge: 'Doctor Choice',
     items: [
       '1× AeroTouch Massage Insoles',
@@ -66,7 +66,7 @@ export const BUNDLE_KITS: BundleKit[] = [
     name: 'Ultimate Foot Relief Kit',
     price: 156,
     originalPrice: 240,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=900&auto=format&fit=max',
+    image: '',
     badge: 'Ultimate Value',
     items: [
       '3× AeroTouch Massage Insoles',

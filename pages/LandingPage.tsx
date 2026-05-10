@@ -44,7 +44,7 @@ const VIDEO_REVIEWS = [
   {
     id: 3,
     videoSrc: reviewVideos.lewis,
-    avatar: "https://images.unsplash.com/photo-1556157382-97eda2d62296?w=150&h=150&fit=crop",
+    avatar: "",
     name: "Duong Pham",
     description: "Very comfortable",
     time: "2d ago",
@@ -66,7 +66,7 @@ const VIDEO_REVIEWS = [
   {
     id: 5,
     videoSrc: reviewVideos.henryTu,
-    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop",
+    avatar: "",
     name: "Henry Tu",
     description: "Great support and comfort",
     time: "1d ago",
@@ -88,7 +88,7 @@ const VIDEO_REVIEWS = [
   {
     id: 7,
     videoSrc: reviewVideos.charlieHart,
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
+    avatar: "",
     name: "Charlie Hart",
     description: "Worth every penny",
     time: "1w ago",
@@ -116,7 +116,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 34.00,
     rating: 4.9,
     reviews: 1540,
-    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'],
     description: ''
   },
@@ -128,7 +128,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 19.00,
     rating: 4.8,
     reviews: 820,
-    image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
     description: ''
   },
@@ -140,7 +140,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 24.00,
     rating: 4.9,
     reviews: 2100,
-    image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'],
     description: ''
   },
@@ -152,7 +152,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 29.00,
     rating: 4.7,
     reviews: 940,
-    image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
     description: ''
   },
@@ -164,7 +164,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 39.00,
     rating: 4.8,
     reviews: 1100,
-    image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
     description: ''
   }

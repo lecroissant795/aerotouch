@@ -13,7 +13,7 @@ import {
   variantCompareAt
 } from '../utils/shopifyVariantMoney';
 import { useProductMetafields } from '../utils/useProductMetafields';
-import { productVideos } from '../utils/mediaUrls';
+import { productVideos, sectionImages, reviewAvatars } from '../utils/mediaUrls';
 import { isMassageRollerProduct } from '../utils/productDetection';
 import { DEFAULT_SIZES, DEFAULT_COLORS } from '../utils/productOptions';
 import { isBundleKitProductByProduct } from '../utils/bundleKits';
@@ -47,7 +47,7 @@ const TESTIMONIALS = [
   {
     name: 'James R.',
     role: 'Marathon Runner',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop',
+    image: reviewAvatars.marcusT,
     quote:
       "I've struggled with plantar fasciitis for years, but these insoles changed everything. I can run longer with way less soreness the next day.",
     result: 'Pain noticeably reduced in 1 week'
@@ -55,7 +55,7 @@ const TESTIMONIALS = [
   {
     name: 'Sofia M.',
     role: 'Nurse, 12hr shifts',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    image: reviewAvatars.sarahJ,
     quote:
       'My feet used to throb by mid-shift. With these, support stays consistent all day and my knees feel less pressure at work.',
     result: 'All-day comfort during long shifts'
@@ -63,7 +63,7 @@ const TESTIMONIALS = [
   {
     name: 'Daniel K.',
     role: 'Daily Walker',
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&auto=format&fit=crop',
+    image: reviewAvatars.davidK,
     quote:
       'Easy to trim, easy to fit, and they immediately felt stable. Great value compared to other insoles I have tried.',
     result: 'Better stability and less fatigue'
@@ -71,11 +71,11 @@ const TESTIMONIALS = [
 ];
 
 const BUILT_FOR_PURPOSES = [
-  { id: 'lifts', label: 'Heavy Lifts', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop' },
-  { id: 'extreme', label: 'Extreme Sports', image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&auto=format&fit=crop' },
-  { id: 'standout', label: 'Stand Out', image: 'https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=800&auto=format&fit=crop' },
-  { id: 'runs', label: 'Nature Runs', image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800&auto=format&fit=crop' },
-  { id: 'shifts', label: 'All-Day Comfort', image: 'https://images.unsplash.com/photo-1584432810601-6c7f27d2362b?w=800&auto=format&fit=crop' },
+  { id: 'lifts', label: 'Heavy Lifts', image: sectionImages.heavyLift },
+  { id: 'extreme', label: 'Extreme Sports', image: sectionImages.extremeSport },
+  { id: 'standout', label: 'Stand Out', image: sectionImages.standOut },
+  { id: 'runs', label: 'Nature Runs', image: sectionImages.running },
+  { id: 'shifts', label: 'All-Day Comfort', image: sectionImages.allDayComfort },
 ];
 
 export const ProductPage: React.FC<ProductPageProps> = ({ 

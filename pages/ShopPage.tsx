@@ -18,7 +18,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 34.00,
     rating: 4.9,
     reviews: 1540,
-    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'],
     description: ''
   },
@@ -30,7 +30,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 19.00,
     rating: 4.8,
     reviews: 820,
-    image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
     description: ''
   },
@@ -42,7 +42,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 24.00,
     rating: 4.9,
     reviews: 2100,
-    image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'],
     description: ''
   },
@@ -54,7 +54,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 29.00,
     rating: 4.7,
     reviews: 940,
-    image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
     description: ''
   },
@@ -66,7 +66,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 39.00,
     rating: 4.8,
     reviews: 1100,
-    image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
     description: ''
   }

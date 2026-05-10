@@ -2,6 +2,7 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import { Product } from '../types';
 import { SecondaryProductPage } from './SecondaryProductPage';
+import { reviewAvatars } from '../utils/mediaUrls';
 
 /** Display-only compare-at (MSRP) for the Massage Roller custom PDP. Live price comes from Shopify / product state. */
 export const MASSAGE_ROLLER_COMPARE_AT_PRICE = 68;
@@ -10,7 +11,7 @@ const MASSAGE_ROLLER_TESTIMONIALS = [
   {
     name: 'Danielle K.',
     role: 'RN, 12-hour shifts',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=100&auto=format&fit=crop',
+    image: reviewAvatars.nicoleP,
     quote:
       'After long hospital shifts my arches used to ache nonstop. A few minutes on this roller before bed and the tightness actually melts away.',
     result: 'Daily foot relief without a spa visit'
@@ -18,7 +19,7 @@ const MASSAGE_ROLLER_TESTIMONIALS = [
   {
     name: 'Marcus T.',
     role: 'Half marathon runner',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    image: reviewAvatars.marcusT,
     quote:
       'I use it on my plantar fascia and calves after tempo runs. Small enough for my gym bag but it hits the sore spots better than a tennis ball.',
     result: 'Faster bounce-back between training days'
@@ -26,7 +27,7 @@ const MASSAGE_ROLLER_TESTIMONIALS = [
   {
     name: 'Elena R.',
     role: 'Retail manager',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=100&auto=format&fit=crop',
+    image: reviewAvatars.sarahJ,
     quote:
       'I am on concrete floors all day. Rolling for two minutes when I get home is the only thing that quiets the burning in my heels.',
     result: 'Less heel fatigue after long shifts'

@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { reviewAvatars } from '../utils/mediaUrls';
 
 interface Review {
   id: number;
@@ -16,35 +17,35 @@ const REVIEWS: Review[] = [
     name: 'Sarah Mitchell',
     role: 'Marathon Runner',
     quote: '"I\'ve tried every insole on the market. AeroTouch is the only one that actually eliminated my plantar fasciitis pain after the first week."',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop',
+    image: reviewAvatars.sarahJ,
   },
   {
     id: 2,
     name: 'James Carter',
     role: 'Construction Foreman',
     quote: '"12 hour shifts on concrete used to destroy my feet. These insoles gave me my evenings back — no more soaking, no more pain."',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop',
+    image: reviewAvatars.marcusT,
   },
   {
     id: 3,
     name: 'Emily Zhang',
     role: 'Registered Nurse',
     quote: '"Standing all day in the ward was taking a toll. Since switching to AeroTouch, my back pain has completely disappeared."',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=400&auto=format&fit=crop',
+    image: reviewAvatars.emmaW,
   },
   {
     id: 4,
     name: 'David Okonkwo',
     role: 'Personal Trainer',
     quote: '"I recommend AeroTouch to every single one of my clients. The arch support is unmatched and they last forever."',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop',
+    image: reviewAvatars.davidK,
   },
   {
     id: 5,
     name: 'Maria Santos',
     role: 'Retail Manager',
     quote: '"I was skeptical at first but the results spoke for themselves. Within two weeks my knee pain was gone and I\'m back to hiking."',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=400&auto=format&fit=crop',
+    image: reviewAvatars.nicoleP,
   },
 ];
 

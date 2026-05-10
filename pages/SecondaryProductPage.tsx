@@ -276,21 +276,21 @@ const DEFAULT_TESTIMONIALS = [
   {
     name: 'Sarah M.',
     role: 'Fitness Enthusiast',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote: 'Great product! Really helps with recovery after my workouts.',
     result: 'Improved recovery time'
   },
   {
     name: 'Mike T.',
     role: 'Office Worker',
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote: 'Use these daily at work. Makes a huge difference in comfort.',
     result: 'All-day comfort achieved'
   },
   {
     name: 'Emily R.',
     role: 'Athlete',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote: 'Excellent quality and durability. Would highly recommend!',
     result: 'Perfect for athletic use'
   }
@@ -315,7 +315,7 @@ const TOE_SPACERS_TESTIMONIALS = [
   {
     name: 'Jordan P.',
     role: 'Runner • Post-training recovery',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'My feet feel “unlocked” after 20 minutes. The tight, cramped feeling after runs is way less noticeable now.',
     result: 'Less post-run tightness'
@@ -323,7 +323,7 @@ const TOE_SPACERS_TESTIMONIALS = [
   {
     name: 'Maya S.',
     role: 'Office & dress shoes',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'I wear heels for work and my toes used to feel smashed by the end of the day. These are a simple reset at night.',
     result: 'Comfortable nightly reset'
@@ -331,7 +331,7 @@ const TOE_SPACERS_TESTIMONIALS = [
   {
     name: 'Ethan R.',
     role: 'Yoga • Balance work',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'Didn’t expect the balance difference. Spacing my toes out makes grounding feel more stable in poses.',
     result: 'Improved stability & grounding'
@@ -365,7 +365,7 @@ const TOE_CUSHION_PADS_TESTIMONIALS = [
   {
     name: 'Chloe M.',
     role: 'New shoes • break-in days',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'I used to get hot spots at the front of my sneakers within 20 minutes. These pads made the rubbing basically disappear.',
     result: 'Fewer blisters and less toe irritation'
@@ -373,7 +373,7 @@ const TOE_CUSHION_PADS_TESTIMONIALS = [
   {
     name: 'Ryan D.',
     role: 'Long walks • daily errands',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'They feel soft but not bulky. I forget they’re there — which is exactly what I wanted.',
     result: 'Comfort without the “tight shoe” feeling'
@@ -381,7 +381,7 @@ const TOE_CUSHION_PADS_TESTIMONIALS = [
   {
     name: 'Ava K.',
     role: 'Work shoes • all-day standing',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'My toes used to feel raw after long shifts. With these, I get cushioning where I need it and no constant adjusting.',
     result: 'All-day comfort for toe pressure points'
@@ -415,7 +415,7 @@ const HEEL_CUSHIONS_TESTIMONIALS = [
   {
     name: 'Danielle R.',
     role: 'Retail • 8-hour shifts',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'Concrete floors used to wreck my heels by closing time. These pads are the first thing I put in my work shoes now — the ache at the back of my foot is way less noticeable.',
     result: 'Less heel fatigue after long shifts'
@@ -423,7 +423,7 @@ const HEEL_CUSHIONS_TESTIMONIALS = [
   {
     name: 'Marcus T.',
     role: 'New leather boots • break-in',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'My boots were rubbing the back of my heels raw. I stuck these in and finally stopped dreading every step during the break-in period.',
     result: 'Fewer heel blisters while breaking in shoes'
@@ -431,7 +431,7 @@ const HEEL_CUSHIONS_TESTIMONIALS = [
   {
     name: 'Priya N.',
     role: 'Slightly loose sneakers',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'Half a size too big and my heel was slipping. These filled the gap without feeling bulky — snugger fit, no sliding up and down.',
     result: 'More stable heel lock-in'
@@ -465,7 +465,7 @@ const MASSAGE_GUN_TESTIMONIALS = [
   {
     name: 'Danielle K.',
     role: 'Nurse • 12-hour shifts',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'My arches and calves used to feel cemented after a shift. Five minutes with this on low speed under the arch and up the calf — I can actually relax instead of limping to the car.',
     result: 'Faster post-shift leg and foot relief'
@@ -473,7 +473,7 @@ const MASSAGE_GUN_TESTIMONIALS = [
   {
     name: 'Marcus L.',
     role: 'Weekend runner • tight calves',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'I tried lacrosse balls and foam rollers; this is the first thing that hits the spot without wrecking my hands. Quiet enough that I don’t annoy my partner after a long run.',
     result: 'Targeted percussion without the noise'
@@ -481,7 +481,7 @@ const MASSAGE_GUN_TESTIMONIALS = [
   {
     name: 'Elena R.',
     role: 'Plantar fasciitis • desk + walking commute',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=100&auto=format&fit=crop',
+    image: '',
     quote:
       'Mornings were the worst. I use the fork head along the arch and the ball on the heel — gentle at first, then a bit deeper. It’s part of my routine now.',
     result: 'More manageable morning foot tension'
@@ -826,7 +826,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
     value: v.value
   })) || [{ name: 'Black', value: '#1E293B', label: 'Black' }];
 
-  const fallbackImage = product.image || 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop';
+  const fallbackImage = product.image || '';
   const images = Array.from(
     new Set([...(product.images || []), fallbackImage].filter((img) => Boolean(img && img.trim())))
   );

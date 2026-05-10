@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { reviewAvatars, reviewPhotos } from '../utils/mediaUrls';
 
 const TESTIMONIALS = [
   {
@@ -7,24 +8,24 @@ const TESTIMONIALS = [
     name: "Sophia Bennett",
     role: "Nurse & Active Walker",
     rating: 5,
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-    image: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&h=800&fit=crop"
+    avatar: reviewAvatars.sarahJ,
+    image: reviewPhotos.sarahJ
   },
   {
     quote: "I've tried dozens of insoles for my flat feet, but these are the only ones that provide the right amount of arch support without feeling too rigid. Excellent quality.",
     name: "Marcus Johnson",
     role: "Marathon Runner",
     rating: 5,
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=800&fit=crop"
+    avatar: reviewAvatars.marcusT,
+    image: reviewPhotos.marcusT
   },
   {
     quote: "These are a game changer. The shock absorption is fantastic, especially when I'm playing tennis. I've noticed a significant reduction in knee pain.",
     name: "Elena Rodriguez",
     role: "Tennis Player",
     rating: 5,
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
-    image: "https://images.unsplash.com/photo-1622279457486-640c4cbca4eb?w=800&h=800&fit=crop"
+    avatar: reviewAvatars.emmaW,
+    image: reviewPhotos.emmaW
   }
 ];
 

@@ -16,7 +16,7 @@ const SECONDARY_PRODUCTS: Product[] = [
     price: 19.00,
     rating: 4.8,
     reviews: 820,
-    image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
     description: 'Professional-grade massage roller designed for targeted foot relief and recovery.'
   },
@@ -28,7 +28,7 @@ const SECONDARY_PRODUCTS: Product[] = [
     price: 29.00,
     rating: 4.7,
     reviews: 940,
-    image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
     description: 'Medical-grade compression socks that improve circulation and reduce fatigue.'
   },
@@ -40,7 +40,7 @@ const SECONDARY_PRODUCTS: Product[] = [
     price: 24.00,
     rating: 4.9,
     reviews: 1200,
-    image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Natural Ingredients', 'Fast Absorption', 'Cooling Effect'],
     description: 'Therapeutic gel formulated to relieve muscle tension and accelerate recovery.'
   }

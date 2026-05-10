@@ -3,8 +3,8 @@ import { ShieldCheck, Zap, Wind, Thermometer, Heart, Leaf, Award, Clock, Users, 
 import { Product } from '../types';
 import { isMassageRollerProduct, isHeightBoosterProduct } from '../utils/productDetection';
 
-/** Request a larger asset when opening review photos (Unsplash-style `w=` param). */
 function enlargedPhotoUrl(url: string): string {
+  if (!url) return url;
   if (/[?&]w=\d+/i.test(url)) {
     return url.replace(/([?&])w=\d+/i, '$1w=1600');
   }
@@ -28,10 +28,10 @@ const DEFAULT_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Finally pain-free after years!',
     text: "I've struggled with plantar fasciitis for 3 years. After just 2 weeks of wearing these insoles, the pain is completely gone. I can finally run again!",
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=300&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=300&auto=format&fit=crop'
+      '',
+      ''
     ]
   },
   {
@@ -40,8 +40,8 @@ const DEFAULT_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Worth every penny',
     text: "As a nurse working 12-hour shifts, my feet used to kill me. These insoles have been game-changing. No more pain after long days on my feet.",
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=150&auto=format&fit=crop',
-    photos: ['https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop']
+    image: '',
+    photos: ['']
   },
   {
     name: 'Jennifer K.',
@@ -49,10 +49,10 @@ const DEFAULT_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Best investment for running',
     text: "Training for my first marathon and these insoles have made all the difference. My recovery time has improved dramatically.",
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=300&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=300&auto=format&fit=crop'
+      '',
+      ''
     ]
   },
   {
@@ -61,7 +61,7 @@ const DEFAULT_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 4,
     title: 'Great for work boots',
     text: "I work in construction and these insoles fit perfectly in my work boots. Much better than the generic ones I was using before.",
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: []
   },
   {
@@ -70,8 +70,8 @@ const DEFAULT_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Gift that keeps on giving',
     text: "Bought these for my husband who has flat feet. He absolutely loves them! Ordered more for his work shoes and running shoes.",
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
-    photos: ['https://images.unsplash.com/photo-1556227848-4f87e2429c09?q=80&w=300&auto=format&fit=crop']
+    image: '',
+    photos: ['']
   },
   {
     name: 'Carlos M.',
@@ -79,10 +79,10 @@ const DEFAULT_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Amazing support',
     text: "The arch support is perfect for my high arches. I've tried many insoles and this is hands down the best one I've found.",
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=300&auto=format&fit=crop'
+      '',
+      ''
     ]
   }
 ];
@@ -95,10 +95,10 @@ const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Finally unwinds my arches after shifts',
     text: "I'm on my feet in the ER all night. Two minutes on the AeroTouch roller before bed hits spots stretching never does. My arches feel noticeably looser by morning.",
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=300&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=300&auto=format&fit=crop'
+      '',
+      ''
     ]
   },
   {
@@ -107,10 +107,10 @@ const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Post-long-run ritual',
     text: "After 15+ mile weeks my plantar fascia and calves get angry. I roll slowly under the arch and up the calf—way more targeted than a lacrosse ball. Lives in my gym bag.",
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=300&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=300&auto=format&fit=crop'
+      '',
+      ''
     ]
   },
   {
@@ -119,8 +119,8 @@ const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Retail floors destroyed my heels',
     text: "Concrete all day left my heels burning. I keep this roller by the couch and use it while I watch TV. It's small but the texture really digs into the right spots.",
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
-    photos: ['https://images.unsplash.com/photo-1556227848-4f87e2429c09?q=80&w=300&auto=format&fit=crop']
+    image: '',
+    photos: ['']
   },
   {
     name: 'James W.',
@@ -128,9 +128,9 @@ const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 4,
     title: 'Great for desk breaks too',
     text: "I roll my forearms and feet during WFH breaks. Keeps tension from creeping up. Build feels solid—no squeaks after a month of daily use.",
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=300&auto=format&fit=crop'
+      ''
     ]
   },
   {
@@ -139,10 +139,10 @@ const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Plantar fasciitis maintenance',
     text: "My PT suggested rolling daily. This one matches the contour of my arch better than the cheap wood roller I had. Less slipping, more consistent pressure.",
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=300&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=300&auto=format&fit=crop'
+      '',
+      ''
     ]
   },
   {
@@ -151,8 +151,8 @@ const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Travel-friendly recovery',
     text: "I fly for work and toss it in my carry-on. Hotel floors, airport lounges—anywhere I can sit for two minutes I can get relief. Game changer after long walking days.",
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
-    photos: ['https://images.unsplash.com/photo-1556227848-4f87e2429c09?q=80&w=300&auto=format&fit=crop']
+    image: '',
+    photos: ['']
   }
 ];
 
@@ -164,9 +164,9 @@ const HEIGHT_BOOSTERS_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'I stopped dreading the conference-room lineup',
     text: 'Being shorter than most of my clients genuinely messed with my head — I’d overcompensate with voice or jokes. Height Boosters in my Oxfords gave me a few cm without clown shoes; first week I noticed I wasn’t bracing for every handshake.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=300&auto=format&fit=crop'
+      ''
     ]
   },
   {
@@ -175,9 +175,9 @@ const HEIGHT_BOOSTERS_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Family weddings used to ruin my mood',
     text: 'I’m the shortest cousin — every reunion photo felt like proof. I refused ridiculous platforms. AeroTouch sits inside my actual heels so I’m not on display as “the tiny one” anymore; I can laugh at dinner instead of hovering at the edge.',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1516478177764-576fe58782f9?q=80&w=300&auto=format&fit=crop'
+      ''
     ]
   },
   {
@@ -186,7 +186,7 @@ const HEIGHT_BOOSTERS_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'I felt easy to overlook next to taller staff',
     text: 'Hall duty with colleagues who tower over you sounds dumb as a problem until you live it. One thin layer in my sneakers — not magic tall — just enough eye contact with kids and adults that I don’t feel like I’m speaking up from below.',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: []
   },
   {
@@ -195,9 +195,9 @@ const HEIGHT_BOOSTERS_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Dating apps meet reality — I used to panic about it',
     text: 'I spiraled before every first coffee: what if they expected taller? Height Boosters in boots level the walk-in moment so I’m not apologizing with my posture. Still me — just not negotiating my height in my head the whole date.',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=300&auto=format&fit=crop'
+      ''
     ]
   },
   {
@@ -206,7 +206,7 @@ const HEIGHT_BOOSTERS_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 4,
     title: 'Cheaper lifts embarrassed me — these don’t',
     text: 'I tried plastic stacks years ago and felt like everyone could tell. I almost gave up. These took a day to get used to but the cushioning is real; I’m not obsessing in every reflective window anymore.',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: []
   },
   {
@@ -215,9 +215,9 @@ const HEIGHT_BOOSTERS_CUSTOMER_REVIEWS: CustomerReview[] = [
     rating: 5,
     title: 'Standing meetings made me feel boxed out',
     text: 'Open floor + taller managers = I felt like I was craning or disappearing in the huddle. Slim Height Boosters for days on my feet — I’m not chasing inches for ego; I’m tired of feeling like the shortest voice in the circle.',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&auto=format&fit=crop',
+    image: '',
     photos: [
-      'https://images.unsplash.com/photo-1595950653106-6c046ebd75cc?q=80&w=300&auto=format&fit=crop'
+      ''
     ]
   }
 ];

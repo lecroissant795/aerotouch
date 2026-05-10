@@ -99,19 +99,3 @@ export const miscImages = {
     walkPainFree: `${STORAGE_BASE}/misc/Walk_Pain-Free-2-removebg-preview.png`,
 };
 
-/**
- * Stock photos for landing-page bundle cards (“What’s included” thumbnails).
- * Footwear / recovery context — pair with object-contain so products stay fully visible.
- */
-export const bundleKitItemStockPhotos = {
-    insoleSole: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=600&auto=format&fit=max',
-    insoleWhiteSneaker: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=600&auto=format&fit=max',
-    insoleRedPerformance: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=max',
-    massageBall: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=600&auto=format&fit=max',
-    compressionSocks: 'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?q=80&w=600&auto=format&fit=max',
-    heelCushion: 'https://images.unsplash.com/photo-1576678929414-923222381954?q=80&w=600&auto=format&fit=max',
-    archSupport: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=600&auto=format&fit=max',
-    toeAccessory: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=max',
-    fabricSleeve: 'https://images.unsplash.com/photo-1584467735871-988bb58cb466?q=80&w=600&auto=format&fit=max',
-    foamRoller: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=max',
-} as const;

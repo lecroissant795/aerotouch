@@ -39,7 +39,7 @@ const VIDEO_REVIEWS = [
   {
     id: 3,
     videoSrc: reviewVideos.lewis,
-    avatar: "https://images.unsplash.com/photo-1556157382-97eda2d62296?w=150&h=150&fit=crop",
+    avatar: "",
     name: "Duong Pham",
     description: "Very comfortable",
     time: "2d ago",
@@ -61,7 +61,7 @@ const VIDEO_REVIEWS = [
   {
     id: 5,
     videoSrc: reviewVideos.henryTu,
-    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop",
+    avatar: "",
     name: "Henry Tu",
     description: "Great support and comfort",
     time: "1d ago",
@@ -83,7 +83,7 @@ const VIDEO_REVIEWS = [
   {
     id: 7,
     videoSrc: reviewVideos.charlieHart,
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
+    avatar: "",
     name: "Charlie Hart",
     description: "Worth every penny",
     time: "1w ago",

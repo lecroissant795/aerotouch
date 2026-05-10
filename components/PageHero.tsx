@@ -11,11 +11,13 @@ export const PageHero: React.FC<PageHeroProps> = ({ title, description, image })
   return (
     <div className="relative h-[48vh] min-h-[360px] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
-      <img
-        src={image}
-        alt={title}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      {image && (
+        <img
+          src={image}
+          alt={title}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
       
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/40" />
