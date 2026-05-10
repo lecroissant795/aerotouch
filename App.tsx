@@ -172,12 +172,11 @@ function AppShell() {
   // Analytics
   useEffect(() => {
     initGA();
-    logPageView();
   }, []);
 
   useEffect(() => {
     logPageView();
-  }, [page]);
+  }, [page, params, query]);
 
   // Diagnostic: Log all Shopify products on startup + hydrate cart upsell catalog
   useEffect(() => {
@@ -604,6 +603,15 @@ function AppShell() {
     const finalUrl = result?.webUrl || checkoutUrl;
 
     if (finalUrl) {
+      const checkoutItems = result?.lineItems ?? cartItems;
+      logBeginCheckout(
+        checkoutItems.map(item => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        })),
+        sumCartFinalSubtotals(checkoutItems)
+      );
       window.location.href = finalUrl;
       return;
     }
