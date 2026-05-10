@@ -88,6 +88,8 @@ The Product page can fetch live data from Shopify on mount (`shopify.product.fet
 - Environment variables are loaded via Vite's `loadEnv()` and prefixed with `VITE_` for client access
 - The `.env` file contains Shopify, Supabase, and GA credentials
 
-### Track Order API (`api/track-order.js`)
+### Track Order API (`api/track-order.js`) and Discount Popup (`api/send-popup-email.js`)
 
-Server-only (e.g. Vercel): **`SHOPIFY_STORE_DOMAIN`** plus either **`SHOPIFY_ADMIN_ACCESS_TOKEN`** (static Admin token) or **`SHOPIFY_CLIENT_ID`** + **`SHOPIFY_CLIENT_SECRET`** (Dev Dashboard app — [client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant), token cached ~24h). Plain **`npm run dev`** does not run `/api`; use **`vercel dev`** (with the same env vars) so `POST /api/track-order` works locally.
+Both endpoints share the Shopify Admin API helper in `api/shopify-admin.shared.js`. Server-only env vars: **`SHOPIFY_STORE_DOMAIN`** plus either **`SHOPIFY_ADMIN_ACCESS_TOKEN`** (static Admin token — needs `read_orders` for tracking and `write_discounts` for the popup) or **`SHOPIFY_CLIENT_ID`** + **`SHOPIFY_CLIENT_SECRET`** (Dev Dashboard app — [client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant), token cached ~24h). The popup also needs **`RESEND_API_KEY`** and optionally **`RESEND_FROM_EMAIL`**. The popup endpoint runs under plain `npm run dev` (via Vite middleware in `vite.config.ts`) and Vercel; `/api/track-order` only runs under `vercel dev`.
+
+On popup submit, the server mints a real single-use 20%-off Shopify code (`WELCOME-XXXXXX`, 30-day expiry) via `discountCodeBasicCreate`, then emails it via Resend.

@@ -1,4 +1,6 @@
 import { sendPopupEmail } from './send-popup-email.shared.js'
+import { createWelcomeDiscount } from './create-discount-code.shared.js'
+import { readShopifyConfig } from './shopify-admin.shared.js'
 import fs from 'fs'
 import path from 'path'
 
@@ -56,10 +58,27 @@ export default async function handler(req, res) {
     readDotEnvValue('VITE_RESEND_FROM_EMAIL') ||
     'AeroTouch <onboarding@resend.dev>'
 
+  const firstName = req.body?.firstName
+  const email = req.body?.email
+
+  if (!firstName || !email) {
+    return res.status(400).json({ error: 'firstName and email are required.' })
+  }
+
+  const getEnv = (name) =>
+    getEnvValue(name) || readDotEnvValue(name)
+
+  const shopifyConfig = readShopifyConfig(getEnv)
+
+  const discountResult = await createWelcomeDiscount({ firstName, shopifyConfig })
+  if (!discountResult.ok) {
+    return res.status(discountResult.status).json({ error: discountResult.error })
+  }
+
   const result = await sendPopupEmail({
-    firstName: req.body?.firstName,
-    email: req.body?.email,
-    discountCode: req.body?.discountCode,
+    firstName,
+    email,
+    discountCode: discountResult.code,
     resendApiKey,
     fromEmail,
   })
@@ -67,5 +86,5 @@ export default async function handler(req, res) {
   if (!result.ok) {
     return res.status(result.status).json({ error: result.error })
   }
-  return res.status(200).json({ ok: true, id: result.id })
+  return res.status(200).json({ ok: true, id: result.id, code: discountResult.code })
 }
