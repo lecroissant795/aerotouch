@@ -1,32 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { reviewAvatars } from '../utils/mediaUrls';
 
 const TESTIMONIALS = [
   {
     quote: `"If I could give 11 stars, I'd give 12."`,
     author: "- Andre, Head of Design at CreativeSolutions",
-    image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop"
+    image: reviewAvatars.marcusT
   },
   {
     quote: `"COMPANY's product has made planning for the future seamless. Can't recommend them enough!"`,
     author: "- Marie, CFO at FuturePlanning",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
+    image: reviewAvatars.sarahJ
   },
   {
     quote: `"This is our favorite solution so far. We work 5x faster with COMPANY."`,
     author: "- Alex, CEO at TechCorp",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+    image: reviewAvatars.davidK
   },
   {
     quote: `"I know it's cliche, but we were lost before we found COMPANY. Can't thank you guys enough!"`,
     author: "- Stephanie, COO at InnovateInc",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop"
+    image: reviewAvatars.nicoleP
   },
   {
     quote: `"I'm confident my data is safe with COMPANY. I can't say that about other providers."`,
     author: "- Dan, CTO at SecureNet",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop"
+    image: reviewAvatars.michaelT
   }
 ];
 

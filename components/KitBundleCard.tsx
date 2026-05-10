@@ -41,13 +41,17 @@ export const KitBundleCard: React.FC<KitBundleCardProps> = ({ kit, onKitSelect, 
 
       <div className="relative z-[2] flex min-h-0 flex-1 flex-col pointer-events-none">
         {/* Hero: fixed aspect, image covers full box (no letterboxing). Center crop only — no stretch. */}
-        <div className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[5/6]">
-          <img
-            src={kit.image}
-            alt={kit.name}
-            className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
-            decoding="async"
-          />
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100 sm:aspect-[5/6]">
+          {kit.image ? (
+            <img
+              src={kit.image}
+              alt={kit.name}
+              className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+              decoding="async"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-slate-100" />
+          )}
           {kit.badge && (
             <span className="absolute left-3 top-3 z-10 max-w-[calc(100%-5rem)] rounded-md border border-slate-200/80 bg-white/95 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-900 shadow-sm backdrop-blur-sm sm:left-4 sm:top-4 sm:text-[10px]">
               {bundleKitBadgeLabel(kit.badge)}

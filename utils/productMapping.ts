@@ -86,7 +86,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 34.00,
       rating: 4.9,
       reviews: 1540,
-      image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'],
       description: 'Experience the healing power of acupressure with every step. Our massage insoles combine therapeutic magnetic fields with strategically placed pressure points to relieve tension and improve circulation.'
     }
@@ -100,7 +100,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 19.00,
       rating: 4.8,
       reviews: 820,
-      image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
       description: 'Professional-grade massage roller designed for targeted foot relief and recovery.'
     }
@@ -117,7 +117,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 39.00,
       rating: 4.8,
       reviews: 1100,
-      image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop'
+      image: ''
     }
   },
   // Secondary/Accessory Products
@@ -130,7 +130,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 24.00,
       rating: 4.6,
       reviews: 560,
-      image: 'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: ['Non-Slip Grip', 'Breathable Fabric', 'Arch Compression'],
       description: 'High-performance grip socks for yoga, pilates, and home workouts.'
     }
@@ -144,7 +144,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 49.00,
       rating: 4.9,
       reviews: 720,
-      image: 'https://images.unsplash.com/photo-1596700888812-7bd3d9392bbc?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: ['Cashmere Lining', 'Memory Foam', 'Temperature Regulation'],
       description: 'Premium insoles with cashmere-soft lining for ultimate everyday comfort.'
     }
@@ -158,7 +158,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 12.00,
       rating: 4.7,
       reviews: 890,
-      image: 'https://images.unsplash.com/photo-1517760444937-1e5390c95d0a?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: [
         'Friction shield: Helps reduce rubbing and pressure on sensitive toe zones',
         'Soft cushioning: Adds comfort without making your shoes feel tight',
@@ -183,7 +183,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 15.00,
       rating: 4.8,
       reviews: 1100,
-      image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: ['Ergonomic Design', 'Medical-Grade Silicone', 'Pain Relief'],
       description: ''
     }
@@ -197,7 +197,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 22.00,
       rating: 4.9,
       reviews: 2100,
-      image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: [
         'Premium cotton cushioning: Soft, cloud-like layer between your heel and the shoe base',
         'Friction-reducing design: Helps prevent rubbing that can lead to blisters and irritation',
@@ -226,7 +226,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 79.00,
       rating: 4.8,
       reviews: 650,
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: [...MASSAGE_GUN_PDP_COPY.features],
       description: MASSAGE_GUN_PDP_COPY.description,
       metafields: {
@@ -246,7 +246,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 39.00,
       rating: 4.8,
       reviews: 1100,
-      image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop'
+      image: ''
     }
   },
   // Recovery/Accessory Products
@@ -259,7 +259,7 @@ export const PRODUCT_DATA_MAP: Record<string, ShopifyProductInfo> = {
       price: 24.00,
       rating: 4.9,
       reviews: 1200,
-      image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop',
+      image: '',
       features: ['Natural Ingredients', 'Fast Absorption', 'Cooling Effect'],
       description: 'Therapeutic gel formulated to relieve muscle tension and accelerate recovery.'
     }

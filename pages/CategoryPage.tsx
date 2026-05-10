@@ -21,7 +21,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 34.00,
     rating: 4.9,
     reviews: 1540,
-    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Magnetic Therapy', 'Pressure Point Relief', 'Breathable Design'],
     description: ''
   },
@@ -33,7 +33,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 19.00,
     rating: 4.8,
     reviews: 820,
-    image: 'https://images.unsplash.com/photo-1544117518-30dd01b92047?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
     description: ''
   },
@@ -45,7 +45,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 24.00,
     rating: 4.9,
     reviews: 2100,
-    image: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'],
     description: ''
   },
@@ -57,7 +57,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 29.00,
     rating: 4.7,
     reviews: 940,
-    image: 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Graduated Compression', 'Moisture Wicking', 'Arch Support'],
     description: ''
   },
@@ -69,7 +69,7 @@ const FEATURED_PRODUCTS: Product[] = [
     price: 39.00,
     rating: 4.8,
     reviews: 1100,
-    image: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop',
+    image: '',
     features: ['Adjustable Height', 'Invisible Fit', 'Shock Absorbing'],
     description: ''
   }
@@ -86,17 +86,6 @@ interface CategoryPageProps {
     onAddKitToCart?: (kit: BundleKit) => void;
 }
 
-const CATEGORY_IMAGES: Record<string, string> = {
-    'Insoles': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1920&auto=format&fit=crop',
-    'Footwear': 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=1920&auto=format&fit=crop',
-    'Tools': 'https://images.unsplash.com/photo-1597423244036-ef5020e83f3c?q=80&w=1920&auto=format&fit=crop',
-    'Pads': 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=1920&auto=format&fit=crop',
-    'Socks': 'https://images.unsplash.com/photo-1582966298431-a1217ec1e695?q=80&w=1920&auto=format&fit=crop',
-    'Work': 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=1920&auto=format&fit=crop',
-    'Plantar Fasciitis': 'https://images.unsplash.com/photo-1616422285623-13ff0162193b?q=80&w=1920&auto=format&fit=crop',
-    // Default fallback
-    'default': 'https://images.unsplash.com/photo-1556906781-9a412961d289?q=80&w=1920&auto=format&fit=crop'
-};
 
 export const CategoryPage: React.FC<CategoryPageProps> = ({
   category,

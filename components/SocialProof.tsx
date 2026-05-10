@@ -1,80 +1,81 @@
 import React from 'react';
 import { Instagram, ArrowUpRight } from 'lucide-react';
+import { miscImages, reviewPhotos } from '../utils/mediaUrls';
 
 const posts = [
   {
     id: 1,
-    image: 'https://images.unsplash.com/photo-1552674605-469555942da2?q=80&w=1200&auto=format&fit=crop',
+    image: miscImages.runner,
     tag: 'THE RUNS WE LOVE',
     caption: 'Lace up. Meet up. Log the miles.',
     gridClass: 'md:col-span-2 md:row-span-2'
   },
   {
     id: 2,
-    image: 'https://images.unsplash.com/photo-1594882645126-14020914d58d?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.michaelT,
     tag: 'THE RUNS WE LOVE',
     caption: 'Sunday long run crew.',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 3,
-    image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.sarahJ,
     tag: 'TRAIL TESTED',
     caption: 'Elevation gain: 1120ft',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 4,
-    image: 'https://images.unsplash.com/photo-1483721310020-03333e577078?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.emmaW,
     tag: 'RUNNER APPROVED',
     caption: 'Trail tested, runner approved.',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 5,
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.marcusT,
     tag: 'THE RUNS WE LOVE',
     caption: 'Mountain views.',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 6,
-    image: 'https://images.unsplash.com/photo-1534438097545-a2c22c57f271?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.nicoleP,
     tag: 'GYM LIFE',
     caption: 'Ridge run.',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 7,
-    image: 'https://images.unsplash.com/photo-1502904550040-7534597429ae?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.davidK,
     tag: 'THE 5 AM RUN',
     caption: '5AM Club.',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 8,
-    image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.hungNguyen,
     tag: 'NEW FEELS',
     caption: 'Instant comfort.',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 9,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.jamesR,
     tag: 'NEW MOVES',
     caption: 'Performance boost.',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 10,
-    image: 'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.lisaThompson,
     tag: 'ACTIVE',
     caption: 'Recovery mode.',
     gridClass: 'md:col-span-1 md:row-span-1'
   },
   {
     id: 11,
-    image: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=800&auto=format&fit=crop',
+    image: reviewPhotos.davidMiller,
     tag: 'PATTERN',
     caption: 'Premium tech.',
     gridClass: 'md:col-span-2 md:row-span-1'

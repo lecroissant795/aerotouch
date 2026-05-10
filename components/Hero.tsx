@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from './Button';
 import { Star } from 'lucide-react';
+import { miscImages } from '../utils/mediaUrls';
 
 interface HeroProps {
   /** Main product: Massage Insoles PDP */
@@ -32,7 +33,7 @@ export const Hero: React.FC<HeroProps> = ({ onShopMassageInsolesClick, onShopAll
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1530143311094-34d807799e8f?q=80&w=2938&auto=format&fit=crop" 
+            src={miscImages.runner} 
             alt="Runner on wet asphalt" 
             className="w-full h-full object-cover object-[70%_top] md:object-top"
           />

@@ -47,12 +47,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
         className="block flex flex-col flex-grow"
       >
         {/* Image block */}
-        <div className={`relative w-full bg-slate-50 overflow-hidden ${compactOnMobile ? 'aspect-[0.9] md:aspect-square' : 'aspect-square'}`}>
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+        <div className={`relative w-full bg-slate-100 overflow-hidden ${compactOnMobile ? 'aspect-[0.9] md:aspect-square' : 'aspect-square'}`}>
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full bg-slate-100" />
+          )}
           {/* Subtle gradient overlay at bottom for depth */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
@@ -72,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
           )}
 
           {/* Secondary image on hover (if available) */}
-          {product.images && product.images.length > 1 && (
+          {product.images && product.images.length > 1 && product.images[1] && (
             <img
               src={product.images[1]}
               alt=""

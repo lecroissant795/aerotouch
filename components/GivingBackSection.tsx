@@ -31,12 +31,12 @@ export const GivingBackSection: React.FC<GivingBackSectionProps> = ({ onLearnMor
             {/* Image Content */}
             <div className="lg:w-1/2 w-full h-[500px] lg:h-[700px] relative bg-[#2f3e30]">
                 <img 
-                    src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1600&auto=format&fit=crop" 
+                    src="" 
                     alt="Soccer player in action" 
                     className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-overlay opacity-90"
                 />
                 <img 
-                    src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1600&auto=format&fit=crop" 
+                    src="" 
                     alt="Soccer player in action" 
                     className="absolute inset-0 w-full h-full object-cover opacity-80"
                 />

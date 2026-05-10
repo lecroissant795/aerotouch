@@ -77,7 +77,7 @@ export const SizeGuidePage: React.FC = () => {
       {/* Hero Section */}
       <section className="relative pt-32 pb-28 bg-brand-dark overflow-hidden">
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=2671&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-overlay"></div>
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-orange/10 rounded-full blur-[120px] translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-lime/5 rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
 
