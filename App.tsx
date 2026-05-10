@@ -98,7 +98,7 @@ function resolveVariantForAddToCart(shopifyProduct: any, size: string, color: st
 }
 
 // Import static data for blog posts and bundle kits
-import { BLOG_POSTS } from './pages/BlogPage';
+import { BLOG_POSTS, GIVING_BACK_ARTICLE_SLUG } from './pages/BlogPage';
 
 function AppShell() {
   const { page, params, query, navigate } = useRouter();
@@ -690,6 +690,9 @@ function AppShell() {
                 onProductSelect={handleProductSelect}
                 isLoading={isCartLoading}
                 error={cartError}
+                onNavigateToBlog={() =>
+                  navigate(Page.BLOG_POST, { slug: GIVING_BACK_ARTICLE_SLUG })
+                }
               />
             ) : isSecondaryProduct(selectedProduct) ? (
               <SecondaryProductPage
@@ -699,6 +702,9 @@ function AppShell() {
                 onProductSelect={handleProductSelect}
                 isLoading={isCartLoading}
                 error={cartError}
+                onNavigateToBlog={() =>
+                  navigate(Page.BLOG_POST, { slug: GIVING_BACK_ARTICLE_SLUG })
+                }
               />
             ) : (
               <ProductPage
@@ -706,7 +712,9 @@ function AppShell() {
                 onAddToCart={handleAddToCart}
                 onBack={() => navigate(Page.SHOP)}
                 onProductSelect={handleProductSelect}
-                onNavigateToBlog={() => navigate(Page.BLOG)}
+                onNavigateToBlog={() =>
+                  navigate(Page.BLOG_POST, { slug: GIVING_BACK_ARTICLE_SLUG })
+                }
                 isLoading={isCartLoading}
                 error={cartError}
                 onBuyNow={handleBuyNow}
@@ -746,7 +754,9 @@ function AppShell() {
             category={category || 'All'}
             onProductSelect={handleProductSelect}
             onQuickAddToCart={handleQuickAddToCart}
-            onNavigateToBlog={() => navigate(Page.BLOG)}
+            onNavigateToBlog={() =>
+              navigate(Page.BLOG_POST, { slug: GIVING_BACK_ARTICLE_SLUG })
+            }
             onKitSelect={(kit) => navigate(Page.KIT_PRODUCT, { kitId: kit.id })}
             onAddKitToCart={handleAddKitToCart}
           />
@@ -823,7 +833,9 @@ function AppShell() {
               onAddToCart={handleAddToCart}
               onBack={() => navigate(Page.BUNDLE_KITS)}
               onProductSelect={handleProductSelect}
-              onNavigateToBlog={() => navigate(Page.BLOG)}
+              onNavigateToBlog={() =>
+                navigate(Page.BLOG_POST, { slug: GIVING_BACK_ARTICLE_SLUG })
+              }
               isLoading={isCartLoading}
               error={cartError}
               onBuyNow={handleBuyNow}
@@ -839,7 +851,9 @@ function AppShell() {
           <AccessoriesPage
             onProductSelect={handleProductSelect}
             onQuickAddToCart={handleQuickAddToCart}
-            onNavigateToBlog={() => navigate(Page.BLOG)}
+            onNavigateToBlog={() =>
+              navigate(Page.BLOG_POST, { slug: GIVING_BACK_ARTICLE_SLUG })
+            }
           />
         )}
 

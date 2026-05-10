@@ -59,6 +59,7 @@ interface MassageRollerPageProps {
   onProductSelect?: (product: Product) => void;
   isLoading?: boolean;
   error?: string | null;
+  onNavigateToBlog?: () => void;
 }
 
 const Bullet: React.FC<{ children: React.ReactNode }> = ({ children }) => (

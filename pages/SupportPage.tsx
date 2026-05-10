@@ -50,6 +50,13 @@ const FAQS = [
   }
 ];
 
+const SUPPORT_EMAIL = 'support@aerotouch.com';
+const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('AeroTouch support request')}`;
+
+/** Shopify Inbox / chat app URL. Set `VITE_SHOPIFY_CHAT_URL` in `.env` to override. */
+const SHOPIFY_CHAT_URL =
+  import.meta.env.VITE_SHOPIFY_CHAT_URL || 'https://aerotuch.myshopify.com/apps/chat';
+
 interface SupportPageProps {
   onNavigate?: (page: Page) => void;
 }
@@ -234,14 +241,22 @@ export const SupportPage: React.FC<SupportPageProps> = ({ onNavigate }) => {
                   </p>
                   
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                     <Button className="flex items-center justify-center gap-3 h-14 px-8 text-base bg-brand-lime text-brand-dark hover:bg-white hover:text-brand-dark border-0" size="lg">
-                        <MessageCircle className="w-5 h-5" />
+                     <a
+                        href={SHOPIFY_CHAT_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-3 h-14 px-8 text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-brand-dark focus:ring-brand-lime bg-brand-lime text-brand-dark hover:bg-white hover:text-brand-dark shadow-lg"
+                     >
+                        <MessageCircle className="w-5 h-5 shrink-0" aria-hidden />
                         Live Chat Support
-                     </Button>
-                     <Button variant="outline" className="flex items-center justify-center gap-3 h-14 px-8 text-base border-white/20 text-white hover:bg-white/10 hover:text-white" size="lg">
-                        <Mail className="w-5 h-5" />
+                     </a>
+                     <a
+                        href={SUPPORT_MAILTO}
+                        className="inline-flex items-center justify-center gap-3 h-14 px-8 text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-brand-dark focus:ring-white/40 border-2 border-white/20 text-white hover:bg-white/10 hover:text-white"
+                     >
+                        <Mail className="w-5 h-5 shrink-0" aria-hidden />
                         Email Support
-                     </Button>
+                     </a>
                   </div>
                </div>
             </div>

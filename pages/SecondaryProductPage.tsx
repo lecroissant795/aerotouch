@@ -13,6 +13,8 @@ import {
   variantCompareAt
 } from '../utils/shopifyVariantMoney';
 import { ProductDescription } from '../components/ProductDescription';
+import { ReferralSection } from '../components/ReferralSection';
+import { GivingBackSection } from '../components/GivingBackSection';
 import { useSocialProof } from '../hooks/useSocialProof';
 import { isHeightBoosterProduct } from '../utils/productDetection';
 import {
@@ -270,6 +272,8 @@ interface SecondaryProductPageProps {
     quote: string;
     result: string;
   }[];
+  /** Giving Back “Learn More” — same destination as primary PDP (comfort article). */
+  onNavigateToBlog?: () => void;
 }
 
 const DEFAULT_TESTIMONIALS = [
@@ -522,7 +526,8 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   detailCardBody,
   belowTestimonials,
   faqs: faqsProp,
-  testimonials: testimonialsProp
+  testimonials: testimonialsProp,
+  onNavigateToBlog,
 }) => {
   const [product, setProduct] = useState<Product>(initialProduct);
   const meta = useProductMetafields(product);
@@ -1608,7 +1613,9 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
           </div>
         </div>
       )}
-      
+
+      <ReferralSection />
+      {onNavigateToBlog ? <GivingBackSection onLearnMore={onNavigateToBlog} /> : null}
     </div>
   );
 };

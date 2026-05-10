@@ -56,11 +56,20 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ post, onBack }) => {
           </div>
 
           <div className="prose prose-slate prose-lg max-w-none">
-            {body.split('\n\n').map((paragraph, i) => (
-              <p key={i} className="text-slate-600 leading-relaxed mb-6">
-                {paragraph}
-              </p>
-            ))}
+            {body.split('\n\n').map((paragraph, i) => {
+              const trimmed = paragraph.trimStart();
+              const isBullet = trimmed.startsWith('•');
+              return (
+                <p
+                  key={i}
+                  className={`text-slate-600 leading-relaxed mb-6 ${
+                    isBullet ? 'pl-5 border-l-2 border-brand-orange/35 -ml-1' : ''
+                  }`}
+                >
+                  {paragraph}
+                </p>
+              );
+            })}
           </div>
 
           <footer className="mt-16 pt-8 border-t border-slate-200">

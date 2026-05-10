@@ -3,7 +3,60 @@ import { Clock, User } from 'lucide-react';
 import { Button } from '../components/Button';
 import type { BlogPost } from '../types';
 
+/** Slug for Giving Back “Learn More” — keep in sync with `App` navigation */
+export const GIVING_BACK_ARTICLE_SLUG = 'comfort-accessible-everyone';
+
+const COMFORT_ACCESSIBILITY_BODY = `Movement is something most people don't think about — until it becomes uncomfortable.
+
+A long shift at work. Standing all day on hard floors. Walking through foot pain that slowly becomes part of everyday life. For many people, discomfort doesn't just affect their feet — it affects energy, confidence, productivity, and overall well-being.
+
+That belief is one of the reasons we started this brand.
+
+We've always believed comfort is more than a luxury. It's part of living well. Whether it's helping someone walk without pain, recover after long hours on their feet, or simply feel supported throughout the day, small improvements in comfort can make a meaningful difference in people's lives.
+
+But as our business has grown, we kept coming back to one question:
+
+How can we create a bigger impact beyond the products themselves?
+
+That's why we're committing a portion of our sales toward initiatives that support movement, mobility, and foot wellness.
+
+For us, this isn't about adding a marketing slogan or following a trend. It's about staying connected to the purpose behind what we do.
+
+Every product we create is designed to help people move more comfortably. Supporting causes that improve access to movement and wellness felt like the natural next step.
+
+Over time, we aim to support programs and organizations that:
+
+• Encourage active lifestyles
+
+• Improve access to mobility and wellness resources
+
+• Support communities that spend long hours on their feet
+
+• Help future generations stay active and healthy
+
+We know real impact comes from consistency, transparency, and action — not just words. This initiative is something we plan to grow responsibly as our business grows.
+
+When customers choose to support our store, they're not only investing in their own comfort, but also contributing to something larger: helping more people move through life with less discomfort and more freedom.
+
+We're grateful to everyone who has supported us so far, and we're excited to continue building a brand rooted in comfort, care, and purpose.
+
+Because better movement doesn't just change how we walk — it changes how we live.`;
+
 export const BLOG_POSTS: BlogPost[] = [
+  {
+    id: GIVING_BACK_ARTICLE_SLUG,
+    title: 'Why We Believe Comfort Should Be Accessible to Everyone',
+    excerpt:
+      "Movement is something most people don't think about — until it becomes uncomfortable. Here's how we're turning that belief into action.",
+    category: 'Community',
+    author: 'AeroTouch Team',
+    authorRole: 'Brand',
+    date: 'May 10, 2026',
+    readTime: '6 min read',
+    image:
+      'https://images.unsplash.com/photo-1675345771255-733034aff5a2?q=80&w=1600&auto=format&fit=crop',
+    body: COMFORT_ACCESSIBILITY_BODY,
+  },
   {
     id: '1',
     title: '5 Signs You Need To Replace Your Insoles',
@@ -12,7 +65,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'Dr. Sarah K.',
     date: 'Oct 12, 2024',
     readTime: '5 min read',
-    image: '',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
     body: 'Running on worn-out gear increases injury risk. Here is how to check your insoles for critical wear patterns before it is too late.\n\nLook for visible flattening of the arch support, especially in the heel cup. Once the material compresses beyond its design spec, it stops doing its job—and your joints pick up the slack. Another red flag is uneven wear on one side, which often points to gait or alignment issues that may need attention beyond just replacing the insole. Catching these signs early can prevent knee, hip, and lower-back issues that stem from poor foot alignment.\n\nPay attention to how your feet feel during and after runs. Persistent hotspots, blisters in new places, or a general sense that your shoes “don’t feel the same” are often the first clues that your insoles have broken down. The top layer may still look intact while the supportive structure underneath has already collapsed.\n\nWe recommend inspecting your performance insoles every 300–500 miles or every 3–4 months of regular use. If you train year-round, consider a mid-season swap so you always have optimal support when it matters most. Replacing insoles is one of the highest-impact, lowest-cost steps you can take to protect your body and keep your training on track.'
   },
   {
@@ -23,7 +76,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'Mark Davis',
     date: 'Oct 08, 2024',
     readTime: '8 min read',
-    image: '',
+    image: 'https://images.unsplash.com/photo-1552674605-469555942da2?q=80&w=800&auto=format&fit=crop',
     body: 'Marathon training is 80% mental. We spoke with elite ultra-runners about the strategies they use to keep moving when the body wants to quit.\n\nBreaking the wall isn’t about ignoring pain—it’s about recognizing which signals matter. Discomfort from effort is normal; sharp or localized pain is information. The runners we interviewed consistently use small process goals: get to the next aid station, the next mile, or even the next landmark. That keeps the mind from spiraling into “I can’t finish.” One common thread: they rarely think about the full distance. They chunk the race into manageable pieces and focus only on the current segment.\n\nEquipment that reduces unnecessary load—like insoles that return energy instead of absorbing it—lets you save mental bandwidth for pacing and form. When your feet and legs feel supported, you have more capacity to stay present and push through the tough patches. Several athletes mentioned that dialing in gear and biomechanics gave them one less thing to fight; the body could do its job while the mind stayed calm. Finally, they stressed the importance of rehearsing the low moments in training. If you’ve already practiced “what do I do when everything hurts?” you’re far less likely to panic when it happens on race day.'
   },
   {
@@ -34,7 +87,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'Dr. Sarah K.',
     date: 'Sep 29, 2024',
     readTime: '6 min read',
-    image: '',
+    image: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?q=80&w=800&auto=format&fit=crop',
     body: "The dreaded heel pain doesn't have to end your season. A comprehensive look at stretching, icing, and support strategies.\n\nPlantar fasciitis is an overuse injury of the band of tissue that runs from heel to toe. It often flares when load exceeds the tissue's capacity to recover—common in runners who increase volume too quickly or wear shoes with poor support. Stretching the calf and the plantar fascia itself (e.g., rolling a ball under the foot, toe stretches) can provide relief and improve flexibility. Aim for short, frequent sessions rather than one long stretch; consistency matters more than intensity.\n\nSupport matters: insoles with proper arch and heel cupping reduce strain on the fascia by aligning the foot and distributing pressure. Combine that with gradual loading, icing after activity, and avoiding long periods on hard surfaces in bare feet. Night splints can help some people by keeping the fascia gently stretched while you sleep, though they’re not for everyone.\n\nMost athletes see improvement within a few weeks when they're consistent. If pain persists or worsens, see a physio or sports doc to rule out other causes and get a tailored loading program. Returning to running should be gradual—build volume and intensity slowly so the tissue can adapt instead of re-aggravating."
   },
   {
@@ -45,20 +98,27 @@ export const BLOG_POSTS: BlogPost[] = [
     author: 'James Wilson',
     date: 'Sep 15, 2024',
     readTime: '5 min read',
-    image: '',
+    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=800&auto=format&fit=crop',
     body: 'Not all cushioning is created equal. We break down the physics of energy return versus shock absorption.\n\nGel and soft foams excel at absorbing impact—they dissipate energy as heat and reduce peak force on joints. That can feel comfortable for walking or standing, but in running it often means more work for your muscles to re-accelerate your body with each step. Carbon fiber and responsive foams are built to store and return energy: they deform on impact and spring back, contributing to propulsion. The trade-off is straightforward: cushioning prioritizes comfort and shock absorption; responsive materials prioritize rebound and efficiency.\n\nFor high-mileage or speed work, energy return typically wins: you get support without a “dead” feel. For recovery days or if you prefer maximum cushion, a softer option may suit you. The best choice depends on your goals, injury history, and how you want your legs to feel at the end of a long run. Try both in training if you can—many runners use a responsive insole for key sessions and a plusher option for easy days. There’s no single right answer; it’s about matching the tool to the task and to your body.'
   }
 ];
 
-// Main featured article: same as first post, with role for the hero block
+// Featured hero — “5 Signs…” (not necessarily first in the grid order)
 const FEATURED_POST: BlogPost = {
-  ...BLOG_POSTS[0],
-  id: '1',
+  ...BLOG_POSTS.find((p) => p.id === '1')!,
   authorRole: 'Sports Medicine',
-  image: ''
+  image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1600&auto=format&fit=crop',
 };
 
-const CATEGORIES = ['All Stories', 'Performance', 'Recovery', 'Gear Tech', 'Maintenance', 'Innovation'];
+const CATEGORIES = [
+  'All Stories',
+  'Community',
+  'Performance',
+  'Recovery',
+  'Gear Tech',
+  'Maintenance',
+  'Innovation',
+];
 
 interface BlogPageProps {
   onPostSelect: (post: BlogPost) => void;
@@ -121,7 +181,10 @@ export const BlogPage: React.FC<BlogPageProps> = ({ onPostSelect }) => {
                  <div className="flex items-center justify-between mt-4 border-t border-slate-100 pt-6">
                     <div className="flex items-center gap-3">
                        <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
-                          <img src="" alt={FEATURED_POST.author} />
+                          <img
+                            src="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop"
+                            alt={FEATURED_POST.author}
+                          />
                        </div>
                        <div>
                           <p className="text-sm font-bold text-slate-900">{FEATURED_POST.author}</p>

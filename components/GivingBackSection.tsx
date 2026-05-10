@@ -15,7 +15,7 @@ export const GivingBackSection: React.FC<GivingBackSectionProps> = ({ onLearnMor
             <div className="lg:w-1/2 py-24 px-6 md:px-12 lg:pr-16 lg:pl-24">
                 <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase mb-6 opacity-80">Giving Back</span>
                 <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
-                    Your purchase supports initiatives that improve access to movement for future generations.
+                    Your purchase supports initiatives that support foot health accessibility, helping mobility for workers, seniors, athletes, and children, helping people stay active pain-free.
                 </h2>
                 <p className="text-slate-300 text-lg mb-10 leading-relaxed max-w-md">
                     AeroTouch donates 1% of annual sales to make a difference.
@@ -30,14 +30,14 @@ export const GivingBackSection: React.FC<GivingBackSectionProps> = ({ onLearnMor
 
             {/* Image Content */}
             <div className="lg:w-1/2 w-full h-[500px] lg:h-[700px] relative bg-[#2f3e30]">
-                <img 
-                    src="" 
-                    alt="Soccer player in action" 
+                <img
+                    src="https://images.unsplash.com/photo-1675345771255-733034aff5a2?q=80&w=1600&auto=format&fit=crop"
+                    alt="Family walking together on a path in a park"
                     className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-overlay opacity-90"
                 />
-                <img 
-                    src="" 
-                    alt="Soccer player in action" 
+                <img
+                    src="https://images.unsplash.com/photo-1675345771255-733034aff5a2?q=80&w=1600&auto=format&fit=crop"
+                    alt="Family walking together on a path in a park"
                     className="absolute inset-0 w-full h-full object-cover opacity-80"
                 />
                 
@@ -54,7 +54,7 @@ export const GivingBackSection: React.FC<GivingBackSectionProps> = ({ onLearnMor
                     <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-white -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_white]"></div>
                     <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-white -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_white]"></div>
                     
-                    {/* Large Circle Highlight (focus on leg) */}
+                    {/* Large circle highlight */}
                     <div className="absolute bottom-[20%] right-[30%] w-64 h-64 border border-white/60 rounded-full"></div>
                     <div className="absolute bottom-[20%] right-[30%] w-2 h-2 bg-white -translate-y-1/2 -translate-x-1/2 absolute top-0 left-1/2 transform -mt-1 shadow-[0_0_10px_white]"></div>
                     

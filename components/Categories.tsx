@@ -5,29 +5,39 @@ const categories = [
   {
     id: 'insoles',
     name: 'Insoles',
-    description: 'Peak comfort'
+    description: 'Peak comfort',
+    image:
+      'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/category_photos/cloud%20insole.JPG',
   },
   {
     id: 'tools',
     name: 'Tools',
-    description: 'Advanced recovery'
+    description: 'Advanced recovery',
+    image:
+      'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/category_photos/IMG_5653.JPG',
   },
   {
     id: 'pads',
     name: 'Pads',
-    description: 'Targeted relief'
+    description: 'Targeted relief',
+    image:
+      'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/category_photos/IMG_5654.JPG',
   },
   {
     id: 'socks',
     name: 'Socks',
-    description: 'Everyday support'
+    description: 'Everyday support',
+    image:
+      'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/category_photos/IMG_5655.PNG',
   },
   {
     id: 'bundle',
     name: 'Bundle',
     routeCategory: 'Bundle Kits',
-    description: 'Limited edition kits'
-  }
+    description: 'Limited edition kits',
+    image:
+      'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/category_photos/IMG_5656.JPG',
+  },
 ];
 
 interface CategoriesProps {
@@ -77,8 +87,15 @@ export const Categories: React.FC<CategoriesProps> = ({ onCategoryClick }) => {
               className="flex-none w-[70vw] md:w-full group relative aspect-[3/4.41] md:aspect-[4/5.51] overflow-hidden rounded-2xl cursor-pointer snap-start bg-brand-dark border border-white/5 hover:border-brand-lime/30 transition-all duration-500"
               onClick={() => onCategoryClick?.(('routeCategory' in cat ? (cat as any).routeCategory : cat.name) as string)}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-dark via-brand-dark/95 to-[#1c2433] group-hover:bg-brand-dark/90 transition-all duration-500" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(193,241,29,0.05),transparent)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <img
+                src={cat.image}
+                alt={`${cat.name} — shop category`}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/10 group-hover:from-black/80 group-hover:via-black/35 transition-all duration-500" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(193,241,29,0.08),transparent_55%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
               <div className="absolute bottom-0 left-0 p-6 w-full">
                 <p className="text-xs font-bold text-brand-lime uppercase tracking-wider mb-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
