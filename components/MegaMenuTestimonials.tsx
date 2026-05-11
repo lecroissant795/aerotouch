@@ -24,14 +24,14 @@ const REVIEWS: Review[] = [
     name: 'James Carter',
     role: 'Construction Foreman',
     quote: '"12 hour shifts on concrete used to destroy my feet. These insoles gave me my evenings back — no more soaking, no more pain."',
-    image: reviewAvatars.marcusT,
+    image: reviewAvatars.jamesCarter,
   },
   {
     id: 3,
     name: 'Emily Zhang',
     role: 'Registered Nurse',
     quote: '"Standing all day in the ward was taking a toll. Since switching to AeroTouch, my back pain has completely disappeared."',
-    image: reviewAvatars.emmaW,
+    image: reviewAvatars.emilyZhang,
   },
   {
     id: 4,
@@ -39,13 +39,6 @@ const REVIEWS: Review[] = [
     role: 'Personal Trainer',
     quote: '"I recommend AeroTouch to every single one of my clients. The arch support is unmatched and they last forever."',
     image: reviewAvatars.davidK,
-  },
-  {
-    id: 5,
-    name: 'Maria Santos',
-    role: 'Retail Manager',
-    quote: '"I was skeptical at first but the results spoke for themselves. Within two weeks my knee pain was gone and I\'m back to hiking."',
-    image: reviewAvatars.nicoleP,
   },
 ];
 

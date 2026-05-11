@@ -23,7 +23,7 @@ export const SalesBanner: React.FC = () => {
       {[1, 2, 3, 4].map((item) => (
         <span key={`${suffix}-${item}`} className="flex items-center mx-8 font-bold uppercase tracking-widest text-xs md:text-sm">
           <span className="mr-2">SALE</span>
-          Valentine's Seasonal Sale ❤️
+          Summer Seasonal Sale ☀️
           <span className="mx-2">•</span>
           Limited-Time Offers Across Best Sellers
         </span>

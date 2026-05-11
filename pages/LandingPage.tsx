@@ -291,7 +291,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
       <Features />
       <SeasonalBanner onShopSaleClick={onShopSaleClick} />
       <PressLogos />
-      <TrustedPartners />
+      <TrustedPartners onShopSaleClick={onShopSaleClick} />
 
       {/* Facebook-style Video Reviews Section */}
       <section className="pt-24 pb-12 md:pb-16 bg-white border-t border-slate-100 relative">

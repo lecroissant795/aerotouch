@@ -3,7 +3,12 @@ import { Button } from './Button';
 import { Star } from 'lucide-react';
 import { miscImages } from '../utils/mediaUrls';
 
-export const TrustedPartners: React.FC = () => {
+interface TrustedPartnersProps {
+  /** Opens the shop / sale catalog (same as seasonal banner & hero “shop all”). */
+  onShopSaleClick?: () => void;
+}
+
+export const TrustedPartners: React.FC<TrustedPartnersProps> = ({ onShopSaleClick }) => {
   return (
     <section className="w-full bg-brand-light overflow-hidden">
       <div className="flex flex-col md:flex-row min-h-[520px]">
@@ -34,9 +39,12 @@ Your comfort shouldn’t be optional.
               </p>
             </div>
 
-            <Button 
+            <Button
+              type="button"
               variant="secondary"
               className="bg-black hover:bg-brand-orange transition-colors duration-300 px-10 py-5 text-lg font-black uppercase tracking-widest rounded-none mb-8"
+              onClick={() => onShopSaleClick?.()}
+              aria-label="Shop our biggest sale — view all products"
             >
               Shop Our Biggest Sale
             </Button>
@@ -48,7 +56,7 @@ Your comfort shouldn’t be optional.
                 ))}
               </div>
               <span className="text-brand-dark font-semibold tracking-tight text-lg">
-                10000
+                50,000+ Reviews
               </span>
             </div>
           </div>
