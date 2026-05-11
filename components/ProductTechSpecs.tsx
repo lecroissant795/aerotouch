@@ -1434,11 +1434,11 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                 {
                   id: 10,
                   name: "Queenie Hong",
-                  role: "Retail Associate",
+                  role: "School Teacher",
                   image: reviewAvatars.queenieHong,
                   rating: 4,
-                  title: "Great heel support",
-                  content: "I clock in 8+ hours on concrete floors daily. These insoles make such a difference - my heels feel supported and I don't dread the afternoon slump anymore.",
+                  title: "Keeps me going through the school day",
+                  content: "I'm standing and walking the classroom six periods a day, plus playground duty — my heels used to ache by afternoon. These insoles make such a difference: my heels feel supported and I'm not drained when the bell rings.",
                   date: "1 week ago"
                 },
                 {
@@ -1982,7 +1982,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
       </section>
 
 
-      {/* 4. Invite Friends – Give 40%, Get 40% */}
+      {/* 4. Invite Friends – Give 15%, Get 15% */}
       <ReferralSection />
 
       {/* 5. Giving Back Section */}

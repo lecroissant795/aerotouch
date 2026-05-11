@@ -35,7 +35,7 @@ export interface Product {
       quantity: number;
       label: string;
       savings_text?: string;
-      highlight?: 'none' | 'popular' | 'best-value';
+      highlight?: 'none' | 'popular' | 'good-value' | 'best-value';
     }>;
     trust_badges_override?: Array<{
       icon: 'truck' | 'shield' | 'headphones' | 'refresh' | 'star' | 'clock';

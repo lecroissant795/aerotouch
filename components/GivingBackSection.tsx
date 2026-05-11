@@ -15,10 +15,10 @@ export const GivingBackSection: React.FC<GivingBackSectionProps> = ({ onLearnMor
             <div className="lg:w-1/2 py-24 px-6 md:px-12 lg:pr-16 lg:pl-24">
                 <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase mb-6 opacity-80">Giving Back</span>
                 <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
-                    Your purchase supports initiatives that support foot health accessibility, helping mobility for workers, seniors, athletes, and children, helping people stay active pain-free.
+                    AeroTouch donates 1% of annual sales to make a difference.
                 </h2>
                 <p className="text-slate-300 text-lg mb-10 leading-relaxed max-w-md">
-                    AeroTouch donates 1% of annual sales to make a difference.
+                    Your purchase supports initiatives that support foot health accessibility, helping mobility for workers, seniors, athletes, and children, helping people stay active pain-free.
                 </p>
                 <button
                     onClick={onLearnMore}

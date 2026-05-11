@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Hero } from '../components/Hero';
 import { Categories } from '../components/Categories';
 import { Features } from '../components/Features';
+import { SeasonalBanner } from '../components/SeasonalBanner';
 import { ProductCard } from '../components/ProductCard';
 import { Newsletter } from '../components/Newsletter';
 import { TrustedPartners } from '../components/TrustedPartners';
@@ -288,6 +289,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
       <ValueProps />
 
       <Features />
+      <SeasonalBanner onShopSaleClick={onShopSaleClick} />
       <PressLogos />
       <TrustedPartners />
 

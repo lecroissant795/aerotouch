@@ -732,8 +732,10 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                   >
                     <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(3deg)' }}>
                       <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
-                        <BadgeCheck className="h-4 w-4 shrink-0 text-brand-lime" />
-                        <span className="text-[11px] font-bold text-white">Best Value</span>
+                        <span className="text-base leading-none" aria-hidden>
+                          👍
+                        </span>
+                        <span className="text-[11px] font-bold text-white">Good Value</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center w-full">
@@ -764,6 +766,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     onClick={() => setBundle(5)}
                     className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${bundle === 5 ? 'border-brand-orange bg-orange-50/50' : 'border-slate-200 hover:border-slate-300'}`}
                   >
+                    <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(3deg)' }}>
+                      <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
+                        <BadgeCheck className="h-4 w-4 shrink-0 text-brand-lime" />
+                        <span className="text-[11px] font-bold text-white">Best Value</span>
+                      </div>
+                    </div>
                     <div className="flex justify-between items-center w-full">
                       <div className="flex items-center gap-4">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${bundle === 5 ? 'border-brand-orange' : 'border-slate-300'}`}>

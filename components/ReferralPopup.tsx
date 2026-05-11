@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, Gift, Share2, Copy, Check, X } from 'lucide-react';
 
-const REFERRAL_CODE = 'FRIEND40';
+const REFERRAL_CODE = 'FRIEND15';
 const SHARE_URL = 'https://aerotouch.com';
-const SHARE_TEXT = `Use my code ${REFERRAL_CODE} to get 40% off your first AeroTouch order! ${SHARE_URL}`;
+const SHARE_TEXT = `Use my code ${REFERRAL_CODE} to get 15% off your first AeroTouch order! ${SHARE_URL}`;
 const DELAY_AFTER_FIRST_POPUP_MS = 6 * 60 * 1000; // 6 minute
 
 export const ReferralPopup: React.FC = () => {
@@ -71,7 +71,7 @@ export const ReferralPopup: React.FC = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'AeroTouch — Give 40%, Get 40%',
+          title: 'AeroTouch — Give 15%, Get 15%',
           text: SHARE_TEXT,
           url: SHARE_URL,
         });
@@ -121,10 +121,10 @@ export const ReferralPopup: React.FC = () => {
               <Users className="w-8 h-8" />
             </div>
             <h3 className="text-2xl md:text-3xl font-black text-slate-900 text-center tracking-tight mb-2">
-              Give 40%. Get 40%.
+              Give 15%. Get 15%.
             </h3>
             <p className="text-slate-600 text-center text-sm leading-relaxed mb-6">
-              Share your code with friends and family — <strong>you both get 40% off</strong> your next order.
+              Share your code with friends and family — <strong>you both get 15% off</strong> your next order.
             </p>
 
             <div className="mb-6">
@@ -171,7 +171,7 @@ export const ReferralPopup: React.FC = () => {
 
             <div className="flex items-center justify-center gap-2 text-slate-500 text-xs">
               <Gift className="w-4 h-4 text-brand-orange flex-shrink-0" />
-              <span>You & your friend each get 40% off. New customers only.</span>
+              <span>You & your friend each get 15% off. New customers only.</span>
             </div>
           </div>
         </div>

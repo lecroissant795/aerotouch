@@ -31,7 +31,7 @@ export interface ProductMetafields {
     quantity: number;
     label: string;
     savings_text?: string;
-    highlight?: 'none' | 'popular' | 'best-value';
+    highlight?: 'none' | 'popular' | 'good-value' | 'best-value';
   }>;
 
   // Trust Badges (for secondary layout)

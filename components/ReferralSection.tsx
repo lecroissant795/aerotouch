@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Users, Gift, Share2, Copy, Check } from 'lucide-react';
 
-const REFERRAL_CODE = 'FRIEND40';
+const REFERRAL_CODE = 'FRIEND15';
 const SHARE_URL = 'https://aerotouch.com';
-const SHARE_TEXT = `Use my code ${REFERRAL_CODE} to get 40% off your first AeroTouch order! ${SHARE_URL}`;
+const SHARE_TEXT = `Use my code ${REFERRAL_CODE} to get 15% off your first AeroTouch order! ${SHARE_URL}`;
 
 export const ReferralSection: React.FC = () => {
   const [copied, setCopied] = useState(false);
@@ -32,7 +32,7 @@ export const ReferralSection: React.FC = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'AeroTouch — Give 40%, Get 40%',
+          title: 'AeroTouch — Give 15%, Get 15%',
           text: SHARE_TEXT,
           url: SHARE_URL,
         });
@@ -63,10 +63,10 @@ export const ReferralSection: React.FC = () => {
         </span>
         
         <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight leading-none mb-4">
-            Give 40%. Get 40%.
+            Give 15%. Get 15%.
         </h2>
         <p className="text-white/95 text-base md:text-xl font-medium max-w-2xl mx-auto mb-8 leading-relaxed">
-            Invite friends and family with your code. <strong>You both get 40% off</strong> your next order — share the relief.
+            Invite friends and family with your code. <strong>You both get 15% off</strong> your next order — share the relief.
         </p>
 
         {/* Referral code block */}
@@ -103,7 +103,7 @@ export const ReferralSection: React.FC = () => {
             </button>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/90">
                 <Gift className="w-4 h-4" />
-                You & your friend each get 40% off
+                You & your friend each get 15% off
             </div>
         </div>
         

@@ -26,6 +26,10 @@ import {
 } from '../utils/heightBoostersCopy';
 import { MASSAGE_GUN_PDP_COPY } from '../utils/productMapping';
 
+type BundleTierHighlight = NonNullable<
+  NonNullable<NonNullable<Product['metafields']>['bundle_options_override']>[number]['highlight']
+>;
+
 const BenefitBullet: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <li className="flex items-start gap-2">
     <Check className="w-4 h-4 text-brand-dark mt-0.5 flex-shrink-0" strokeWidth={2.5} />
@@ -1152,11 +1156,13 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                       const highlight = (() => {
                         const raw = meta.bundle_options_override;
                         if (Array.isArray(raw) && raw.length > 0) {
-                          const h = raw.find((o) => o.quantity === qty)?.highlight;
+                          const h: BundleTierHighlight | undefined = raw.find((o) => o.quantity === qty)?.highlight;
                           if (h === 'popular') return 'popular';
                           if (h === 'best-value') return 'best-value';
+                          if (h === 'good-value') return 'good-value';
                         }
                         if (qty === 2) return 'popular';
+                        if (qty === 3 && peakBundleQty > 3) return 'good-value';
                         if (qty === peakBundleQty && peakBundleQty >= 3) return 'best-value';
                         return null;
                       })();
@@ -1171,6 +1177,16 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                 <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
                                     <span className="text-base leading-none" aria-hidden>🔥</span>
                                     <span className="text-[11px] font-bold text-white">Most Popular</span>
+                                </div>
+                             </div>
+                          )}
+                          {highlight === 'good-value' && (
+                             <div className="absolute top-0 right-0 -translate-y-1/2 z-10" style={{ transform: 'translateY(-50%) rotate(3deg)' }}>
+                                <div className="flex items-center gap-2 rounded-full bg-black px-4 py-2 shadow-lg">
+                                    <span className="text-base leading-none" aria-hidden>
+                                      👍
+                                    </span>
+                                    <span className="text-[11px] font-bold text-white">Good Value</span>
                                 </div>
                              </div>
                           )}
