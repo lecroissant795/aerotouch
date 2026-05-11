@@ -65,9 +65,27 @@ export const Footer: React.FC = () => {
         <div className="border-t border-slate-100 pt-10 flex flex-col items-center gap-6 text-sm text-slate-500">
           <p>&copy; {new Date().getFullYear()} AeroTouch Inc. All rights reserved.</p>
           <div className="flex space-x-8">
-            <a href="#" className="hover:text-brand-dark transition-colors">Terms</a>
-            <a href="#" className="hover:text-brand-dark transition-colors">Privacy</a>
-            <a href="#" className="hover:text-brand-dark transition-colors">Cookies</a>
+            <a
+              href={createUrl(Page.TERMS)}
+              className="hover:text-brand-dark transition-colors"
+              onClick={handleClick(Page.TERMS)}
+            >
+              Terms
+            </a>
+            <a
+              href={createUrl(Page.PRIVACY)}
+              className="hover:text-brand-dark transition-colors"
+              onClick={handleClick(Page.PRIVACY)}
+            >
+              Privacy
+            </a>
+            <a
+              href={createUrl(Page.COOKIES)}
+              className="hover:text-brand-dark transition-colors"
+              onClick={handleClick(Page.COOKIES)}
+            >
+              Cookies
+            </a>
           </div>
         </div>
       </div>

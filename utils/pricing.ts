@@ -11,7 +11,7 @@ export interface PricingTier {
 
 /**
  * Quantity is total units in cart (all lines). Percentages and thresholds must stay in sync
- * with Shopify Admin automatic discounts (this store: 15% @ 2+, 26% @ 3+, 45% @ 5+ items).
+ * with Shopify Admin automatic discounts (this store: 10% @ 2+, 18% @ 3+, 24% @ 5+ items).
  */
 export const PRICING_TIERS: PricingTier[] = [
   {
@@ -23,23 +23,23 @@ export const PRICING_TIERS: PricingTier[] = [
   },
   {
     minQty: 2,
-    discountPercent: 15,
-    label: '15% OFF',
-    checkpointTitle: '15% OFF',
+    discountPercent: 10,
+    label: '10% OFF',
+    checkpointTitle: '10% OFF',
     checkpointSubtitle: '2+ items'
   },
   {
     minQty: 3,
-    discountPercent: 26,
-    label: '26% OFF',
-    checkpointTitle: '26% OFF',
+    discountPercent: 18,
+    label: '18% OFF',
+    checkpointTitle: '18% OFF',
     checkpointSubtitle: '3+ items'
   },
   {
     minQty: 5,
-    discountPercent: 45,
-    label: '45% OFF',
-    checkpointTitle: '45% OFF',
+    discountPercent: 24,
+    label: '24% OFF',
+    checkpointTitle: '24% OFF',
     checkpointSubtitle: '5+ items'
   }
 ];

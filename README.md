@@ -6,7 +6,7 @@ AeroTouch is a high-performance e-commerce React application for selling premium
 
 - **Custom SPA routing** — lightweight client-side router without React Router
 - **Shopify Storefront API integration** — live product data, inventory, and checkout
-- **Tiered pricing engine** — automatic quantity discounts (35% off 2 pairs, 55% off 3, 60% off 5+)
+- **Tiered pricing engine** — automatic quantity discounts (10% off 2+ items, 18% off 3+ items, 24% off 5+ items)
 - **Bundle kits** — pre-configured product bundles with fixed pricing
 - **Slide-out cart drawer** — seamless cart experience without leaving the page
 - **Google Analytics 4** — full traffic and conversion tracking

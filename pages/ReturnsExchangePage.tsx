@@ -14,8 +14,7 @@ import {
   Clock,
   DollarSign,
   FileText,
-  Box,
-  Camera
+  Box
 } from 'lucide-react';
 
 type RequestType = 'return' | 'exchange' | null;
@@ -46,6 +45,10 @@ export const ReturnsExchangePage: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmationEmailSent, setConfirmationEmailSent] = useState(false);
+
+  const isValidEmailFormat = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isValidOrderNumber = (orderNumber: string) => /^[A-Za-z0-9-]{4,32}$/.test(orderNumber.trim().replace(/^#/, ''));
 
   const handleSelectType = (type: RequestType) => {
     setFormData({ ...formData, requestType: type });
@@ -56,10 +59,24 @@ export const ReturnsExchangePage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setConfirmationEmailSent(false);
+
+    const normalizedOrderNumber = formData.orderNumber.trim();
+    const normalizedEmail = formData.email.trim().toLowerCase();
 
     // Basic validation
-    if (!formData.orderNumber || !formData.email || !formData.reason || !formData.items) {
+    if (!normalizedOrderNumber || !normalizedEmail || !formData.reason || !formData.items.trim()) {
       setError('Please fill in all required fields.');
+      setIsLoading(false);
+      return;
+    }
+    if (!isValidOrderNumber(normalizedOrderNumber)) {
+      setError('Please enter a valid order number (letters, numbers, or dashes).');
+      setIsLoading(false);
+      return;
+    }
+    if (!isValidEmailFormat(normalizedEmail)) {
+      setError('Please enter a valid email address.');
       setIsLoading(false);
       return;
     }
@@ -70,7 +87,13 @@ export const ReturnsExchangePage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          orderNumber: normalizedOrderNumber,
+          email: normalizedEmail,
+          items: formData.items.trim(),
+          comments: formData.comments.trim(),
+        }),
       });
 
       const data = await response.json();
@@ -80,6 +103,7 @@ export const ReturnsExchangePage: React.FC = () => {
       }
 
       setStep('submitted');
+      setConfirmationEmailSent(Boolean(data?.confirmationEmailSent));
     } catch (err: any) {
       setError(err.message || 'Failed to submit return request. Please try again or contact support.');
     } finally {
@@ -227,6 +251,8 @@ export const ReturnsExchangePage: React.FC = () => {
                             placeholder="e.g. #AT12345"
                             className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange transition-all"
                             required
+                            pattern="[A-Za-z0-9-]{4,32}"
+                            title="Use 4-32 letters, numbers, or dashes"
                           />
                         </div>
                         <div>
@@ -376,6 +402,11 @@ export const ReturnsExchangePage: React.FC = () => {
                   <p className="text-slate-600 mb-8 max-w-lg mx-auto">
                     We've received your {formData.requestType} request and will send you a confirmation email with next steps within 24 hours.
                   </p>
+                  {!confirmationEmailSent && (
+                    <div className="mb-8 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm text-left">
+                      We received your request, but the confirmation email could not be sent automatically. Our support team will still process it.
+                    </div>
+                  )}
                   
                   <div className="bg-slate-50 rounded-2xl p-6 mb-8 text-left">
                     <h3 className="font-bold text-brand-dark mb-4">What happens next?</h3>
@@ -423,7 +454,12 @@ export const ReturnsExchangePage: React.FC = () => {
                     >
                       Submit Another Request
                     </Button>
-                    <Button className="rounded-xl">
+                    <Button
+                      className="rounded-xl"
+                      onClick={() => {
+                        window.location.href = 'mailto:support@aerotouch.com?subject=' + encodeURIComponent('Return/Exchange Support');
+                      }}
+                    >
                       <Mail className="w-5 h-5 mr-2" />
                       Contact Support
                     </Button>
@@ -497,11 +533,11 @@ export const ReturnsExchangePage: React.FC = () => {
                 <h3 className="font-bold text-brand-dark mb-4 text-sm">Need Help?</h3>
                 <p className="text-sm text-slate-600 mb-4">Our support team is here to assist you.</p>
                 <div className="space-y-2">
-                  <a href="#" className="flex items-center gap-2 text-sm text-brand-orange hover:text-orange-600 font-medium">
+                  <a href="mailto:support@aerotouch.com" className="flex items-center gap-2 text-sm text-brand-orange hover:text-orange-600 font-medium">
                     <Mail className="w-4 h-4" />
                     support@aerotouch.com
                   </a>
-                  <a href="#" className="flex items-center gap-2 text-sm text-brand-orange hover:text-orange-600 font-medium">
+                  <a href="/track-order" className="flex items-center gap-2 text-sm text-brand-orange hover:text-orange-600 font-medium">
                     <Package className="w-4 h-4" />
                     Track My Return
                   </a>

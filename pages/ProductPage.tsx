@@ -893,21 +893,28 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">1 Pair Option</span>
                            </div>
-                           <span className="text-xs font-black text-brand-dark bg-slate-100 px-2 py-1 rounded">${formatPrice(unitPrice)}</span>
+                           <span className="text-xs font-black text-brand-dark bg-slate-100 px-2 py-1 rounded">Save $24</span>
                         </div>
                         <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-2 rounded-lg border border-slate-100">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">2 Pairs Option</span>
                            </div>
-                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">${formatPrice(unitPrice * 2)}</span>
+                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">Save $48</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-2 rounded-lg border border-slate-100">
+                           <div className="flex items-center gap-2">
+                               <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
+                               <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">3 Pairs Option</span>
+                           </div>
+                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">Save $72</span>
                         </div>
                         <div className="flex justify-between items-center bg-brand-dark p-2 rounded-lg border border-brand-dark shadow-lg">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse" />
-                               <span className="text-xs font-bold text-slate-300 uppercase tracking-tight">3 Pairs Option</span>
+                               <span className="text-xs font-bold text-slate-300 uppercase tracking-tight">5 Pairs Option</span>
                            </div>
-                           <span className="text-xs font-black text-brand-dark bg-brand-lime px-2 py-1 rounded">${formatPrice(unitPrice * 3)}</span>
+                           <span className="text-xs font-black text-brand-dark bg-brand-lime px-2 py-1 rounded">Save $120</span>
                         </div>
                     </div>
                 </div>

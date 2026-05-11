@@ -1,54 +1,198 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../components/Button';
 import { Page } from '../types';
-import { 
-  Search, 
-  Package, 
-  RefreshCcw, 
-  Ruler, 
-  Shield, 
-  MessageCircle, 
-  Mail, 
-  ChevronDown, 
+import {
+  Search,
+  Package,
+  RefreshCcw,
+  Ruler,
+  Shield,
+  MessageCircle,
+  Mail,
   ChevronRight,
   ArrowRight,
   HelpCircle
 } from 'lucide-react';
 
-const FAQS = [
+type SupportFaq = {
+  q: string;
+  a: string;
+  /** Extra match terms (not shown) — sizing, shipping, returns, etc. */
+  keywords?: string[];
+};
+
+type SupportCategory = {
+  category: string;
+  questions: SupportFaq[];
+};
+
+const FAQS: SupportCategory[] = [
   {
     category: 'Product & Sizing',
     questions: [
-      { q: 'How do I know which size to buy?', a: 'We recommend choosing the size range that corresponds to your shoe size. If you are between sizes, we generally suggest sizing up as our insoles can be trimmed at the toe for a perfect fit.' },
-      { q: 'Can I trim the insoles?', a: 'Yes! AeroTouch insoles are designed to be trimmed. Use your factory insole as a template, trace it onto the AeroTouch insole, and trim with sharp scissors.' },
-      { q: 'How long do they last?', a: 'For daily use, we recommend replacing them every 6-12 months. For high-impact running or sports, we recommend replacing every 300-500 miles, similar to your running shoes.' }
+      {
+        q: 'How do I know which size to buy?',
+        a: 'We recommend choosing the size range that corresponds to your shoe size. If you are between sizes, we generally suggest sizing up as our insoles can be trimmed at the toe for a perfect fit.',
+        keywords: ['size', 'sizing', 'fit', 'shoe size', 'measure', 'too small', 'too big', 'width']
+      },
+      {
+        q: 'Can I trim the insoles?',
+        a: 'Yes! AeroTouch insoles are designed to be trimmed. Use your factory insole as a template, trace it onto the AeroTouch insole, and trim with sharp scissors.',
+        keywords: ['trim', 'cut', 'template', 'scissors', 'customize', 'length']
+      },
+      {
+        q: 'How long do they last?',
+        a: 'For daily use, we recommend replacing them every 6-12 months. For high-impact running or sports, we recommend replacing every 300-500 miles, similar to your running shoes.',
+        keywords: ['durability', 'lifespan', 'replace', 'wear out', 'miles', 'months']
+      }
     ]
   },
   {
     category: 'Performance & Benefits',
     questions: [
-      { q: 'Do these help with Plantar Fasciitis?', a: 'Yes. Our specialized arch support is designed to reduce strain on the plantar fascia, providing targeted relief for heel pain and arch discomfort.' },
-      { q: 'Are they good for high-impact sports?', a: 'Absolutely. AeroTouch insoles are engineered for energy return and shock absorption, making them ideal for running, basketball, and other high-impact activities.' },
-      { q: 'How do they differ from generic insoles?', a: 'Generic insoles offer basic cushioning. AeroTouch uses performance-grade materials to provide structural support, stability, and energy return that actually improves your movement.' }
+      {
+        q: 'Do these help with Plantar Fasciitis?',
+        a: 'Yes. Our specialized arch support is designed to reduce strain on the plantar fascia, providing targeted relief for heel pain and arch discomfort.',
+        keywords: ['plantar fasciitis', 'heel pain', 'arch', 'fascia', 'foot pain', 'morning pain']
+      },
+      {
+        q: 'Are they good for high-impact sports?',
+        a: 'Absolutely. AeroTouch insoles are engineered for energy return and shock absorption, making them ideal for running, basketball, and other high-impact activities.',
+        keywords: ['running', 'basketball', 'sports', 'impact', 'shock', 'energy return', 'athletic']
+      },
+      {
+        q: 'How do they differ from generic insoles?',
+        a: 'Generic insoles offer basic cushioning. AeroTouch uses performance-grade materials to provide structural support, stability, and energy return that actually improves your movement.',
+        keywords: ['vs', 'compare', 'dr scholls', 'generic', 'cushion', 'support', 'difference']
+      }
     ]
   },
   {
     category: 'Usage & Care',
     questions: [
-      { q: 'Do I need to break them in?', a: 'Most users find them comfortable immediately. However, if you are new to support insoles, we recommend wearing them for 2-3 hours a day for the first few days to let your feet adjust.' },
-      { q: 'How do I clean my insoles?', a: 'Hand wash with mild soap and lukewarm water. Air dry away from direct heat sources. Do not machine wash or dry, as this can damage the structural integrity.' },
-      { q: 'Can I switch them between shoes?', a: 'Yes, as long as the shoes are the same size range. For the best fit and longevity, we recommend having a dedicated pair for your primary athletic shoes.' }
+      {
+        q: 'Do I need to break them in?',
+        a: 'Most users find them comfortable immediately. However, if you are new to support insoles, we recommend wearing them for 2-3 hours a day for the first few days to let your feet adjust.',
+        keywords: ['break in', 'adjust', 'comfort', 'first time', 'new']
+      },
+      {
+        q: 'How do I clean my insoles?',
+        a: 'Hand wash with mild soap and lukewarm water. Air dry away from direct heat sources. Do not machine wash or dry, as this can damage the structural integrity.',
+        keywords: ['wash', 'clean', 'soap', 'smell', 'odor', 'dry', 'laundry']
+      },
+      {
+        q: 'Can I switch them between shoes?',
+        a: 'Yes, as long as the shoes are the same size range. For the best fit and longevity, we recommend having a dedicated pair for your primary athletic shoes.',
+        keywords: ['multiple shoes', 'swap', 'transfer', 'different shoes']
+      }
     ]
   },
   {
     category: 'Shipping & Returns',
     questions: [
-      { q: 'What is your return policy?', a: 'We offer a 60-day "Risk-Free" trial. If you are not completely satisfied, you can return them for a full refund, even if they have been trimmed or worn.' },
-      { q: 'How long does shipping take?', a: 'Standard shipping takes 3-5 business days. Expedited options are available at checkout. Orders placed before 2PM EST ship same-day.' },
-      { q: 'Do you ship internationally?', a: 'Yes, we ship to over 50 countries. International shipping times vary by location but typically take 7-14 business days.' }
+      {
+        q: 'What is your return policy?',
+        a: 'We offer a 60-day "Risk-Free" trial. If you are not completely satisfied, you can return them for a full refund, even if they have been trimmed or worn.',
+        keywords: ['return', 'refund', 'money back', 'trial', '60 day', 'exchange', 'warranty']
+      },
+      {
+        q: 'How long does shipping take?',
+        a: 'Standard shipping takes 3-5 business days. Expedited options are available at checkout. Orders placed before 2PM EST ship same-day.',
+        keywords: ['shipping', 'delivery', 'how long', 'track order', 'expedited', 'same day', 'EST']
+      },
+      {
+        q: 'Do you ship internationally?',
+        a: 'Yes, we ship to over 50 countries. International shipping times vary by location but typically take 7-14 business days.',
+        keywords: ['international', 'overseas', 'country', 'abroad', 'Canada', 'UK', 'EU']
+      }
     ]
   }
 ];
+
+function normalize(s: string): string {
+  return s.toLowerCase().trim();
+}
+
+function tokenize(query: string): string[] {
+  return normalize(query)
+    .split(/\s+/)
+    .map((t) => t.replace(/[^\p{L}\p{N}-]+/gu, ''))
+    .filter(Boolean);
+}
+
+function faqMatchScore(tokens: string[], category: string, item: SupportFaq): number {
+  if (tokens.length === 0) return 0;
+  const cat = normalize(category);
+  const title = normalize(item.q);
+  const body = normalize(item.a);
+  const kwBlob = normalize((item.keywords || []).join(' '));
+  const fullPhrase = tokens.join(' ');
+  let score = 0;
+
+  if (title.includes(fullPhrase)) score += 100;
+  if (cat.includes(fullPhrase)) score += 70;
+  if (kwBlob.includes(fullPhrase)) score += 55;
+  if (body.includes(fullPhrase)) score += 45;
+
+  for (const t of tokens) {
+    if (title.includes(t)) score += 28;
+    if (cat.includes(t)) score += 18;
+    if (kwBlob.includes(t)) score += 14;
+    if (body.includes(t)) score += 6;
+  }
+  return score;
+}
+
+type ScoredFaq = {
+  catIdx: number;
+  qIdx: number;
+  id: string;
+  category: string;
+  faq: SupportFaq;
+  score: number;
+};
+
+function buildScoredMatches(query: string): ScoredFaq[] {
+  const tokens = tokenize(query);
+  if (tokens.length === 0) return [];
+
+  const scored: ScoredFaq[] = [];
+  FAQS.forEach((cat, catIdx) => {
+    cat.questions.forEach((faq, qIdx) => {
+      const score = faqMatchScore(tokens, cat.category, faq);
+      if (score > 0) {
+        scored.push({
+          catIdx,
+          qIdx,
+          id: `${catIdx}-${qIdx}`,
+          category: cat.category,
+          faq,
+          score
+        });
+      }
+    });
+  });
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.catIdx !== b.catIdx) return a.catIdx - b.catIdx;
+    return a.qIdx - b.qIdx;
+  });
+  return scored;
+}
+
+function groupMatchesByCategory(matches: ScoredFaq[]): { category: string; items: ScoredFaq[] }[] {
+  const order: string[] = [];
+  const map = new Map<string, ScoredFaq[]>();
+  for (const m of matches) {
+    if (!map.has(m.category)) {
+      order.push(m.category);
+      map.set(m.category, []);
+    }
+    map.get(m.category)!.push(m);
+  }
+  return order.map((category) => ({ category, items: map.get(category)! }));
+}
 
 const SUPPORT_EMAIL = 'support@aerotouch.com';
 const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('AeroTouch support request')}`;
@@ -63,6 +207,76 @@ interface SupportPageProps {
 
 export const SupportPage: React.FC<SupportPageProps> = ({ onNavigate }) => {
   const [openFaq, setOpenFaq] = useState<string | null>('0-0'); // Default open first one
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const faqSectionRef = useRef<HTMLElement>(null);
+  const hadSearchQueryRef = useRef(false);
+
+  const trimmedQuery = searchQuery.trim();
+  const isSearchActive = trimmedQuery.length > 0;
+
+  const scoredMatches = useMemo(() => buildScoredMatches(trimmedQuery), [trimmedQuery]);
+  const groupedForDisplay = useMemo(() => groupMatchesByCategory(scoredMatches), [scoredMatches]);
+
+  const displayCategories = useMemo(() => {
+    if (!isSearchActive) {
+      return FAQS.map((c, i) => ({
+        category: c.category,
+        questions: c.questions.map((faq, qIdx) => ({ faq, id: `${i}-${qIdx}` }))
+      }));
+    }
+    return groupedForDisplay.map((g) => ({
+      category: g.category,
+      questions: g.items.map((m) => ({ faq: m.faq, id: m.id }))
+    }));
+  }, [isSearchActive, groupedForDisplay]);
+
+  useEffect(() => {
+    if (!isSearchActive) return;
+    if (scoredMatches.length === 0) {
+      setOpenFaq(null);
+      return;
+    }
+    setOpenFaq((prev) => {
+      if (prev && scoredMatches.some((m) => m.id === prev)) return prev;
+      return scoredMatches[0].id;
+    });
+  }, [isSearchActive, scoredMatches]);
+
+  useEffect(() => {
+    if (trimmedQuery) {
+      hadSearchQueryRef.current = true;
+      return;
+    }
+    if (hadSearchQueryRef.current) {
+      hadSearchQueryRef.current = false;
+      setOpenFaq('0-0');
+    }
+  }, [trimmedQuery]);
+
+  const scrollToFaqSection = useCallback(() => {
+    faqSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const runSearchNavigation = useCallback(() => {
+    scrollToFaqSection();
+    if (isSearchActive && scoredMatches.length > 0) {
+      setOpenFaq(scoredMatches[0].id);
+    }
+  }, [scrollToFaqSection, isSearchActive, scoredMatches]);
+
+  const onSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setSearchQuery('');
+      searchInputRef.current?.blur();
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      runSearchNavigation();
+    }
+  };
 
   const toggleFaq = (idx: string) => {
     setOpenFaq(openFaq === idx ? null : idx);
@@ -90,18 +304,33 @@ export const SupportPage: React.FC<SupportPageProps> = ({ onNavigate }) => {
               Find answers to common questions, track your order, or get in touch with our performance experts.
            </p>
            
-           <div className="relative max-w-2xl mx-auto group">
+           <form
+              className="relative max-w-2xl mx-auto group"
+              role="search"
+              aria-label="Search support articles and FAQs"
+              onSubmit={(e) => {
+                e.preventDefault();
+                runSearchNavigation();
+              }}
+           >
              <div className="absolute inset-0 bg-brand-lime/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
              <div className="relative flex items-center bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-2 shadow-2xl transition-all focus-within:bg-white/10 focus-within:border-white/20">
-                <Search className="w-6 h-6 text-slate-400 ml-4 mr-4" />
-                <input 
-                   type="text" 
-                   placeholder="Search for answers (e.g., sizing, shipping)..." 
-                   className="w-full bg-transparent text-white placeholder:text-slate-500 focus:outline-none text-lg py-3"
+                <Search className="w-6 h-6 text-slate-400 ml-4 mr-4 shrink-0" aria-hidden />
+                <input
+                   ref={searchInputRef}
+                   type="search"
+                   name="support-search"
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   onKeyDown={onSearchKeyDown}
+                   placeholder="Search for answers (e.g., sizing, shipping)..."
+                   autoComplete="off"
+                   aria-controls="support-faq-panel"
+                   className="w-full min-w-0 bg-transparent text-white placeholder:text-slate-500 focus:outline-none text-lg py-3"
                 />
-                <Button className="hidden md:flex rounded-xl px-8" size="lg">Search</Button>
+                <Button type="submit" className="hidden md:flex rounded-xl px-8 shrink-0" size="lg">Search</Button>
              </div>
-           </div>
+           </form>
         </div>
       </section>
 
@@ -173,53 +402,74 @@ export const SupportPage: React.FC<SupportPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-10 pb-24">
+      <section ref={faqSectionRef} className="py-10 pb-24" aria-label="Frequently asked questions">
          <div className="container mx-auto px-4 md:px-6 max-w-4xl">
             <div className="text-center mb-16">
                <span className="text-brand-orange font-bold uppercase tracking-wider text-sm">FAQ</span>
                <h2 className="text-3xl md:text-4xl font-black text-slate-900 mt-2 mb-4">Frequently Asked Questions</h2>
                <div className="w-20 h-1.5 bg-brand-lime mx-auto rounded-full"></div>
             </div>
-            
-            <div className="grid gap-4">
-               {FAQS.map((category, catIdx) => (
-                  <div key={catIdx} className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100">
-                     <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-3 pb-6 border-b border-slate-100">
-                        <div className="w-2 h-8 bg-brand-dark rounded-full"></div>
-                        {category.category}
-                     </h3>
-                     <div className="space-y-4">
-                        {category.questions.map((faq, qIdx) => {
-                           const id = `${catIdx}-${qIdx}`;
-                           const isOpen = openFaq === id;
-                           return (
-                              <div key={qIdx} className={`rounded-xl transition-all duration-300 border border-transparent ${isOpen ? 'bg-slate-50 border-slate-200' : 'hover:bg-slate-50/50 hover:border-slate-100'}`}>
-                                 <button 
-                                    className="w-full flex items-center text-left p-4 md:p-5 focus:outline-none"
-                                    onClick={() => toggleFaq(id)}
+
+            <div id="support-faq-panel" className="grid gap-4">
+               {isSearchActive && scoredMatches.length === 0 ? (
+                  <div className="bg-white rounded-3xl p-10 md:p-14 shadow-sm border border-slate-100 text-center">
+                     <p className="text-lg font-bold text-slate-900 mb-2">No results found</p>
+                     <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                        We couldn&apos;t find a help article matching &ldquo;{trimmedQuery}&rdquo;. Try different keywords, or clear the search to browse all FAQs.
+                     </p>
+                     <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                           setSearchQuery('');
+                           searchInputRef.current?.focus();
+                        }}
+                     >
+                        Clear search
+                     </Button>
+                  </div>
+               ) : (
+                  displayCategories.map((block) => (
+                     <div key={block.category} className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100">
+                        <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-3 pb-6 border-b border-slate-100">
+                           <div className="w-2 h-8 bg-brand-dark rounded-full" aria-hidden />
+                           {block.category}
+                        </h3>
+                        <div className="space-y-4">
+                           {block.questions.map(({ faq, id }) => {
+                              const isOpen = openFaq === id;
+                              return (
+                                 <div
+                                    key={id}
+                                    className={`rounded-xl transition-all duration-300 border border-transparent ${isOpen ? 'bg-slate-50 border-slate-200' : 'hover:bg-slate-50/50 hover:border-slate-100'}`}
                                  >
-                                    <span className={`mr-4 transition-transform duration-300 ${isOpen ? 'rotate-90 text-brand-orange' : 'text-slate-400'}`}>
-                                       <ChevronRight className="w-5 h-5" />
-                                    </span>
-                                    <span className={`block text-lg font-bold transition-colors ${isOpen ? 'text-brand-dark' : 'text-slate-700'}`}>
-                                       {faq.q}
-                                    </span>
-                                 </button>
-                                 <div 
-                                    className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mb-5' : 'grid-rows-[0fr] opacity-0'}`}
-                                 >
-                                    <div className="overflow-hidden px-5 md:px-14">
-                                       <p className="text-slate-600 leading-relaxed">
-                                          {faq.a}
-                                       </p>
+                                    <button
+                                       type="button"
+                                       className="w-full flex items-center text-left p-4 md:p-5 focus:outline-none"
+                                       aria-expanded={isOpen}
+                                       onClick={() => toggleFaq(id)}
+                                    >
+                                       <span className={`mr-4 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-90 text-brand-orange' : 'text-slate-400'}`}>
+                                          <ChevronRight className="w-5 h-5" aria-hidden />
+                                       </span>
+                                       <span className={`block text-lg font-bold transition-colors ${isOpen ? 'text-brand-dark' : 'text-slate-700'}`}>
+                                          {faq.q}
+                                       </span>
+                                    </button>
+                                    <div
+                                       className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mb-5' : 'grid-rows-[0fr] opacity-0'}`}
+                                    >
+                                       <div className="overflow-hidden px-5 md:px-14">
+                                          <p className="text-slate-600 leading-relaxed">{faq.a}</p>
+                                       </div>
                                     </div>
                                  </div>
-                              </div>
-                           );
-                        })}
+                              );
+                           })}
+                        </div>
                      </div>
-                  </div>
-               ))}
+                  ))
+               )}
             </div>
          </div>
       </section>

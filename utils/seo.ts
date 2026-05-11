@@ -252,6 +252,30 @@ function createSeoPayload(input: SeoInput): SeoPayload {
         image: DEFAULT_IMAGE,
         type: 'website'
       };
+    case Page.TERMS:
+      return {
+        title: 'Terms & Conditions | AeroTouch',
+        description: 'Review AeroTouch terms and conditions for website use, orders, shipping, promotions, and liability.',
+        path: '/terms',
+        image: DEFAULT_IMAGE,
+        type: 'website'
+      };
+    case Page.PRIVACY:
+      return {
+        title: 'Privacy Policy | AeroTouch',
+        description: 'Learn what information AeroTouch collects, how it is used, and your privacy choices.',
+        path: '/privacy',
+        image: DEFAULT_IMAGE,
+        type: 'website'
+      };
+    case Page.COOKIES:
+      return {
+        title: 'Cookie Policy | AeroTouch',
+        description: 'Learn about cookies used on AeroTouch, how they work, and how to manage your preferences.',
+        path: '/cookies',
+        image: DEFAULT_IMAGE,
+        type: 'website'
+      };
     case Page.ACCOUNT:
       return {
         title: 'Account | AeroTouch',

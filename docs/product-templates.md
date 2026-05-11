@@ -13,7 +13,7 @@ Used for core products like insoles and orthotics. Full-featured layout.
 
 - Size selector (M 5–15 / W 6–16)
 - Color selector (Signature Orange, Grey, Stealth Black)
-- Tiered quantity pricing (35% / 55% / 60% off for 2 / 3 / 5+ pairs)
+- Tiered quantity pricing (10% / 18% / 24% off for 2+ / 3+ / 5+ items)
 - Product video player
 - Tech specs component
 - "Built For" use-case carousel

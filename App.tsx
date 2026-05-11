@@ -34,6 +34,9 @@ import {
 } from './utils/bundleKits';
 import { AccessoriesPage } from './pages/AccessoriesPage';
 import { WarrantyPage } from './pages/WarrantyPage';
+import { TermsPage } from './pages/TermsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { CookiesPage } from './pages/CookiesPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
 import { MassageRollerPage } from './pages/MassageRollerPage';
 import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
@@ -702,7 +705,16 @@ function AppShell() {
         }}
         searchQuery={searchQuery}
         transparentMode={page === Page.HOME}
-        forceWhite={page === Page.SUPPORT || page === Page.ORDER_STATUS || page === Page.RETURNS_EXCHANGE || page === Page.SIZE_GUIDE || page === Page.WARRANTY}
+        forceWhite={
+          page === Page.SUPPORT ||
+          page === Page.ORDER_STATUS ||
+          page === Page.RETURNS_EXCHANGE ||
+          page === Page.SIZE_GUIDE ||
+          page === Page.WARRANTY ||
+          page === Page.TERMS ||
+          page === Page.PRIVACY ||
+          page === Page.COOKIES
+        }
       />
 
       <SalesBanner />
@@ -855,6 +867,18 @@ function AppShell() {
 
         {page === Page.WARRANTY && (
           <WarrantyPage />
+        )}
+
+        {page === Page.TERMS && (
+          <TermsPage />
+        )}
+
+        {page === Page.PRIVACY && (
+          <PrivacyPage />
+        )}
+
+        {page === Page.COOKIES && (
+          <CookiesPage />
         )}
 
         {page === Page.BUNDLE_KITS && (

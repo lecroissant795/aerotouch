@@ -3,6 +3,7 @@ import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { handlePopupDiscountRequest } from './api/send-popup-email.handler.shared.js';
+import { handleReturnRequest } from './api/return-request.shared.js';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -86,6 +87,50 @@ export default defineConfig(({ mode }) => {
               res.statusCode = 500;
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ error: 'Could not process email request.' }));
+            }
+          });
+          server.middlewares.use('/api/return-request', async (req, res) => {
+            if (req.method === 'OPTIONS') {
+              res.statusCode = 200;
+              res.end();
+              return;
+            }
+            if (req.method !== 'POST') {
+              res.statusCode = 405;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Method not allowed.' }));
+              return;
+            }
+
+            try {
+              const body = await new Promise<string>((resolve, reject) => {
+                let raw = '';
+                req.on('data', (chunk) => {
+                  raw += chunk;
+                });
+                req.on('end', () => resolve(raw));
+                req.on('error', reject);
+              });
+
+              let parsed: Record<string, unknown> = {};
+              try {
+                parsed = body.trim() ? JSON.parse(body) : {};
+              } catch {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Invalid JSON body.' }));
+                return;
+              }
+
+              const result = await handleReturnRequest(parsed, getConfigEnv);
+              res.statusCode = result.status;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(result.body));
+            } catch (error) {
+              console.error('dev-return-request-api error:', error);
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Could not process return request.' }));
             }
           });
         },

@@ -45,7 +45,7 @@ The app uses a custom client-side router based on a `Page` enum (defined in `typ
 | `types.ts` | TypeScript interfaces (Product, CartItem, Page enum, etc.) |
 | `utils/shopify.ts` | Shopify Storefront API client |
 | `utils/analytics.ts` | Google Analytics 4 tracking |
-| `utils/pricing.ts` | Tiered pricing calculations (35%/55%/60% off for 2/3/5+ items) |
+| `utils/pricing.ts` | Tiered pricing calculations (10%/18%/24% off for 2+/3+/5+ items) |
 | `utils/mapper.ts` | Converts Shopify API responses to app types |
 | `hooks/useSocialProof.ts` | Provides simulated viewer counts and review data |
 
@@ -71,9 +71,9 @@ The app uses a custom client-side router based on a `Page` enum (defined in `typ
 
 All tiered quantity discounts are defined in `utils/pricing.ts`:
 - 1 pair: 0% off
-- 2 pairs: 35% off
-- 3 pairs: 55% off
-- 5+ pairs: 60% off
+- 2+ items: 10% off
+- 3+ items: 18% off
+- 5+ items: 24% off
 
 Bundle kits use fixed prices defined in `pages/BundleKitsPage.tsx`.
 

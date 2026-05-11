@@ -30,9 +30,9 @@ This document describes how the Product page works and how pricing is applied ac
 - User selects **1, 2, or 3 pairs** via the “Select Quantity” UI (`bundle` state = 1 | 2 | 3).
 - **Tier rules** (from `utils/pricing.ts`):
   - **1 pair:** No tier discount (0%).
-  - **2 pairs:** 35% off.
-  - **3 pairs:** 55% off.
-  - **5+ pairs:** 60% off (not exposed in the 1/2/3 selector but used by `getLinePricing`).
+  - **2+ items:** 10% off.
+  - **3+ items:** 18% off.
+  - **5+ items:** 24% off (not exposed in the 1/2/3 selector but used by `getLinePricing` and cart-wide tiers).
 
 Displayed price and savings are computed with:
 
@@ -76,14 +76,14 @@ Displayed price and savings are computed with:
 | Min quantity | Discount | Label   |
 |-------------|----------|--------|
 | 1           | 0%       | —      |
-| 2           | 35%      | 35% OFF |
-| 3           | 55%      | 55% OFF |
-| 5           | 60%      | 60% OFF |
+| 2           | 10%      | 10% OFF |
+| 3           | 18%      | 18% OFF |
+| 5           | 24%      | 24% OFF |
 
 - **1 pair:** Full compare-at price (no discount).
-- **2 pairs:** 35% off per unit.
-- **3 pairs:** 55% off per unit.
-- **5+ pairs:** 60% off per unit.
+- **2+ items:** 10% off per unit.
+- **3+ items:** 18% off per unit.
+- **5+ items:** 24% off per unit.
 
 ### 2.2 Helper: `getLinePricing(compareAtUnitPrice, qty)`
 
@@ -171,7 +171,7 @@ These are **hardcoded** when adding the “Complete Recovery Kit” from the pro
 
 | What                    | Where defined / used                          |
 |-------------------------|-----------------------------------------------|
-| Tier rules (35%, 55%, 60%) | `utils/pricing.ts` → `PRICING_TIERS`         |
+| Tier rules (10%, 18%, 24%) | `utils/pricing.ts` → `PRICING_TIERS`         |
 | Product page 1/2/3 pricing | `getLinePricing(product.price, bundle)`      |
 | Catalog product prices | `FEATURED_PRODUCTS` (LandingPage, ShopPage, etc.) or Shopify |
 | Recovery Socks / Gel    | Hardcoded in `ProductPage.tsx` ($15, $12.50)  |
@@ -185,6 +185,6 @@ These are **hardcoded** when adding the “Complete Recovery Kit” from the pro
 ## 7. Summary
 
 - **Product page:** Shows one product; can enrich from Shopify. User picks size, color, and quantity (1/2/3 pairs). Tiered pricing applies via `getLinePricing(product.price, bundle)`. Add to cart sends that product + options to App. “Add Bundle to Cart” adds insoles + Recovery Socks ($15) + Recovery Gel ($12.50); UI shows bundle at $39.98.
-- **Pricing:** All quantity-based discounts for single-SKU products go through `utils/pricing.ts` (tiers: 2→35%, 3→55%, 5→60%).
+- **Pricing:** All quantity-based discounts for single-SKU products go through `utils/pricing.ts` (tiers: 2→10%, 3→18%, 5→24%).
 - **Bundles:** Four named kits use fixed `price` / `originalPrice`; the in-page “Complete Recovery Kit” uses fixed $39.98 and fixed add-on prices for socks and gel.
 - **Cart:** Upsells and “Make it a kit” use the prices listed in CartDrawer; cart and checkout state and Shopify checkout live in App.

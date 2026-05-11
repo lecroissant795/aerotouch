@@ -12,7 +12,8 @@ import {
   ShoppingBag,
   Tag,
   Package,
-  TicketPercent
+  TicketPercent,
+  ChevronDown
 } from 'lucide-react';
 import { CartItem, Product } from '../types';
 import { Button } from './Button';
@@ -102,6 +103,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   checkoutSubtotalFromShopify = null
 }) => {
   const [promoInput, setPromoInput] = useState('');
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(CART_RESERVE_SECONDS);
   const [currentUpsellIndex, setCurrentUpsellIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -641,75 +643,102 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <footer className="shrink-0 border-t border-slate-200 bg-brand-light px-5 py-4">
                 {onApplyPromoCode && (
                   <div className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <TicketPercent className="h-4 w-4 shrink-0 text-brand-orange" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">
-                        Promo code
-                      </span>
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <input
-                        type="text"
-                        value={promoInput}
-                        onChange={e => {
-                          setPromoInput(e.target.value);
-                          onDismissPromoError?.();
-                        }}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && promoInput.trim() && !isLoading) {
-                            e.preventDefault();
-                            void onApplyPromoCode(promoInput);
-                            setPromoInput('');
-                          }
-                        }}
-                        placeholder="Enter code"
-                        autoComplete="off"
-                        autoCapitalize="characters"
-                        className="min-w-0 flex-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-brand-dark placeholder:text-slate-400 focus:border-brand-orange focus:bg-white focus:outline-none"
-                        disabled={isLoading}
-                      />
-                      <button
-                        type="button"
-                        disabled={isLoading || !promoInput.trim()}
-                        onClick={() => {
-                          const c = promoInput.trim();
-                          if (!c) return;
-                          void onApplyPromoCode(c);
-                          setPromoInput('');
-                        }}
-                        className="shrink-0 rounded-xl bg-brand-dark px-4 py-2 text-xs font-black uppercase tracking-wide text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-45"
-                      >
-                        Apply
-                      </button>
-                    </div>
-                    {appliedPromoCodes.length > 0 && (
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                          Applied:
+                    <button
+                      type="button"
+                      onClick={() => setIsPromoOpen(v => !v)}
+                      className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1.5 text-left text-slate-600 transition hover:bg-slate-50"
+                      aria-expanded={isPromoOpen}
+                      aria-controls="cart-promo-panel"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <TicketPercent className="h-4 w-4 shrink-0 text-brand-orange" />
+                        <span className="text-[10px] font-black uppercase tracking-wider">
+                          Promo code
                         </span>
-                        {appliedPromoCodes.map(code => (
-                          <span
-                            key={code}
-                            className="rounded-lg bg-lime-100 px-2 py-0.5 text-[11px] font-bold text-lime-900"
-                          >
-                            {code}
+                        {appliedPromoCodes.length > 0 && (
+                          <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-lime-900">
+                            {appliedPromoCodes.length} applied
                           </span>
-                        ))}
-                        {onRemovePromoCodes && (
+                        )}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isPromoOpen ? 'rotate-180' : ''}`}
+                        aria-hidden
+                      />
+                    </button>
+
+                    <div
+                      id="cart-promo-panel"
+                      className={`grid transition-[grid-template-rows,opacity] duration-200 ${
+                        isPromoOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="mt-2 flex gap-2">
+                          <input
+                            type="text"
+                            value={promoInput}
+                            onChange={e => {
+                              setPromoInput(e.target.value);
+                              onDismissPromoError?.();
+                            }}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' && promoInput.trim() && !isLoading) {
+                                e.preventDefault();
+                                void onApplyPromoCode(promoInput);
+                                setPromoInput('');
+                              }
+                            }}
+                            placeholder="Enter code"
+                            autoComplete="off"
+                            autoCapitalize="characters"
+                            className="min-w-0 flex-1 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-brand-dark placeholder:text-slate-400 focus:border-brand-orange focus:bg-white focus:outline-none"
+                            disabled={isLoading}
+                          />
                           <button
                             type="button"
-                            onClick={() => void onRemovePromoCodes()}
-                            disabled={isLoading}
-                            className="text-[11px] font-bold text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-red-600 disabled:opacity-45"
+                            disabled={isLoading || !promoInput.trim()}
+                            onClick={() => {
+                              const c = promoInput.trim();
+                              if (!c) return;
+                              void onApplyPromoCode(c);
+                              setPromoInput('');
+                            }}
+                            className="shrink-0 rounded-xl bg-brand-dark px-4 py-2 text-xs font-black uppercase tracking-wide text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-45"
                           >
-                            Remove
+                            Apply
                           </button>
+                        </div>
+                        {appliedPromoCodes.length > 0 && (
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                              Applied:
+                            </span>
+                            {appliedPromoCodes.map(code => (
+                              <span
+                                key={code}
+                                className="rounded-lg bg-lime-100 px-2 py-0.5 text-[11px] font-bold text-lime-900"
+                              >
+                                {code}
+                              </span>
+                            ))}
+                            {onRemovePromoCodes && (
+                              <button
+                                type="button"
+                                onClick={() => void onRemovePromoCodes()}
+                                disabled={isLoading}
+                                className="text-[11px] font-bold text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-red-600 disabled:opacity-45"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {promoApplyError && (
+                          <p className="mt-2 text-xs font-medium text-red-600">{promoApplyError}</p>
                         )}
                       </div>
-                    )}
-                    {promoApplyError && (
-                      <p className="mt-2 text-xs font-medium text-red-600">{promoApplyError}</p>
-                    )}
+                    </div>
                   </div>
                 )}
                 <div className="mt-5 flex items-center justify-between text-base">
