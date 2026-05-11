@@ -55,6 +55,8 @@ export const reviewAvatars = {
     jamesCarter: `${STORAGE_BASE}/avatar/navbar/1778470140797-y263uqzzsp.png`,
     /** Mega-menu / Emily Zhang testimonial */
     emilyZhang: `${STORAGE_BASE}/avatar/navbar/1778471771895-uhgafaluag.png`,
+    /** Mega-menu / Maria Jackie testimonial */
+    mariaJackie: `${STORAGE_BASE}/avatar/navbar/1778470640976-g6xv0vmlfjb.png`,
     sarahJ: `${STORAGE_BASE}/reviews/Sarah%20J.png`,
     emmaW: `${STORAGE_BASE}/reviews/Emma%20W.png`,
     marcusT: `${STORAGE_BASE}/reviews/Marcus%20T.png`,

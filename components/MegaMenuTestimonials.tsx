@@ -35,10 +35,10 @@ const REVIEWS: Review[] = [
   },
   {
     id: 4,
-    name: 'David Okonkwo',
+    name: 'Maria Jackie',
     role: 'Personal Trainer',
     quote: '"I recommend AeroTouch to every single one of my clients. The arch support is unmatched and they last forever."',
-    image: reviewAvatars.davidK,
+    image: reviewAvatars.mariaJackie,
   },
 ];
 
