@@ -22,6 +22,7 @@ const roundMoney = (n: number) => Math.round(n * 100) / 100;
 /**
  * Per-line cart display: global volume tiers (total units in cart), compare-at reference,
  * Shopify sale price, and discount code allocations.
+ * Tier thresholds and percentages mirror `utils/pricing.ts` and Shopify automatic discounts.
  */
 export function getCartLineDisplay(item: CartItem, globalItemCount: number): CartLineDisplay {
   const quantity = item.quantity;

@@ -56,6 +56,7 @@ import { resolveMassageInsoleUpsell } from './utils/checkoutUpsell';
 import { DEFAULT_COLORS, DEFAULT_SIZES } from './utils/productOptions';
 import { extractDiscountCodesFromCheckout } from './utils/checkoutPromo';
 import { sumCartFinalSubtotals } from './utils/cartLineDisplay';
+import { extractCheckoutSubtotalAfterDiscounts } from './utils/checkoutMoney';
 
 /**
  * Resolve a Shopify variant for checkout. Only requires Size/Color to match when those
@@ -145,6 +146,8 @@ function AppShell() {
 
   const [appliedPromoCodes, setAppliedPromoCodes] = useState<string[]>([]);
   const [promoApplyError, setPromoApplyError] = useState<string | null>(null);
+  /** Shopify checkout subtotal after discounts (when the Storefront payload exposes it). */
+  const [checkoutSubtotalFromShopify, setCheckoutSubtotalFromShopify] = useState<number | null>(null);
 
   const applyCartCheckout = useCallback((checkout: any) => {
     if (!checkout) return;
@@ -155,6 +158,7 @@ function AppShell() {
     }
     if (checkout.webUrl) setCheckoutUrl(checkout.webUrl);
     setAppliedPromoCodes(extractDiscountCodesFromCheckout(checkout));
+    setCheckoutSubtotalFromShopify(extractCheckoutSubtotalAfterDiscounts(checkout));
   }, []);
 
   // Page-specific data states
@@ -422,7 +426,11 @@ function AppShell() {
     color: string,
     quantity = 1,
     openCart = true
-  ): Promise<{ webUrl: string | null; lineItems: CartItem[] } | null> => {
+  ): Promise<{
+    webUrl: string | null;
+    lineItems: CartItem[];
+    checkoutSubtotalFromShopify: number | null;
+  } | null> => {
     if (!checkoutId || !shopify) return null;
     setIsCartLoading(true);
     setCartError(null);
@@ -469,12 +477,13 @@ function AppShell() {
         const checkout = await shopify.checkout.addLineItems(checkoutId, lineItemsToAdd);
         applyCartCheckout(checkout);
         const lineItems = checkout.lineItems.map(mapShopifyLineItem);
+        const checkoutSubtotalFromShopify = extractCheckoutSubtotalAfterDiscounts(checkout);
         logAddToCart(product.name, product.price * quantity);
 
         if (openCart) {
           setIsCartOpen(true);
         }
-        return { webUrl: checkout.webUrl || null, lineItems };
+        return { webUrl: checkout.webUrl || null, lineItems, checkoutSubtotalFromShopify };
       } else {
         console.error("Variant not found for", size, color);
         setCartError(`Variant not found: ${size} / ${color}`);
@@ -576,7 +585,11 @@ function AppShell() {
   }, [checkoutId, shopify, applyCartCheckout]);
 
   const proceedToHostedCheckout = useCallback(
-    (opts?: { lineItems?: CartItem[]; webUrl?: string | null }) => {
+    (opts?: {
+      lineItems?: CartItem[];
+      webUrl?: string | null;
+      checkoutSubtotalFromShopify?: number | null;
+    }) => {
       const url = opts?.webUrl ?? checkoutUrl;
       if (!url) {
         console.warn("No checkout URL available");
@@ -585,7 +598,10 @@ function AppShell() {
       }
       setIsCartLoading(true);
       const items = opts?.lineItems ?? cartItems;
-      const totalValue = sumCartFinalSubtotals(items);
+      const totalValue =
+        opts?.checkoutSubtotalFromShopify ??
+        checkoutSubtotalFromShopify ??
+        sumCartFinalSubtotals(items);
       logBeginCheckout(
         items.map(item => ({
           name: item.name,
@@ -596,7 +612,7 @@ function AppShell() {
       );
       window.location.href = url;
     },
-    [checkoutUrl, cartItems]
+    [checkoutUrl, cartItems, checkoutSubtotalFromShopify]
   );
 
   const handleCartCheckoutClick = useCallback(() => {
@@ -617,13 +633,15 @@ function AppShell() {
 
     if (finalUrl) {
       const checkoutItems = result?.lineItems ?? cartItems;
+      const totalValue =
+        result?.checkoutSubtotalFromShopify ?? sumCartFinalSubtotals(checkoutItems);
       logBeginCheckout(
         checkoutItems.map(item => ({
           name: item.name,
           price: item.price,
           quantity: item.quantity
         })),
-        sumCartFinalSubtotals(checkoutItems)
+        totalValue
       );
       window.location.href = finalUrl;
       return;
@@ -915,6 +933,7 @@ function AppShell() {
         onApplyPromoCode={applyPromoCode}
         onRemovePromoCodes={removePromoCodes}
         onDismissPromoError={() => setPromoApplyError(null)}
+        checkoutSubtotalFromShopify={checkoutSubtotalFromShopify}
       />
 
       {checkoutUpsellContext && (
@@ -933,7 +952,11 @@ function AppShell() {
             const result = await handleAddToCart(product, size, color, 2, false);
             setCheckoutUpsellOpen(false);
             if (result) {
-              proceedToHostedCheckout({ lineItems: result.lineItems, webUrl: result.webUrl });
+              proceedToHostedCheckout({
+                lineItems: result.lineItems,
+                webUrl: result.webUrl,
+                checkoutSubtotalFromShopify: result.checkoutSubtotalFromShopify
+              });
             } else {
               proceedToHostedCheckout();
             }

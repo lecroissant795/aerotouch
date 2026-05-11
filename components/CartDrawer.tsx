@@ -18,6 +18,7 @@ import { CartItem, Product } from '../types';
 import { Button } from './Button';
 import {
   getApplicablePricingTier,
+  getApplicablePricingTierIndex,
   getNextPricingTier,
   getPricingProgress,
   PRICING_TIER_POSITIONS,
@@ -45,6 +46,8 @@ interface CartDrawerProps {
   onApplyPromoCode?: (code: string) => void | Promise<void>;
   onRemovePromoCodes?: () => void | Promise<void>;
   onDismissPromoError?: () => void;
+  /** When set, cart footer total reflects Shopify checkout subtotal (includes automatic discounts). */
+  checkoutSubtotalFromShopify?: number | null;
 }
 
 const UPSELL_ROTATE_SECONDS = 10;
@@ -95,7 +98,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   promoApplyError = null,
   onApplyPromoCode,
   onRemovePromoCodes,
-  onDismissPromoError
+  onDismissPromoError,
+  checkoutSubtotalFromShopify = null
 }) => {
   const [promoInput, setPromoInput] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(CART_RESERVE_SECONDS);
@@ -188,21 +192,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   const totalYouSave = useMemo(() => sumCartLineSavings(items), [items]);
 
+  /** Prefer Shopify-reported subtotal when available so totals match automatic discounts at checkout. */
+  const displayTotal =
+    checkoutSubtotalFromShopify != null && Number.isFinite(checkoutSubtotalFromShopify)
+      ? checkoutSubtotalFromShopify
+      : subtotal;
+
   const progressWidth = getPricingProgress(itemCount);
   const nextMilestone = getNextPricingTier(itemCount);
   const currentVolumeTier = useMemo(
     () => getApplicablePricingTier(itemCount),
     [itemCount]
   );
+  const activeCheckpointIndex = useMemo(
+    () => getApplicablePricingTierIndex(itemCount),
+    [itemCount]
+  );
   const itemsAway = nextMilestone ? nextMilestone.minQty - itemCount : 0;
   const milestoneMessage = nextMilestone
-    ? `Add ${itemsAway} more ${itemsAway === 1 ? 'item' : 'items'} to unlock ${nextMilestone.label} on every item.`
-    : `${currentVolumeTier.label} — best volume tier applied to your cart.`;
-  const milestoneSubtext = nextMilestone
-    ? `Next: ${nextMilestone.discountPercent}% off compare-at / list price (reference) on each item.`
-    : currentVolumeTier.discountPercent > 0
-      ? `You're saving ${currentVolumeTier.discountPercent}% off reference pricing on eligible lines.`
-      : 'Volume discounts start when you have 2+ items in the cart.';
+    ? `Add ${itemsAway} more ${itemsAway === 1 ? 'item' : 'items'} to unlock ${nextMilestone.label}.`
+    : `${currentVolumeTier.label} — best discount tier applied to your cart.`;
+  const finalCheckpointIndex = PRICING_TIERS.length - 1;
 
   if (!isOpen) return null;
 
@@ -273,16 +283,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <>
                   {/* Promotion bar — tags at tier milestones */}
                   <div className="mb-4">
-                    <p className="mb-1 text-center text-xs font-bold text-brand-dark">
+                    <p className="mb-2 text-center text-xs font-bold text-brand-dark">
                       {milestoneMessage}
                     </p>
-                    <p className="mb-2 text-center text-[10px] font-semibold leading-snug text-slate-600">
-                      {milestoneSubtext}
-                    </p>
                     <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-brand-orange">
-                      Now: {currentVolumeTier.label}
+                      Current tier: {currentVolumeTier.checkpointTitle}
                       {currentVolumeTier.discountPercent > 0
-                        ? ` · ${currentVolumeTier.discountPercent}% off reference`
+                        ? ` · ${currentVolumeTier.discountPercent}% off order`
                         : ' · standard pricing'}
                     </p>
                     <div className="relative w-full">
@@ -300,33 +307,66 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                             />
                           </div>
                         </div>
-                        {PRICING_TIER_POSITIONS.map((leftPct, i) => (
-                          <div
-                            key={i}
-                            className="absolute z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#C1F11D] bg-white"
-                            style={{
-                              left: `${leftPct}%`,
-                              top: '50%',
-                              transform: 'translate(-50%, -50%)'
-                            }}
-                          >
-                            <Tag className="h-2.5 w-2.5 text-[#C1F11D]" strokeWidth={2.5} />
-                          </div>
-                        ))}
+                        {PRICING_TIER_POSITIONS.map((leftPct, i) => {
+                          const isActive = activeCheckpointIndex === i;
+                          const isFinalCheckpoint = i === finalCheckpointIndex && isActive;
+                          return (
+                            <div
+                              key={PRICING_TIERS[i].minQty}
+                              className={`absolute z-10 flex items-center justify-center rounded-full border-2 bg-white shadow-sm transition-all duration-300 ${
+                                isFinalCheckpoint
+                                  ? 'h-8 w-8 border-brand-orange ring-[3px] ring-brand-orange/50 bg-orange-50'
+                                  : isActive
+                                    ? 'h-7 w-7 border-brand-orange ring-2 ring-brand-orange/40'
+                                    : 'h-5 w-5 border-[#C1F11D]'
+                              }`}
+                              style={{
+                                left: `${leftPct}%`,
+                                top: '50%',
+                                transform: 'translate(-50%, -50%)'
+                              }}
+                              aria-current={isActive ? 'step' : undefined}
+                            >
+                              <Tag
+                                className={`${
+                                  isFinalCheckpoint
+                                    ? 'h-4 w-4 text-brand-orange'
+                                    : isActive
+                                      ? 'h-3.5 w-3.5 text-brand-orange'
+                                      : 'h-2.5 w-2.5 text-[#C1F11D]'
+                                }`}
+                                strokeWidth={2.5}
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
-                      <div className="relative mt-1.5 h-4">
-                        {PRICING_TIERS.map((m, i) => (
-                          <span
-                            key={m.minQty}
-                            className="absolute text-[10px] font-semibold text-brand-dark"
-                            style={{
-                              left: `${PRICING_TIER_POSITIONS[i]}%`,
-                              transform: 'translateX(-50%)'
-                            }}
-                          >
-                            {m.label}
-                          </span>
-                        ))}
+                      <div className="relative mt-2 min-h-[2.75rem]">
+                        {PRICING_TIERS.map((m, i) => {
+                          const isActive = activeCheckpointIndex === i;
+                          const isFinalCheckpoint = i === finalCheckpointIndex && isActive;
+                          return (
+                            <div
+                              key={m.minQty}
+                              className="absolute flex max-w-[5.5rem] flex-col items-center gap-0.5 text-center leading-tight"
+                              style={{
+                                left: `${PRICING_TIER_POSITIONS[i]}%`,
+                                transform: 'translateX(-50%)'
+                              }}
+                            >
+                              <span
+                                className={`text-[10px] font-bold ${
+                                  isFinalCheckpoint ? 'text-brand-orange' : isActive ? 'text-brand-orange' : 'text-brand-dark'
+                                }`}
+                              >
+                                {m.checkpointTitle}
+                              </span>
+                              <span className="text-[9px] font-semibold leading-snug text-slate-500">
+                                {m.checkpointSubtitle}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -687,9 +727,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     Total
                   </span>
                   <span className="font-extrabold uppercase tabular-nums tracking-wide text-brand-dark">
-                    {formatCurrency(subtotal)}
+                    {formatCurrency(displayTotal)}
                   </span>
                 </div>
+                {checkoutSubtotalFromShopify != null && (
+                  <p className="mt-0.5 text-[9px] font-medium text-lime-700">
+                    Subtotal matches Shopify (automatic discounts included).
+                  </p>
+                )}
                 <p className="mt-1 text-[10px] text-slate-500">
                   Shipping & taxes at checkout
                 </p>

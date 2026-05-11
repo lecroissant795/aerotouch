@@ -1,18 +1,51 @@
 export interface PricingTier {
   minQty: number;
   discountPercent: number;
+  /** Short label for unlock messages (e.g. "26% OFF") */
   label: string;
+  /** Two-line checkpoint: title row under the progress marker */
+  checkpointTitle: string;
+  /** Two-line checkpoint: subtitle (quantity threshold) */
+  checkpointSubtitle: string;
 }
 
-/** Quantity is total units in cart (all lines). Tier 1 = no volume discount. */
+/**
+ * Quantity is total units in cart (all lines). Percentages and thresholds must stay in sync
+ * with Shopify Admin automatic discounts (this store: 15% @ 2+, 26% @ 3+, 45% @ 5+ items).
+ */
 export const PRICING_TIERS: PricingTier[] = [
-  { minQty: 1, discountPercent: 0, label: '1+' },
-  { minQty: 2, discountPercent: 56, label: '56% OFF' },
-  { minQty: 3, discountPercent: 80, label: '80% OFF' }
+  {
+    minQty: 1,
+    discountPercent: 0,
+    label: 'Standard pricing',
+    checkpointTitle: 'Standard pricing',
+    checkpointSubtitle: '1+ items'
+  },
+  {
+    minQty: 2,
+    discountPercent: 15,
+    label: '15% OFF',
+    checkpointTitle: '15% OFF',
+    checkpointSubtitle: '2+ items'
+  },
+  {
+    minQty: 3,
+    discountPercent: 26,
+    label: '26% OFF',
+    checkpointTitle: '26% OFF',
+    checkpointSubtitle: '3+ items'
+  },
+  {
+    minQty: 5,
+    discountPercent: 45,
+    label: '45% OFF',
+    checkpointTitle: '45% OFF',
+    checkpointSubtitle: '5+ items'
+  }
 ];
 
-/** Progress bar marker positions (one per tier). */
-export const PRICING_TIER_POSITIONS = [12, 48, 100];
+/** Progress bar marker horizontal positions (one per checkpoint, left → right). */
+export const PRICING_TIER_POSITIONS = [6, 34, 62, 94];
 
 const clampQty = (qty: number) => Math.max(1, Math.floor(qty));
 
@@ -25,6 +58,12 @@ export const getApplicablePricingTier = (qty: number): PricingTier => {
   }
 
   return tier;
+};
+
+export const getApplicablePricingTierIndex = (qty: number): number => {
+  const tier = getApplicablePricingTier(qty);
+  const idx = PRICING_TIERS.findIndex((t) => t.minQty === tier.minQty);
+  return idx >= 0 ? idx : 0;
 };
 
 export const getNextPricingTier = (qty: number): PricingTier | null => {
@@ -66,6 +105,9 @@ function round2(n: number): number {
 export const getPricingProgress = (qty: number): number => {
   if (qty <= 0) return 0;
   const normalizedQty = clampQty(qty);
+  const lastTier = PRICING_TIERS[PRICING_TIERS.length - 1];
+  /** Fill track to 100% once the final discount tier (e.g. 5+) is reached — not only to the last marker (94%). */
+  if (normalizedQty >= lastTier.minQty) return 100;
 
   for (let i = 0; i < PRICING_TIERS.length; i++) {
     const tierQty = PRICING_TIERS[i].minQty;
