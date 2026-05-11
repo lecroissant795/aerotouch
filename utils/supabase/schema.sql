@@ -53,11 +53,26 @@ create table public.popup_discount_claims (
   discount_code text not null,
   status text not null default 'sent',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  -- Welcome-series tracking (added 2026-05-12). See migrations/20260512_welcome_series.sql.
+  reminder_sent_at timestamptz,
+  story_sent_at timestamptz,
+  expiry_warning_sent_at timestamptz,
+  redeemed_at timestamptz,
+  unsubscribed_at timestamptz,
+  unsubscribe_token text
 );
 
 create unique index popup_discount_claims_email_normalized_key
   on public.popup_discount_claims (email_normalized);
+
+create unique index popup_discount_claims_unsub_token_key
+  on public.popup_discount_claims (unsubscribe_token)
+  where unsubscribe_token is not null;
+
+create index popup_discount_claims_pending_idx
+  on public.popup_discount_claims (created_at)
+  where unsubscribed_at is null and redeemed_at is null;
 
 alter table public.popup_discount_claims enable row level security;
 -- No policies for anon/authenticated: only the Supabase service role (server) may access this table.

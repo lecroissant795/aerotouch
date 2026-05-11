@@ -90,6 +90,18 @@ The Product page can fetch live data from Shopify on mount (`shopify.product.fet
 
 ### Track Order API (`api/track-order.js`) and Discount Popup (`api/send-popup-email.js`)
 
-Both endpoints share the Shopify Admin API helper in `api/shopify-admin.shared.js`. Server-only env vars: **`SHOPIFY_STORE_DOMAIN`** plus either **`SHOPIFY_ADMIN_ACCESS_TOKEN`** (static Admin token — needs `read_orders` for tracking and `write_discounts` for the popup) or **`SHOPIFY_CLIENT_ID`** + **`SHOPIFY_CLIENT_SECRET`** (Dev Dashboard app — [client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant), token cached ~24h). The popup also needs **`RESEND_API_KEY`** and optionally **`RESEND_FROM_EMAIL`**. The popup endpoint runs under plain `npm run dev` (via Vite middleware in `vite.config.ts`) and Vercel; `/api/track-order` only runs under `vercel dev`.
+Both endpoints share the Shopify Admin API helper in `api/shopify-admin.shared.js`. Server-only env vars: **`SHOPIFY_STORE_DOMAIN`** plus either **`SHOPIFY_ADMIN_ACCESS_TOKEN`** (static Admin token — needs `read_orders` for tracking, `write_discounts` for the popup, and `read_discounts` for the welcome-series redemption check) or **`SHOPIFY_CLIENT_ID`** + **`SHOPIFY_CLIENT_SECRET`** (Dev Dashboard app — [client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant), token cached ~24h). The popup also needs **`RESEND_API_KEY`** and optionally **`RESEND_FROM_EMAIL`**. The popup endpoint runs under plain `npm run dev` (via Vite middleware in `vite.config.ts`) and Vercel; `/api/track-order` only runs under `vercel dev`.
 
 On popup submit, the server mints a real single-use 20%-off Shopify code (`WELCOME-XXXXXX`, 30-day expiry) via `discountCodeBasicCreate`, then emails it via Resend.
+
+### Welcome-Series Drip (`api/cron/welcome-series.js`)
+
+A daily Vercel Cron (`0 15 * * *` UTC = 8am Pacific, registered in `vercel.json`) sends a 3-step drip on top of the popup signup: Day 2 reminder, Day 7 brand story, Day 25 expiry warning. The runner lives in `api/welcome-series.shared.js`; templates in `api/welcome-series-templates.shared.js`. For each candidate it queries Shopify Admin (`codeDiscountNodeByCode → asyncUsageCount`) and skips anyone who already redeemed, then sends via Resend and writes the per-step `*_sent_at` column on `popup_discount_claims` so a row never gets the same email twice (idempotent).
+
+Required additional env vars:
+- **`CRON_SECRET`** — random secret. Vercel attaches `Authorization: Bearer ${CRON_SECRET}` to scheduled invocations; the endpoint returns 401 without it.
+- **`SITE_BASE_URL`** — e.g. `https://aerotouch.com`. Used to build absolute unsubscribe URLs in emails.
+
+Compliance: every promotional email (Day 0 popup + the 3 drip steps) includes a footer unsubscribe link plus `List-Unsubscribe` / `List-Unsubscribe-Post: One-Click` headers. The unsubscribe endpoint is `GET/POST /api/unsubscribe?token=<token>` and flips `unsubscribed_at` on the row. Tokens are generated on signup and stored unique in `popup_discount_claims.unsubscribe_token` (see migration `utils/supabase/migrations/20260512_welcome_series.sql`).
+
+Production Resend tip: don't ship the welcome series with the default `onboarding@resend.dev` from-address — verify a domain (e.g. `hello@aerotouch.com`) in Resend and set `RESEND_FROM_EMAIL` before the first cron run, otherwise deliverability tanks after the first dozen sends.

@@ -1,7 +1,9 @@
+import crypto from 'crypto'
 import { sendPopupEmail } from './send-popup-email.shared.js'
 import { createWelcomeDiscount } from './create-discount-code.shared.js'
 import { readShopifyConfig } from './shopify-admin.shared.js'
 import {
+  ensureUnsubscribeToken,
   findClaimByEmail,
   getSupabaseAdmin,
   insertClaim,
@@ -25,6 +27,16 @@ function getResendConfig(getEnv) {
     getEnv('VITE_RESEND_FROM_EMAIL') ||
     'AeroTouch <onboarding@resend.dev>'
   return { resendApiKey, fromEmail }
+}
+
+function generateUnsubscribeToken() {
+  return crypto.randomBytes(24).toString('base64url')
+}
+
+function buildUnsubscribeUrl(siteBaseUrl, token) {
+  if (!siteBaseUrl || !token) return ''
+  const base = String(siteBaseUrl).replace(/\/+$/, '')
+  return `${base}/api/unsubscribe?token=${encodeURIComponent(token)}`
 }
 
 /**
@@ -58,6 +70,7 @@ export async function handlePopupDiscountRequest(payload, getEnv) {
 
   const admin = getSupabaseAdmin(supabaseUrl, serviceKey)
   const { resendApiKey, fromEmail } = getResendConfig(getEnv)
+  const siteBaseUrl = getEnv('SITE_BASE_URL') || getEnv('VITE_SITE_BASE_URL') || ''
 
   if (!resendApiKey) {
     return { status: 500, body: { error: 'Email service is not configured yet.' } }
@@ -66,12 +79,15 @@ export async function handlePopupDiscountRequest(payload, getEnv) {
   const existing = await findClaimByEmail(admin, emailNorm)
   if (existing) {
     const sendFirst = existing.first_name?.trim() || firstName
+    const token = await ensureUnsubscribeToken(admin, existing, generateUnsubscribeToken)
+    const unsubscribeUrl = buildUnsubscribeUrl(siteBaseUrl, token)
     const emailResult = await sendPopupEmail({
       firstName: sendFirst,
       email: emailNorm,
       discountCode: existing.discount_code,
       resendApiKey,
       fromEmail,
+      unsubscribeUrl,
     })
     if (!emailResult.ok) {
       return { status: emailResult.status, body: { error: emailResult.error } }
@@ -94,11 +110,13 @@ export async function handlePopupDiscountRequest(payload, getEnv) {
     return { status: discountResult.status, body: { error: discountResult.error } }
   }
 
+  const newToken = generateUnsubscribeToken()
   const insertOutcome = await insertClaim(admin, {
     email_normalized: emailNorm,
     first_name: firstName,
     discount_code: discountResult.code,
     status: 'sent',
+    unsubscribe_token: newToken,
   })
 
   if (insertOutcome.conflict) {
@@ -109,12 +127,15 @@ export async function handlePopupDiscountRequest(payload, getEnv) {
         body: { error: 'Could not complete signup. Please try again.' },
       }
     }
+    const winnerToken = await ensureUnsubscribeToken(admin, winner, generateUnsubscribeToken)
+    const winnerUnsubUrl = buildUnsubscribeUrl(siteBaseUrl, winnerToken)
     const emailResult = await sendPopupEmail({
       firstName: winner.first_name?.trim() || firstName,
       email: emailNorm,
       discountCode: winner.discount_code,
       resendApiKey,
       fromEmail,
+      unsubscribeUrl: winnerUnsubUrl,
     })
     if (!emailResult.ok) {
       return { status: emailResult.status, body: { error: emailResult.error } }
@@ -135,12 +156,14 @@ export async function handlePopupDiscountRequest(payload, getEnv) {
     return { status: 500, body: { error: insertOutcome.error } }
   }
 
+  const unsubscribeUrl = buildUnsubscribeUrl(siteBaseUrl, newToken)
   const emailResult = await sendPopupEmail({
     firstName,
     email: emailNorm,
     discountCode: discountResult.code,
     resendApiKey,
     fromEmail,
+    unsubscribeUrl,
   })
   if (!emailResult.ok) {
     return { status: emailResult.status, body: { error: emailResult.error } }
