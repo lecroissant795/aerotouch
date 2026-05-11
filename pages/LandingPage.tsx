@@ -45,7 +45,7 @@ const VIDEO_REVIEWS = [
   {
     id: 3,
     videoSrc: reviewVideos.lewis,
-    avatar: "",
+    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/1778487632061-104iuf1sw2j.png",
     name: "Duong Pham",
     description: "Very comfortable",
     time: "2d ago",
@@ -67,7 +67,7 @@ const VIDEO_REVIEWS = [
   {
     id: 5,
     videoSrc: reviewVideos.henryTu,
-    avatar: "",
+    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/Henry%20Tu.png",
     name: "Henry Tu",
     description: "Great support and comfort",
     time: "1d ago",
@@ -78,7 +78,7 @@ const VIDEO_REVIEWS = [
   {
     id: 6,
     videoSrc: reviewVideos.derek,
-    avatar: "",
+    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/Derek.png",
     name: "Derek",
     description: "Solid support all day",
     time: "3d ago",
@@ -89,7 +89,7 @@ const VIDEO_REVIEWS = [
   {
     id: 7,
     videoSrc: reviewVideos.charlieHart,
-    avatar: "",
+    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/1778487732497-q5z729k61i.png",
     name: "Charlie Hart",
     description: "Worth every penny",
     time: "1w ago",
