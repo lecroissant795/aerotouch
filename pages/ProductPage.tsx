@@ -283,15 +283,63 @@ export const ProductPage: React.FC<ProductPageProps> = ({
     setOpenSection(openSection === section ? null : section);
   }
 
+  const normalizeImageUrl = useCallback((image: any): string => {
+    if (!image) return '';
+    if (typeof image === 'string') return image.trim();
+    if (typeof image === 'object') {
+      if (typeof image.src === 'string') return image.src.trim();
+      if (typeof image.url === 'string') return image.url.trim();
+      if (typeof image.originalSrc === 'string') return image.originalSrc.trim();
+    }
+    return '';
+  }, []);
+
+  const colorToVariantImage = useMemo(() => {
+    const map = new Map<string, string>();
+    const variantsList = shopifyProduct?.variants || [];
+    for (const variant of variantsList) {
+      const selectedOptions = variant?.selectedOptions || [];
+      const color = selectedOptions.find((o: any) => o?.name === 'Color')?.value;
+      const variantImage = normalizeImageUrl(variant?.image);
+      if (color && variantImage && !map.has(color)) {
+        map.set(color, variantImage);
+      }
+    }
+    return map;
+  }, [shopifyProduct, normalizeImageUrl]);
+
+  const selectedColorImage = colorToVariantImage.get(selectedColor) || '';
+
   // Product gallery: use product imagery only (no stock-photo fallback tiles).
   const fallbackGalleryImage = product.image || '/images/IMG_4813-removebg-preview.png';
   const rawImages = product.images || [];
   // Filter to only strings with content (Shopify may return objects in some formats)
-  const validImages: string[] = rawImages.filter((img): img is string => typeof img === 'string' && img.trim().length > 0);
-  const images = Array.from(
-    new Set([...validImages, fallbackGalleryImage].filter((img) => img && img.trim()))
+  const validImages: string[] = useMemo(
+    () => rawImages.filter((img): img is string => typeof img === 'string' && img.trim().length > 0),
+    [rawImages]
+  );
+  const defaultGalleryImages: string[] = useMemo(() => {
+    // Keep the last 2 product photos hidden by default.
+    if (validImages.length <= 2) return validImages;
+    return validImages.slice(0, validImages.length - 2);
+  }, [validImages]);
+  const images = useMemo(
+    () =>
+      Array.from(
+        new Set([selectedColorImage, ...defaultGalleryImages, fallbackGalleryImage].filter((img) => img && img.trim()))
+      ),
+    [selectedColorImage, defaultGalleryImages, fallbackGalleryImage]
   );
   const secondaryImages = images.slice(1, 5);
+
+  useEffect(() => {
+    // Only force gallery image when customer changes color.
+    if (!selectedColorImage) return;
+    const idx = images.findIndex((img) => img === selectedColorImage);
+    if (idx >= 0) {
+      setActiveImgIndex(idx);
+    }
+  }, [selectedColor, selectedColorImage, images]);
 
   useEffect(() => {
     if (activeImgIndex >= images.length) {
@@ -681,10 +729,9 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 1)}</span>
-                        <span className="text-xs text-slate-500 font-bold">{isBundleKitPdp ? '/kit' : '/pair'}</span>
                         {compareAtEach != null && compareAtEach > unitPrice && bundle === 1 && (
                           <span className="text-xs text-slate-400 line-through font-bold block">
-                            ${formatPrice(compareAtEach)} MSRP
+                            ${formatPrice(compareAtEach)}
                           </span>
                         )}
                       </div>
@@ -718,9 +765,15 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 2)}</span>
-                        <span className="text-xs text-slate-500 font-bold">
-                          ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
-                        </span>
+                        {compareAtEach != null && compareAtEach > unitPrice ? (
+                          <span className="text-xs text-slate-400 line-through font-bold block">
+                            ${formatPrice(compareAtEach * 2)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-500 font-bold">
+                            ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -754,9 +807,15 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 3)}</span>
-                        <span className="text-xs text-slate-500 font-bold">
-                          ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
-                        </span>
+                        {compareAtEach != null && compareAtEach > unitPrice ? (
+                          <span className="text-xs text-slate-400 line-through font-bold block">
+                            ${formatPrice(compareAtEach * 3)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-500 font-bold">
+                            ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -788,9 +847,15 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 5)}</span>
-                        <span className="text-xs text-slate-500 font-bold">
-                          ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
-                        </span>
+                        {compareAtEach != null && compareAtEach > unitPrice ? (
+                          <span className="text-xs text-slate-400 line-through font-bold block">
+                            ${formatPrice(compareAtEach * 5)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-500 font-bold">
+                            ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
