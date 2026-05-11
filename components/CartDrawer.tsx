@@ -7,7 +7,6 @@ import {
   ShieldCheck,
   Truck,
   Clock3,
-  Sparkles,
   ArrowRight,
   ShoppingBag,
   Tag,
@@ -264,8 +263,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 py-4">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-orange/15">
-                    <Sparkles className="h-8 w-8 text-brand-orange" />
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-orange/15 text-3xl leading-none" aria-hidden>
+                    ☺️
                   </div>
                   <h3 className="text-lg font-semibold text-brand-dark">
                     Your cart is empty
