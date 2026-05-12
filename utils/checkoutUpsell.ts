@@ -32,7 +32,9 @@ export function resolveMassageInsoleUpsell(cartItems: CartItem[]): {
       name: template.name || fallback.name,
       image: template.image || fallback.image,
       price: template.price,
-      ...(template.compareAtPrice != null ? { compareAtPrice: template.compareAtPrice } : {})
+      ...(template.currencyCode ? { currencyCode: template.currencyCode } : {}),
+      ...(template.compareAtPrice != null ? { compareAtPrice: template.compareAtPrice } : {}),
+      ...(template.compareAtCurrencyCode ? { compareAtCurrencyCode: template.compareAtCurrencyCode } : {})
     };
     return {
       product,

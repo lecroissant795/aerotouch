@@ -4,10 +4,11 @@ import { Zap, ArrowRight, ShieldCheck } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { BundleKitCardsRow } from '../components/BundleKitCardsRow';
 import { Product, BundleKit } from '../types';
-import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { BUNDLE_KITS } from '../utils/bundleKits';
 import { useShopifyBundleKits } from '../hooks/useShopifyBundleKits';
+import { useCurrency } from '../utils/CurrencyContext';
+import { fetchAllProducts } from '../utils/productFetcher';
 
 const FEATURED_PRODUCTS: Product[] = [
   {
@@ -92,13 +93,14 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   onAddKitToCart,
 }) => {
   const bundleKits = useShopifyBundleKits();
+  const { currency } = useCurrency();
   const [products, setProducts] = useState<Product[]>(() => filterOutBundleKitProducts(FEATURED_PRODUCTS));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const shopifyProducts = await shopify.product.fetchAll(20);
+        const shopifyProducts = await fetchAllProducts(20, currency);
         if (shopifyProducts && shopifyProducts.length > 0) {
           const mapped = shopifyProducts.map(mapShopifyProduct);
           setProducts(filterOutBundleKitProducts(mapped));
@@ -111,7 +113,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
     };
 
     fetchProducts();
-  }, []);
+  }, [currency]);
 
   return (
     <div className="animate-in fade-in duration-500 pt-24">

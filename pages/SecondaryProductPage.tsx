@@ -2,9 +2,8 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 're
 import { Product } from '../types';
 import { Button } from '../components/Button';
 import { Star, Truck, RotateCcw, Check, ShoppingBag, ShieldCheck, Timer, Users, CreditCard, Lock, ChevronDown, ChevronUp, Flame, BadgeCheck, Smile, Headphones, X, Play, Volume2, VolumeX, MapPin, Box, CircleDollarSign, Activity, Wrench, Tag } from 'lucide-react';
-import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
-import { fetchProductByHandle } from '../utils/productFetcher';
+import { fetchAllProducts, fetchProductByHandle } from '../utils/productFetcher';
 import { useProductMetafields } from '../utils/useProductMetafields';
 import { ProductCard } from '../components/ProductCard';
 import { ProductStickyAddToCart } from '../components/ProductStickyAddToCart';
@@ -26,6 +25,8 @@ import {
   HEIGHT_BOOSTER_TESTIMONIALS
 } from '../utils/heightBoostersCopy';
 import { MASSAGE_GUN_PDP_COPY } from '../utils/productMapping';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
 
 type BundleTierHighlight = NonNullable<
   NonNullable<NonNullable<Product['metafields']>['bundle_options_override']>[number]['highlight']
@@ -534,6 +535,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   testimonials: testimonialsProp,
   onNavigateToBlog,
 }) => {
+  const { currency, formatMoney } = useCurrency();
   const [product, setProduct] = useState<Product>(initialProduct);
   const meta = useProductMetafields(product);
   const isGripSocksProduct = useMemo(() => {
@@ -709,7 +711,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
       console.log('[SecondaryProductPage] Fetching Shopify data for identifier:', identifier);
 
       try {
-        const fetchedProduct = await fetchProductByHandle(identifier);
+        const fetchedProduct = await fetchProductByHandle(identifier, currency);
         if (fetchedProduct) {
           console.log('[SecondaryProductPage] ✅ Shopify data fetched successfully');
           setShopifyProduct(fetchedProduct);
@@ -723,8 +725,10 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
             };
             if (shopifyMapped.compareAtPrice != null && shopifyMapped.compareAtPrice > merged.price) {
               merged.compareAtPrice = shopifyMapped.compareAtPrice;
+              merged.compareAtCurrencyCode = shopifyMapped.compareAtCurrencyCode || shopifyMapped.currencyCode;
             } else {
               delete merged.compareAtPrice;
+              delete merged.compareAtCurrencyCode;
             }
             if (isHeightBoosterProduct(merged)) {
               merged.tagline = HEIGHT_BOOSTERS_PDP_COPY.tagline;
@@ -771,13 +775,13 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
       }
     };
     fetchShopifyData();
-  }, [initialProduct.id, initialProduct.handle]);
+  }, [initialProduct.id, initialProduct.handle, currency]);
 
   // Fetch related products
   useEffect(() => {
     const fetchRelated = async () => {
       try {
-        const shopifyProducts = await shopify.product.fetchAll(20);
+        const shopifyProducts = await fetchAllProducts(20, currency);
         if (shopifyProducts && shopifyProducts.length > 0) {
           const filtered = shopifyProducts
             .filter((p: any) => p.id !== initialProduct.id)
@@ -792,7 +796,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
       }
     };
     fetchRelated();
-  }, [initialProduct.id]);
+  }, [initialProduct.id, currency]);
 
   // Timer logic
   useEffect(() => {
@@ -832,10 +836,10 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   const sizeOption = shopifyProduct?.options?.find((o: any) => o.name === 'Size');
   const colorOption = shopifyProduct?.options?.find((o: any) => o.name === 'Color');
 
-  const availableSizes = sizeOption?.values?.map((v: any) => v.value) || ['One Size'];
+  const availableSizes = sizeOption?.values?.map((v: any) => v.value ?? v) || ['One Size'];
   const availableColors = colorOption?.values?.map((v: any) => ({
-    name: v.value,
-    value: v.value
+    name: v.value ?? v,
+    value: v.value ?? v
   })) || [{ name: 'Black', value: '#1E293B', label: 'Black' }];
 
   const fallbackImage = product.image || '';
@@ -871,11 +875,13 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
     compareAtEach != null && compareAtEach > 0
       ? Math.round((Math.max(0, savingsEach) / compareAtEach) * 100)
       : 0;
+  const productCurrency = product.currencyCode || DEFAULT_CURRENCY;
+  const compareAtCurrency = product.compareAtCurrencyCode || productCurrency;
+  const formatPrice = (amount: number, currencyOverride = productCurrency) => formatMoney(amount, currencyOverride as any);
   const savingsLabelForQty = (qty: number) => {
     const saved = Math.max(0, savingsEach) * qty;
-    const fmt = (v: number) => v.toFixed(2);
-    if (saved <= 0) return `You save $${fmt(0)}`;
-    return `You save $${fmt(saved)}`;
+    if (saved <= 0) return `You save ${formatPrice(0, compareAtCurrency)}`;
+    return `You save ${formatPrice(saved, compareAtCurrency)}`;
   };
 
   const handleScroll = () => {
@@ -1052,10 +1058,10 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 
                 {/* Price Display — Shopify variant price / compare-at */}
                 <div className="flex items-end gap-3 mb-4 flex-wrap">
-                   <div className="text-4xl font-black text-brand-orange">${unitPrice.toFixed(2)}</div>
+                   <div className="text-4xl font-black text-brand-orange">{formatPrice(unitPrice)}</div>
                    {compareAtEach != null && (
                      <div className="text-xl font-bold text-slate-400 line-through decoration-2 mb-1">
-                       ${compareAtEach.toFixed(2)}
+                       {formatPrice(compareAtEach, compareAtCurrency)}
                      </div>
                    )}
                    <div className="text-sm font-bold text-slate-500 mb-1">each</div>
@@ -1068,7 +1074,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 {bundle > 1 && (
                   <p className="text-sm font-bold text-slate-700 mb-4 -mt-2">
                     {bundle} {quantityUsesPairs ? 'pairs' : 'items'} —{' '}
-                    <span className="text-slate-900">${(unitPrice * bundle).toFixed(2)} at checkout</span>
+                    <span className="text-slate-900">{formatPrice(unitPrice * bundle)} at checkout</span>
                   </p>
                 )}
 
@@ -1251,11 +1257,11 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                               </div>
                               <div className="min-w-[92px] text-right">
                                   <span className="block text-xl font-bold text-brand-orange">
-                                    ${(unitPrice * qty).toFixed(2)}
+                                    {formatPrice(unitPrice * qty)}
                                   </span>
                                   {compareAtEach != null && compareAtEach > unitPrice && (
                                     <span className="block text-xs font-bold text-slate-400 line-through">
-                                      ${(compareAtEach * qty).toFixed(2)}
+                                      {formatPrice(compareAtEach * qty, compareAtCurrency)}
                                     </span>
                                   )}
                               </div>
@@ -1365,7 +1371,7 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                   >
                      <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
                          {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
-                         {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || `ADD TO CART - $${(unitPrice * bundle).toFixed(2)}`) : (meta.secondary_cta_text || 'SELECT SIZE'))}
+                         {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || `ADD TO CART - ${formatPrice(unitPrice * bundle)}`) : (meta.secondary_cta_text || 'SELECT SIZE'))}
                      </span>
                      {/* Shine effect */}
                      {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
@@ -1663,9 +1669,11 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
         imageAlt={product.name || 'Product'}
         productName={product.name || 'Product'}
         lineTotal={unitPrice * bundle}
+        currencyCode={productCurrency}
         compareAtLineTotal={
           compareAtEach != null && compareAtEach > unitPrice ? compareAtEach * bundle : null
         }
+        compareAtCurrencyCode={compareAtCurrency}
         variantSummary={
           selectedSize
             ? [

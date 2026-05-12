@@ -16,7 +16,7 @@ import { LivePurchaseNotification } from './components/LivePurchaseNotification'
 import { Product, CartItem, Page, BlogPost, BundleKit } from './types';
 import { shopify } from './utils/shopify';
 import { mapShopifyProduct, mapShopifyLineItem } from './utils/mapper';
-import { fetchProductByHandle } from './utils/productFetcher';
+import { fetchAllProducts, fetchProductByHandle } from './utils/productFetcher';
 import { ShopPage } from './pages/ShopPage';
 import { SearchResultsPage } from './pages/SearchResultsPage';
 import { BestSellersPage } from './pages/BestSellersPage';
@@ -62,6 +62,8 @@ import { DEFAULT_COLORS, DEFAULT_SIZES } from './utils/productOptions';
 import { extractDiscountCodesFromCheckout } from './utils/checkoutPromo';
 import { sumCartFinalSubtotals } from './utils/cartLineDisplay';
 import { extractCheckoutSubtotalAfterDiscounts } from './utils/checkoutMoney';
+import { CurrencyProvider, useCurrency } from './utils/CurrencyContext';
+import { DEFAULT_CURRENCY, getCheckoutStorageKey } from './utils/currency';
 
 /**
  * Resolve a Shopify variant for checkout. Only requires Size/Color to match when those
@@ -129,6 +131,7 @@ import { BLOG_POSTS, GIVING_BACK_ARTICLE_SLUG } from './pages/BlogPage';
 
 function AppShell() {
   const { page, params, query, navigate } = useRouter();
+  const { currency } = useCurrency();
 
   // Derived params
   const category = params.category;
@@ -150,7 +153,7 @@ function AppShell() {
   // Cart & Checkout state
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [checkoutId, setCheckoutId] = useState<string | null>(localStorage.getItem('shopify_checkout_id'));
+  const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [isCartLoading, setIsCartLoading] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
@@ -173,18 +176,53 @@ function AppShell() {
   const [promoApplyError, setPromoApplyError] = useState<string | null>(null);
   /** Shopify checkout subtotal after discounts (when the Storefront payload exposes it). */
   const [checkoutSubtotalFromShopify, setCheckoutSubtotalFromShopify] = useState<number | null>(null);
+  const cartItemsRef = useRef<CartItem[]>([]);
+  const previousCheckoutCurrencyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    cartItemsRef.current = cartItems;
+  }, [cartItems]);
 
   const applyCartCheckout = useCallback((checkout: any) => {
     if (!checkout) return;
     if (Array.isArray(checkout.lineItems)) {
-      setCartItems(checkout.lineItems.map(mapShopifyLineItem));
+      setCartItems(checkout.lineItems.map((lineItem: any) => mapShopifyLineItem(lineItem, currency)));
     } else {
       setCartItems([]);
     }
     if (checkout.webUrl) setCheckoutUrl(checkout.webUrl);
     setAppliedPromoCodes(extractDiscountCodesFromCheckout(checkout));
     setCheckoutSubtotalFromShopify(extractCheckoutSubtotalAfterDiscounts(checkout));
+  }, [currency]);
+
+  const persistCheckoutId = useCallback((id: string, checkoutCurrency: string) => {
+    const key = getCheckoutStorageKey(checkoutCurrency as any);
+    localStorage.setItem(key, id);
+    if (checkoutCurrency === DEFAULT_CURRENCY) {
+      localStorage.setItem('shopify_checkout_id', id);
+    }
   }, []);
+
+  const readStoredCheckoutId = useCallback((checkoutCurrency: string) => {
+    const key = getCheckoutStorageKey(checkoutCurrency as any);
+    return localStorage.getItem(key) || (checkoutCurrency === DEFAULT_CURRENCY ? localStorage.getItem('shopify_checkout_id') : null);
+  }, []);
+
+  const clearStoredCheckoutId = useCallback((checkoutCurrency: string) => {
+    localStorage.removeItem(getCheckoutStorageKey(checkoutCurrency as any));
+    if (checkoutCurrency === DEFAULT_CURRENCY) {
+      localStorage.removeItem('shopify_checkout_id');
+    }
+  }, []);
+
+  const buildCheckoutLineInputs = useCallback((items: CartItem[]) =>
+    items
+      .filter((item) => item.variantId && item.quantity > 0)
+      .map((item) => ({
+        variantId: item.variantId!,
+        quantity: item.quantity,
+        ...(item.customAttributes?.length ? { customAttributes: item.customAttributes } : {}),
+      })), []);
 
   // Page-specific data states
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -220,9 +258,10 @@ function AppShell() {
       category,
       searchQuery,
       selectedProduct,
-      selectedBlogPost
+      selectedBlogPost,
+      currencyCode: currency
     });
-  }, [page, params, query, category, searchQuery, selectedProduct, selectedBlogPost]);
+  }, [page, params, query, category, searchQuery, selectedProduct, selectedBlogPost, currency]);
 
   // Diagnostic: Log all Shopify products on startup + hydrate cart upsell catalog
   useEffect(() => {
@@ -232,7 +271,7 @@ function AppShell() {
         return;
       }
       try {
-        const products = await shopify.product.fetchAll(50);
+        const products = await fetchAllProducts(50, currency);
         console.log('[Diagnostic] ===== ALL SHOPIFY PRODUCTS =====');
         products.forEach(p => {
           console.log(`[Diagnostic] ID: ${p.id} | Handle: ${p.handle} | Title: ${p.title}`);
@@ -244,47 +283,93 @@ function AppShell() {
       }
     };
     logShopifyProducts();
-  }, [shopify]);
+  }, [currency]);
 
   // Scroll to top on route change, including same-template product/kit links.
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [page, productHandle, blogSlug, kitId, category, searchQuery]);
 
-  // Initialize Checkout
+  // Initialize Checkout for the selected presentment currency.
   useEffect(() => {
+    let cancelled = false;
+
+    const createCheckoutResilient = async (input: { lineItems?: any[] }) => {
+      const withPresentment = { ...input, presentmentCurrencyCode: currency };
+      try {
+        return await shopify!.checkout.create(withPresentment);
+      } catch (e) {
+        console.warn('[Checkout] create with presentmentCurrencyCode failed, retrying without:', e);
+      }
+      try {
+        return await shopify!.checkout.create(input);
+      } catch (e2) {
+        console.error('[Checkout] create without presentment also failed:', e2);
+        throw e2;
+      }
+    };
+
     const initCheckout = async () => {
       if (!shopify) {
         setCartError("Store is temporarily unavailable. Please try again later.");
         return;
       }
 
-      if (checkoutId) {
-        try {
-          const checkout = await shopify.checkout.fetch(checkoutId);
-          if (checkout && !checkout.completedAt) {
-            applyCartCheckout(checkout);
-            return;
+      const previousCurrency = previousCheckoutCurrencyRef.current;
+      const isCurrencySwitch = Boolean(previousCurrency && previousCurrency !== currency);
+      const migrationLines = isCurrencySwitch ? buildCheckoutLineInputs(cartItemsRef.current) : [];
+      previousCheckoutCurrencyRef.current = currency;
+      setCheckoutId(null);
+      setCheckoutUrl(null);
+
+      if (!isCurrencySwitch) {
+        const storedCheckoutId = readStoredCheckoutId(currency);
+        if (storedCheckoutId) {
+          try {
+            const checkout = await shopify.checkout.fetch(storedCheckoutId);
+            if (cancelled) return;
+            if (checkout && !checkout.completedAt) {
+              setCheckoutId(String(checkout.id));
+              applyCartCheckout(checkout);
+              return;
+            }
+          } catch (e) {
+            console.warn("Invalid or expired checkout, creating new one.");
+            clearStoredCheckoutId(currency);
           }
+        }
+      }
+
+      if (migrationLines.length > 0) {
+        try {
+          const checkout = await createCheckoutResilient({ lineItems: migrationLines });
+          if (cancelled) return;
+          setCheckoutId(String(checkout.id));
+          persistCheckoutId(String(checkout.id), currency);
+          applyCartCheckout(checkout);
+          return;
         } catch (e) {
-          console.warn("Invalid or expired checkout, creating new one.");
-          localStorage.removeItem('shopify_checkout_id');
+          console.warn("Failed to migrate checkout to selected currency, creating an empty checkout.", e);
         }
       }
 
       try {
-        const checkout = await shopify.checkout.create();
+        const checkout = await createCheckoutResilient({});
+        if (cancelled) return;
         setCheckoutId(String(checkout.id));
-        localStorage.setItem('shopify_checkout_id', String(checkout.id));
+        persistCheckoutId(String(checkout.id), currency);
         applyCartCheckout(checkout);
       } catch (e) {
         console.error("Failed to create checkout", e);
-        setCartError("Failed to initialize checkout. Please refresh.");
+        if (!cancelled) setCartError("Failed to initialize checkout. Please refresh.");
       }
     };
 
     initCheckout();
-  }, [checkoutId, applyCartCheckout]);
+    return () => {
+      cancelled = true;
+    };
+  }, [currency, applyCartCheckout, buildCheckoutLineInputs, clearStoredCheckoutId, persistCheckoutId, readStoredCheckoutId]);
 
   // Fetch product when handle changes
   useEffect(() => {
@@ -314,7 +399,7 @@ function AppShell() {
         const shopifyHandle = getShopifyHandle(productHandle);
         console.log('[App] Using handle:', shopifyHandle);
 
-        const product = await fetchProductByHandle(shopifyHandle);
+        const product = await fetchProductByHandle(shopifyHandle, currency);
 
         // Ignore if this request is not the latest
         if (currentRequestId !== requestId) {
@@ -386,7 +471,7 @@ function AppShell() {
       isMounted = false;
       console.log('[App] fetchProduct cleanup - isMounted set to false (requestId was:', requestId, ')');
     };
-  }, [productHandle]);
+  }, [productHandle, currency]);
 
   // Fetch blog post when slug changes
   useEffect(() => {
@@ -414,9 +499,9 @@ function AppShell() {
       const shopifyHandle = getShopifyHandle(lookupKey);
       console.log('[Cart] Using handle:', shopifyHandle, 'lookupKey:', lookupKey, 'for product:', product.name);
 
-      let shopifyProduct = await shopify.product.fetchByHandle(shopifyHandle);
+      let shopifyProduct = await fetchProductByHandle(shopifyHandle, currency);
       if (!shopifyProduct && hasShopifyMapping(lookupKey)) {
-        shopifyProduct = await shopify.product.fetchByHandle(lookupKey);
+        shopifyProduct = await fetchProductByHandle(lookupKey, currency);
       }
       if (!shopifyProduct) {
         shopifyProduct = await shopify.product.fetch(product.id);
@@ -435,7 +520,7 @@ function AppShell() {
       ]);
 
       applyCartCheckout(checkout);
-      logAddToCart(product.name, product.price);
+      logAddToCart(product.name, product.price, product.currencyCode || currency);
       setIsCartOpen(true);
     } catch (e) {
       console.error('Quick add to cart failed', e);
@@ -470,9 +555,9 @@ function AppShell() {
       const shopifyHandle = getShopifyHandle(lookupKey);
       console.log('[Cart] Adding to cart - using handle:', shopifyHandle, 'lookupKey:', lookupKey, 'for product:', product.name);
 
-      let shopifyProduct = await shopify.product.fetchByHandle(shopifyHandle);
+      let shopifyProduct = await fetchProductByHandle(shopifyHandle, currency);
       if (!shopifyProduct && hasShopifyMapping(lookupKey)) {
-        shopifyProduct = await shopify.product.fetchByHandle(lookupKey);
+        shopifyProduct = await fetchProductByHandle(lookupKey, currency);
       }
       if (!shopifyProduct) {
         shopifyProduct = await shopify.product.fetch(product.id);
@@ -506,9 +591,9 @@ function AppShell() {
 
         const checkout = await shopify.checkout.addLineItems(checkoutId, lineItemsToAdd);
         applyCartCheckout(checkout);
-        const lineItems = checkout.lineItems.map(mapShopifyLineItem);
+        const lineItems = checkout.lineItems.map((lineItem: any) => mapShopifyLineItem(lineItem, currency));
         const checkoutSubtotalFromShopify = extractCheckoutSubtotalAfterDiscounts(checkout);
-        logAddToCart(product.name, product.price * quantity);
+        logAddToCart(product.name, product.price * quantity, product.currencyCode || currency);
 
         if (openCart) {
           setIsCartOpen(true);
@@ -638,11 +723,12 @@ function AppShell() {
           price: item.price,
           quantity: item.quantity
         })),
-        totalValue
+        totalValue,
+        items[0]?.currencyCode || currency
       );
       window.location.href = url;
     },
-    [checkoutUrl, cartItems, checkoutSubtotalFromShopify]
+    [checkoutUrl, cartItems, checkoutSubtotalFromShopify, currency]
   );
 
   const handleCartCheckoutClick = useCallback(() => {
@@ -671,7 +757,8 @@ function AppShell() {
           price: item.price,
           quantity: item.quantity
         })),
-        totalValue
+        totalValue,
+        checkoutItems[0]?.currencyCode || currency
       );
       window.location.href = finalUrl;
       return;
@@ -690,7 +777,7 @@ function AppShell() {
     let resolvedColor = color;
     if (resolvedSize == null || resolvedColor == null) {
       const insolesHandle = getShopifyHandle('massage-insoles');
-      const insoles = await fetchProductByHandle(insolesHandle);
+      const insoles = await fetchProductByHandle(insolesHandle, currency);
       const sizeVals = insoles?.options?.find((o: any) => o.name === 'Size')?.values || [];
       const colorVals = insoles?.options?.find((o: any) => o.name === 'Color')?.values || [];
       resolvedSize =
@@ -1047,9 +1134,11 @@ function AppShell() {
 
 export default function App() {
   return (
-    <RouterProvider>
-      <AppShell />
-    </RouterProvider>
+    <CurrencyProvider>
+      <RouterProvider>
+        <AppShell />
+      </RouterProvider>
+    </CurrencyProvider>
   );
 }
 

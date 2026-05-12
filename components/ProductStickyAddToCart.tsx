@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from './Button';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
 
 export interface ProductStickyAddToCartProps {
   visible: boolean;
@@ -8,7 +10,9 @@ export interface ProductStickyAddToCartProps {
   imageAlt: string;
   productName: string;
   lineTotal: number;
+  currencyCode?: string;
   compareAtLineTotal?: number | null;
+  compareAtCurrencyCode?: string;
   variantSummary: string;
   ctaLabel: string;
   ctaAriaLabel: string;
@@ -17,15 +21,15 @@ export interface ProductStickyAddToCartProps {
   onCtaClick: () => void;
 }
 
-const formatMoney = (n: number) => n.toFixed(2);
-
 export const ProductStickyAddToCart: React.FC<ProductStickyAddToCartProps> = ({
   visible,
   imageSrc,
   imageAlt,
   productName,
   lineTotal,
+  currencyCode,
   compareAtLineTotal,
+  compareAtCurrencyCode,
   variantSummary,
   ctaLabel,
   ctaAriaLabel,
@@ -33,6 +37,7 @@ export const ProductStickyAddToCart: React.FC<ProductStickyAddToCartProps> = ({
   disabled = false,
   onCtaClick,
 }) => {
+  const { formatMoney } = useCurrency();
   const barRef = useRef<HTMLDivElement>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -98,11 +103,11 @@ export const ProductStickyAddToCart: React.FC<ProductStickyAddToCartProps> = ({
                 <div className="flex flex-wrap items-baseline justify-end gap-2">
                   {compareAtLineTotal != null && compareAtLineTotal > lineTotal && (
                     <span className="text-sm font-bold text-slate-400 line-through decoration-2 md:text-base">
-                      ${formatMoney(compareAtLineTotal)}
+                      {formatMoney(compareAtLineTotal, (compareAtCurrencyCode || currencyCode || DEFAULT_CURRENCY) as any)}
                     </span>
                   )}
                   <span className="text-base font-black text-brand-orange md:text-xl">
-                    ${formatMoney(lineTotal)}
+                    {formatMoney(lineTotal, (currencyCode || DEFAULT_CURRENCY) as any)}
                   </span>
                 </div>
               </div>

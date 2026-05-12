@@ -26,6 +26,8 @@ import {
 } from '../utils/pricing';
 import { getCartLineDisplay, sumCartFinalSubtotals, sumCartLineSavings } from '../utils/cartLineDisplay';
 import { BUNDLE_KITS } from '../utils/bundleKits';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -77,9 +79,6 @@ const BENEFITS = [
   { icon: Clock3, title: 'Priority Support', subtitle: '24/7 experts' }
 ];
 
-const formatCurrency = (value: number) =>
-  value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-
 const CART_RESERVE_SECONDS = 5 * 60;
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -101,6 +100,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onDismissPromoError,
   checkoutSubtotalFromShopify = null
 }) => {
+  const { currency, formatMoney } = useCurrency();
   const [promoInput, setPromoInput] = useState('');
   const [isPromoOpen, setIsPromoOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(CART_RESERVE_SECONDS);
@@ -192,6 +192,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const subtotal = useMemo(() => sumCartFinalSubtotals(items), [items]);
 
   const totalYouSave = useMemo(() => sumCartLineSavings(items), [items]);
+  const cartCurrency = items[0]?.currencyCode || currency;
+  const liveMakeItAKitOffer = useMemo(() => {
+    const liveProduct = shopProducts.find((p) => p.handle === primaryBundleKit.handle);
+    return liveProduct
+      ? {
+          ...MAKE_IT_A_KIT_OFFER,
+          price: liveProduct.price,
+          originalPrice: liveProduct.compareAtPrice ?? MAKE_IT_A_KIT_OFFER.originalPrice,
+          currencyCode: liveProduct.currencyCode,
+          originalCurrencyCode: liveProduct.compareAtCurrencyCode || liveProduct.currencyCode,
+          image: liveProduct.image || MAKE_IT_A_KIT_OFFER.image,
+        }
+      : {
+          ...MAKE_IT_A_KIT_OFFER,
+          currencyCode: DEFAULT_CURRENCY,
+          originalCurrencyCode: DEFAULT_CURRENCY,
+        };
+  }, [shopProducts]);
 
   /** Prefer Shopify-reported subtotal when available so totals match automatic discounts at checkout. */
   const displayTotal =
@@ -411,20 +429,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                               <div className="flex w-full shrink-0 flex-col items-end gap-0.5 text-right sm:w-auto sm:pl-2">
                                 {line.showStrikethrough && (
                                   <p className="text-sm font-semibold tabular-nums text-slate-400 line-through decoration-2">
-                                    {formatCurrency(line.originalSubtotal)}
+                                    {formatMoney(line.originalSubtotal, (item.compareAtCurrencyCode || item.currencyCode || DEFAULT_CURRENCY) as any)}
                                   </p>
                                 )}
                                 <p className="text-base font-bold tabular-nums text-brand-orange">
-                                  {formatCurrency(line.finalLineSubtotal)}
+                                  {formatMoney(line.finalLineSubtotal, (item.currencyCode || DEFAULT_CURRENCY) as any)}
                                 </p>
                                 {line.quantity > 1 && (
                                   <p className="text-[10px] font-medium tabular-nums text-slate-500">
-                                    {formatCurrency(eachFinal)} each
+                                    {formatMoney(eachFinal, (item.currencyCode || DEFAULT_CURRENCY) as any)} each
                                   </p>
                                 )}
                                 {line.lineSavings > 0 && (
                                   <p className="mt-0.5 text-right text-[10px] font-bold uppercase leading-snug tracking-wide text-lime-700">
-                                    Save {formatCurrency(line.lineSavings)} on this item
+                                    Save {formatMoney(line.lineSavings, (item.compareAtCurrencyCode || item.currencyCode || DEFAULT_CURRENCY) as any)} on this item
                                   </p>
                                 )}
                               </div>
@@ -519,10 +537,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           </p>
                           <div className="mt-1.5 flex items-center gap-2">
                             <span className="text-sm font-bold text-brand-orange">
-                              {formatCurrency(MAKE_IT_A_KIT_OFFER.price)}
+                              {formatMoney(liveMakeItAKitOffer.price, liveMakeItAKitOffer.currencyCode as any)}
                             </span>
                             <span className="text-[10px] text-slate-400 line-through">
-                              {formatCurrency(MAKE_IT_A_KIT_OFFER.originalPrice)}
+                              {formatMoney(liveMakeItAKitOffer.originalPrice, liveMakeItAKitOffer.originalCurrencyCode as any)}
                             </span>
                           </div>
                         </div>
@@ -576,11 +594,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           </button>
                           <div className="shrink-0 text-right">
                             <p className="text-sm font-bold text-[#F77421]">
-                              {formatCurrency(upsellProduct.price)}
+                              {formatMoney(upsellProduct.price, (upsellProduct.currencyCode || DEFAULT_CURRENCY) as any)}
                             </p>
                             {showCompare && (
                               <p className="text-[11px] text-slate-400 line-through">
-                                {formatCurrency(upsellProduct.compareAtPrice!)}
+                                {formatMoney(upsellProduct.compareAtPrice!, (upsellProduct.compareAtCurrencyCode || upsellProduct.currencyCode || DEFAULT_CURRENCY) as any)}
                               </p>
                             )}
                           </div>
@@ -747,7 +765,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span
                     className={`font-extrabold uppercase tabular-nums tracking-wide ${totalYouSave > 0 ? 'text-lime-600' : 'text-slate-400'}`}
                   >
-                    {formatCurrency(totalYouSave)}
+                    {formatMoney(totalYouSave, cartCurrency as any)}
                   </span>
                 </div>
                 <div className="mt-5 flex items-center justify-between text-base">
@@ -755,7 +773,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     Total
                   </span>
                   <span className="font-extrabold uppercase tabular-nums tracking-wide text-brand-dark">
-                    {formatCurrency(displayTotal)}
+                    {formatMoney(displayTotal, cartCurrency as any)}
                   </span>
                 </div>
                 {checkoutSubtotalFromShopify != null && (

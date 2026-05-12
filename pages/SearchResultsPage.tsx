@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ProductCard } from '../components/ProductCard';
 import { Product } from '../types';
-import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { getFascilitesBundleGridProduct } from '../utils/bundleKits';
+import { useCurrency } from '../utils/CurrencyContext';
+import { fetchAllProducts } from '../utils/productFetcher';
 
 
 const FALLBACK_PRODUCTS: Product[] = [
@@ -37,6 +38,7 @@ interface SearchResultsPageProps {
 export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuery, onProductSelect, onQuickAddToCart }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { currency } = useCurrency();
 
   useEffect(() => {
     const query = searchQuery.trim();
@@ -50,7 +52,7 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuer
       setLoading(true);
       try {
         // Fetch products from Shopify (this works - used elsewhere in the app)
-        const allProducts = await shopify.product.fetchAll(100);
+        const allProducts = await fetchAllProducts(100, currency);
         if (allProducts && allProducts.length > 0) {
           const mappedProducts = allProducts.map(mapShopifyProduct);
           const filtered = filterProductsByQuery(mappedProducts, query);
@@ -68,7 +70,7 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchQuer
     };
 
     fetchSearch();
-  }, [searchQuery]);
+  }, [searchQuery, currency]);
 
   const hasQuery = searchQuery.trim().length > 0;
 

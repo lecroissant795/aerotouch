@@ -3,6 +3,8 @@ import { X, ShoppingBag, Star, Ruler } from 'lucide-react';
 import { Product } from '../types';
 import { shopify } from '../utils/shopify';
 import { getCartProductLookupKey, getShopifyHandle } from '../utils/productMapping';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
 
 const DEFAULT_SIZES = [
   { label: 'M 5 / W 6', detail: 'US Men 5 / US Women 6' },
@@ -33,6 +35,7 @@ export const SizeSelectorModal: React.FC<SizeSelectorModalProps> = ({
   onConfirm,
   isLoading = false,
 }) => {
+  const { formatMoney } = useCurrency();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [availableSizes, setAvailableSizes] = useState(DEFAULT_SIZES);
   /** First Color option from Shopify (insoles use Color + Size; "One Size" breaks variant match). */
@@ -167,7 +170,7 @@ export const SizeSelectorModal: React.FC<SizeSelectorModalProps> = ({
               </span>
             </div>
             <p className="text-lg font-black text-slate-900 mt-1">
-              ${product.price.toFixed(2)}
+              {formatMoney(product.price, (product.currencyCode || DEFAULT_CURRENCY) as any)}
             </p>
           </div>
         </div>

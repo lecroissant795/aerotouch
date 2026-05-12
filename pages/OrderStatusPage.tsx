@@ -15,6 +15,8 @@ import {
   AlertCircle,
   Box
 } from 'lucide-react';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
 
 interface OrderStep {
   label: string;
@@ -36,6 +38,7 @@ interface OrderDetails {
     name: string;
     quantity: number;
     price: number;
+    currencyCode?: string;
     image?: string;
   }>;
   shippingAddress: {
@@ -50,6 +53,7 @@ interface OrderDetails {
 }
 
 export const OrderStatusPage: React.FC = () => {
+  const { formatMoney } = useCurrency();
   const [orderNumber, setOrderNumber] = useState('');
   const [email, setEmail] = useState('');
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
@@ -88,12 +92,16 @@ export const OrderStatusPage: React.FC = () => {
       const order = data.rawData;
       
       // Handle GraphQL edges/nodes structure for line items
-      const lineItems = order.lineItems?.edges?.map((edge: any) => ({
-        name: edge.node.title,
-        quantity: edge.node.quantity,
-        price: parseFloat(edge.node.originalUnitPriceSet?.shopMoney?.amount || '0'),
-        image: edge.node.variant?.image?.url
-      })) || [];
+      const lineItems = order.lineItems?.edges?.map((edge: any) => {
+        const money = edge.node.originalUnitPriceSet?.presentmentMoney || edge.node.originalUnitPriceSet?.shopMoney;
+        return {
+          name: edge.node.title,
+          quantity: edge.node.quantity,
+          price: parseFloat(money?.amount || '0'),
+          currencyCode: money?.currencyCode,
+          image: edge.node.variant?.image?.url
+        };
+      }) || [];
 
       const mappedResult: OrderDetails = {
         orderNumber: orderNumber,
@@ -406,7 +414,9 @@ export const OrderStatusPage: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-sm text-brand-dark truncate">{item.name}</p>
                           <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
-                          <p className="text-sm font-bold text-brand-orange mt-1">${item.price.toFixed(2)}</p>
+                          <p className="text-sm font-bold text-brand-orange mt-1">
+                            {formatMoney(item.price, (item.currencyCode || DEFAULT_CURRENCY) as any)}
+                          </p>
                         </div>
                       </div>
                     ))}

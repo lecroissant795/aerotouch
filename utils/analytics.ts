@@ -1,4 +1,5 @@
 import ReactGA from "react-ga4";
+import { DEFAULT_CURRENCY } from './currency';
 
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GOOGLE_ANALYTICS_ID;
 
@@ -27,7 +28,7 @@ export const logEvent = (category: string, action: string, label?: string) => {
     }
 };
 
-export const logAddToCart = (productName: string, value: number, currency = 'USD') => {
+export const logAddToCart = (productName: string, value: number, currency = DEFAULT_CURRENCY) => {
     if (GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
         ReactGA.event("add_to_cart", {
             currency,
@@ -42,7 +43,7 @@ export const logAddToCart = (productName: string, value: number, currency = 'USD
     }
 };
 
-export const logBeginCheckout = (items: { name: string, price: number, quantity: number }[], value: number, currency = 'USD') => {
+export const logBeginCheckout = (items: { name: string, price: number, quantity: number }[], value: number, currency = DEFAULT_CURRENCY) => {
     if (GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
         ReactGA.event("begin_checkout", {
             currency,

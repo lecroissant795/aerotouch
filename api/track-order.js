@@ -77,6 +77,10 @@ export default async function handler(req, res) {
                   amount
                   currencyCode
                 }
+                presentmentMoney {
+                  amount
+                  currencyCode
+                }
               }
               lineItems(first: 5) {
                 edges {
@@ -85,6 +89,10 @@ export default async function handler(req, res) {
                     quantity
                     originalUnitPriceSet {
                       shopMoney {
+                        amount
+                        currencyCode
+                      }
+                      presentmentMoney {
                         amount
                         currencyCode
                       }

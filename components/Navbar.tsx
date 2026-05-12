@@ -3,9 +3,11 @@ import { ShoppingBag, Menu, X, Search, ChevronDown } from 'lucide-react';
 import { Page } from '../types';
 import { MegaMenuTestimonials } from './MegaMenuTestimonials';
 import { createUrl } from '../utils/router';
-import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { BUNDLE_KITS } from '../utils/bundleKits';
+import { CURRENCY_MARKETS, SUPPORTED_CURRENCIES, type SupportedCurrencyCode } from '../utils/currency';
+import { useCurrency } from '../utils/CurrencyContext';
+import { fetchAllProducts } from '../utils/productFetcher';
 
 const FALLBACK_SUGGESTIONS = [
   { id: 'massage-insoles', name: 'AeroTouch Massage Insoles' },
@@ -27,6 +29,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNavigate, onSearch, searchQuery = '', transparentMode = false, forceWhite = false }) => {
+  const { currency, setCurrency } = useCurrency();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShopHovered, setIsShopHovered] = useState(false);
@@ -47,18 +50,16 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
   useEffect(() => {
     if (isSearchOpen) {
       searchInputRef.current?.focus();
-      if (shopify) {
-        shopify.product.fetchAll(100).then((products) => {
-          if (products?.length) {
-            setAllProductNames(products.map(mapShopifyProduct).map((p) => ({ id: p.id, name: p.name })));
-          }
-        }).catch(() => {});
-      }
+      fetchAllProducts(100, currency).then((products) => {
+        if (products?.length) {
+          setAllProductNames(products.map(mapShopifyProduct).map((p) => ({ id: p.id, name: p.name })));
+        }
+      }).catch(() => {});
     } else {
       setSuggestions([]);
       setHighlightedIdx(-1);
     }
-  }, [isSearchOpen]);
+  }, [isSearchOpen, currency]);
 
   useEffect(() => {
     const q = searchInput.trim().toLowerCase();
@@ -146,6 +147,28 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
 
   const textColorClass = getTextColor();
   const isTransparentState = !isScrolled && transparentMode && !isShopHovered && !isMobileMenuOpen;
+
+  const currencySelector = (className = '') => (
+    <label className={`relative inline-flex items-center ${className}`}>
+      <span className="sr-only">Select currency</span>
+      <select
+        value={currency}
+        onChange={(e) => setCurrency(e.target.value as SupportedCurrencyCode)}
+        className={`appearance-none rounded-full border px-3 py-1.5 pr-8 text-xs font-bold uppercase tracking-wide outline-none transition ${
+          isTransparentState
+            ? 'border-white/30 bg-white/10 text-white hover:border-brand-lime'
+            : 'border-slate-200 bg-white text-brand-dark hover:border-brand-orange'
+        }`}
+      >
+        {SUPPORTED_CURRENCIES.map((code) => (
+          <option key={code} value={code} className="text-brand-dark">
+            {CURRENCY_MARKETS[code].label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5" />
+    </label>
+  );
 
   const handleNavClick = (item: string) => {
     if (item === 'Massage Insoles') {
@@ -268,6 +291,10 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                   <Search className="w-5 h-5" />
                 </button>
               )}
+            </div>
+
+            <div className="hidden md:block">
+              {currencySelector()}
             </div>
             
             <button 
@@ -446,6 +473,10 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onCartClick, onNaviga
                     ))}
                   </div>
                 )}
+              </div>
+              <div className="mb-5 flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                <span className="text-sm font-bold text-brand-dark">Currency</span>
+                {currencySelector()}
               </div>
               <ul className="space-y-0">
                 {['Massage Insoles', 'Support', 'Track Your Order'].map((label) => {

@@ -2,6 +2,8 @@ import React from 'react';
 import { Product, Page } from '../types';
 import { Star, ShoppingBag } from 'lucide-react';
 import { createUrl } from '../utils/router';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
 
 interface ProductCardProps {
   product: Product;
@@ -14,7 +16,10 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAddToCart, bestSeller, compactOnMobile }) => {
+  const { formatMoney } = useCurrency();
   const keyFeature = product.features[0] || 'Premium support';
+  const currencyCode = product.currencyCode || DEFAULT_CURRENCY;
+  const compareAtCurrencyCode = product.compareAtCurrencyCode || currencyCode;
   const compareAt =
     product.compareAtPrice != null && product.compareAtPrice > product.price
       ? product.compareAtPrice
@@ -113,13 +118,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
               <span
                 className={`font-black tracking-tight ${compareAt != null ? 'text-brand-orange' : 'text-slate-900'} ${compactOnMobile ? 'text-lg md:text-xl' : 'text-xl'}`}
               >
-                ${product.price.toFixed(2)}
+                {formatMoney(product.price, currencyCode as any)}
               </span>
               {compareAt != null && (
                 <span
                   className={`text-slate-400 line-through font-bold ${compactOnMobile ? 'text-sm md:text-base' : 'text-base'}`}
                 >
-                  ${compareAt.toFixed(2)}
+                  {formatMoney(compareAt, compareAtCurrencyCode as any)}
                 </span>
               )}
             </div>

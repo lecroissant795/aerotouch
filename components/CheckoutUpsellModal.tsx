@@ -2,14 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { X, Clock } from 'lucide-react';
 import { Product } from '../types';
 import { getLinePricing } from '../utils/pricing';
-import { shopify } from '../utils/shopify';
 import { getCartProductLookupKey, getShopifyHandle } from '../utils/productMapping';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
+import { fetchProductByHandle } from '../utils/productFetcher';
 
 const EXTRA_PAIRS = 2;
 const OFFER_TIMER_SECONDS = 10 * 60;
-
-const formatMoney = (n: number) =>
-  n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
 interface CheckoutUpsellModalProps {
   isOpen: boolean;
@@ -35,6 +34,9 @@ export const CheckoutUpsellModal: React.FC<CheckoutUpsellModalProps> = ({
   onDecline,
   isLoading = false
 }) => {
+  const { currency, formatMoney } = useCurrency();
+  const productCurrency = upsellProduct.currencyCode || DEFAULT_CURRENCY;
+  const compareCurrency = upsellProduct.compareAtCurrencyCode || productCurrency;
   const [secondsLeft, setSecondsLeft] = useState(OFFER_TIMER_SECONDS);
   const [sizes, setSizes] = useState<string[]>([]);
   const [colors, setColors] = useState<string[]>([]);
@@ -74,15 +76,13 @@ export const CheckoutUpsellModal: React.FC<CheckoutUpsellModalProps> = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen || !shopify) return;
+    if (!isOpen) return;
 
     const load = async () => {
       try {
         const lookupKey = getCartProductLookupKey(upsellProduct);
         const handle = getShopifyHandle(lookupKey);
-        const sp =
-          (await shopify.product.fetchByHandle(handle)) ||
-          (await shopify.product.fetch(upsellProduct.id));
+        const sp = await fetchProductByHandle(handle, currency);
         if (!sp) return;
 
         const sizeOpt = sp.options?.find((o: { name: string }) => o.name === 'Size');
@@ -119,7 +119,7 @@ export const CheckoutUpsellModal: React.FC<CheckoutUpsellModalProps> = ({
     };
 
     load();
-  }, [isOpen, upsellProduct, defaultSize, defaultColor]);
+  }, [isOpen, upsellProduct, defaultSize, defaultColor, currency]);
 
   if (!isOpen) return null;
 
@@ -199,12 +199,12 @@ export const CheckoutUpsellModal: React.FC<CheckoutUpsellModalProps> = ({
               </p>
               <div className="mt-2 flex flex-wrap items-baseline gap-2">
                 <span className="text-lg font-black text-brand-orange">
-                  {formatMoney(tierPricing.unitPrice)}
+                  {formatMoney(tierPricing.unitPrice, productCurrency as any)}
                   <span className="text-xs font-bold text-slate-500"> / pair</span>
                 </span>
                 {compareBase > tierPricing.unitPrice && (
                   <span className="text-sm font-bold text-slate-400 line-through">
-                    {formatMoney(compareBase)}
+                    {formatMoney(compareBase, compareCurrency as any)}
                   </span>
                 )}
                 <span className="rounded-md bg-lime-100 px-2 py-0.5 text-[10px] font-black uppercase text-lime-900">
@@ -213,9 +213,9 @@ export const CheckoutUpsellModal: React.FC<CheckoutUpsellModalProps> = ({
               </div>
               <p className="mt-1 text-[11px] font-semibold text-slate-500">
                 {EXTRA_PAIRS} pairs:{' '}
-                <span className="text-brand-dark">{formatMoney(lineTotalExtra)}</span>
+                <span className="text-brand-dark">{formatMoney(lineTotalExtra, productCurrency as any)}</span>
                 {msrpExtra > lineTotalExtra + 0.005 && (
-                  <span className="ml-1 line-through opacity-70">{formatMoney(msrpExtra)}</span>
+                  <span className="ml-1 line-through opacity-70">{formatMoney(msrpExtra, compareCurrency as any)}</span>
                 )}
                 <span className="block text-[10px] font-normal text-slate-400">
                   ({cartTotalItemCount} items in cart → {qtyAfterAdd} total with this add-on; volume tier

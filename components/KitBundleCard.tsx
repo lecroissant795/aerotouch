@@ -2,6 +2,8 @@ import React from 'react';
 import { createUrl } from '../utils/router';
 import { Page, type BundleKit } from '../types';
 import { bundleKitBadgeLabel } from '../utils/bundleKitBadge';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
 
 function savingsPercent(price: number, original: number): number {
   if (original <= 0 || original <= price) return 0;
@@ -18,8 +20,11 @@ export interface KitBundleCardProps {
  * Shared bundle kit product card — landing (LimitedTimeKits), BundleKitsPage, and bundle category grid.
  */
 export const KitBundleCard: React.FC<KitBundleCardProps> = ({ kit, onKitSelect, onAddKitToCart }) => {
+  const { formatMoney } = useCurrency();
   const kitHref = createUrl(Page.KIT_PRODUCT, { kitId: kit.id });
   const savePct = savingsPercent(kit.price, kit.originalPrice);
+  const kitCurrency = kit.currencyCode || DEFAULT_CURRENCY;
+  const originalCurrency = kit.originalCurrencyCode || kitCurrency;
 
   const handleKitNavigate = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -90,11 +95,11 @@ export const KitBundleCard: React.FC<KitBundleCardProps> = ({ kit, onKitSelect, 
           <div className="mt-2.5 flex flex-col items-start gap-0.5 sm:mt-3">
             {kit.originalPrice > kit.price && (
               <span className="text-[11px] font-medium tabular-nums text-slate-400 line-through sm:text-xs">
-                ${kit.originalPrice.toFixed(2)}
+                {formatMoney(kit.originalPrice, originalCurrency as any)}
               </span>
             )}
             <span className="text-xl font-black tabular-nums leading-none tracking-tight text-[#E45B08] sm:text-2xl">
-              ${kit.price.toFixed(2)}
+              {formatMoney(kit.price, kitCurrency as any)}
             </span>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { BlogPost, Page, Product } from '../types';
+import { DEFAULT_CURRENCY } from './currency';
 
 type SeoInput = {
   page: Page;
@@ -8,6 +9,7 @@ type SeoInput = {
   searchQuery?: string;
   selectedProduct?: Product | null;
   selectedBlogPost?: BlogPost | null;
+  currencyCode?: string;
 };
 
 type SeoPayload = {
@@ -340,7 +342,7 @@ export function applyPageSeo(input: SeoInput): void {
       offers: {
         '@type': 'Offer',
         url: canonical,
-        priceCurrency: 'USD',
+        priceCurrency: product.currencyCode || input.currencyCode || DEFAULT_CURRENCY,
         price: product.price.toFixed(2),
         availability: 'https://schema.org/InStock',
         itemCondition: 'https://schema.org/NewCondition'

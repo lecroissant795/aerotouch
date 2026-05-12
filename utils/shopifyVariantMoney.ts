@@ -17,8 +17,19 @@ export function parseMoneyAmount(money: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+export function parseMoneyCurrencyCode(money: any): string | undefined {
+  if (!money || typeof money !== 'object') return undefined;
+  const code = money.currencyCode || money.currency_code;
+  if (typeof code !== 'string' || !code.trim()) return undefined;
+  return code.trim().toUpperCase();
+}
+
 export function variantSalePrice(variant: any): number {
   return parseMoneyAmount(variant?.price) ?? 0;
+}
+
+export function variantSaleCurrencyCode(variant: any): string | undefined {
+  return parseMoneyCurrencyCode(variant?.price);
 }
 
 /** Shopify compare-at price on the variant, if set. */
@@ -27,6 +38,13 @@ export function variantCompareAt(variant: any): number | null {
     parseMoneyAmount(variant?.compareAtPrice) ??
     parseMoneyAmount(variant?.compareAtPriceV2) ??
     null
+  );
+}
+
+export function variantCompareAtCurrencyCode(variant: any): string | undefined {
+  return (
+    parseMoneyCurrencyCode(variant?.compareAtPrice) ??
+    parseMoneyCurrencyCode(variant?.compareAtPriceV2)
   );
 }
 

@@ -19,6 +19,8 @@ import { DEFAULT_SIZES, DEFAULT_COLORS } from '../utils/productOptions';
 import { isBundleKitProductByProduct } from '../utils/bundleKits';
 import { getShopifyHandle } from '../utils/productMapping';
 import { ProductStickyAddToCart } from '../components/ProductStickyAddToCart';
+import { useCurrency } from '../utils/CurrencyContext';
+import { DEFAULT_CURRENCY } from '../utils/currency';
 import {
   SHIPPING_REGION_LABELS,
   SHIPPING_DAY_RANGES,
@@ -90,6 +92,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   bundleItems,
   backLabel
 }) => {
+  const { currency, formatMoney } = useCurrency();
   const [product, setProduct] = useState<Product>(initialProduct);
   const isBundleKitPdp = isBundleKitProductByProduct(product);
   const meta = useProductMetafields(product);
@@ -130,13 +133,13 @@ export const ProductPage: React.FC<ProductPageProps> = ({
     }
     let cancelled = false;
     (async () => {
-      const fetched = await fetchProductByHandle(getShopifyHandle('massage-insoles'));
+      const fetched = await fetchProductByHandle(getShopifyHandle('massage-insoles'), currency);
       if (!cancelled && fetched) setInsolesShopifyProduct(fetched);
     })();
     return () => {
       cancelled = true;
     };
-  }, [initialProduct.handle]);
+  }, [initialProduct.handle, currency]);
 
   useEffect(() => {
     const fetchShopifyData = async () => {
@@ -147,7 +150,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
       console.log('[ProductPage] Fetching Shopify data for identifier:', identifier);
 
       try {
-        const fetchedProduct = await fetchProductByHandle(identifier);
+        const fetchedProduct = await fetchProductByHandle(identifier, currency);
         if (fetchedProduct) {
           console.log('[ProductPage] ✅ Shopify data fetched successfully');
           console.log('[ProductPage] Raw fetchedProduct:', fetchedProduct);
@@ -162,10 +165,13 @@ export const ProductPage: React.FC<ProductPageProps> = ({
             if (shopifyMapped.name) merged.name = shopifyMapped.name;
             if (shopifyMapped.tagline) merged.tagline = shopifyMapped.tagline;
             if (shopifyMapped.price > 0) merged.price = shopifyMapped.price;
+            if (shopifyMapped.currencyCode) merged.currencyCode = shopifyMapped.currencyCode;
             if (shopifyMapped.compareAtPrice != null && shopifyMapped.compareAtPrice > merged.price) {
               merged.compareAtPrice = shopifyMapped.compareAtPrice;
+              merged.compareAtCurrencyCode = shopifyMapped.compareAtCurrencyCode || shopifyMapped.currencyCode;
             } else {
               delete merged.compareAtPrice;
+              delete merged.compareAtCurrencyCode;
             }
             if (shopifyMapped.image) merged.image = shopifyMapped.image;
             if (shopifyMapped.images && shopifyMapped.images.length > 0) merged.images = shopifyMapped.images;
@@ -187,7 +193,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
       }
     };
     fetchShopifyData();
-  }, [initialProduct.id, initialProduct.handle]);
+  }, [initialProduct.id, initialProduct.handle, currency]);
 
   // Derived options from Shopify (bundle kits use Massage Insoles options) or fallback
   const optionSourceProduct = isBundleKitPdp ? insolesShopifyProduct : shopifyProduct;
@@ -355,7 +361,9 @@ export const ProductPage: React.FC<ProductPageProps> = ({
     setBundle(1);
   }, [initialProduct.handle]);
 
-  const formatPrice = (amount: number) => amount.toFixed(2);
+  const productCurrency = product.currencyCode || DEFAULT_CURRENCY;
+  const compareAtCurrency = product.compareAtCurrencyCode || productCurrency;
+  const formatPrice = (amount: number, currencyOverride = productCurrency) => formatMoney(amount, currencyOverride as any);
 
   const resolvedVariant = useMemo(
     () => findVariantBySizeAndColor(shopifyProduct, selectedSize, selectedColor),
@@ -383,17 +391,16 @@ export const ProductPage: React.FC<ProductPageProps> = ({
       : 0;
   const savingsLabelForQty = (qty: number) => {
     const saved = Math.max(0, savingsEach) * qty;
-    if (saved <= 0) return `You save $${formatPrice(0)}`;
-    return `You save $${formatPrice(saved)}`;
+    if (saved <= 0) return `You save ${formatPrice(0, compareAtCurrency)}`;
+    return `You save ${formatPrice(saved, compareAtCurrency)}`;
   };
   const offerQuantityLabel = (qty: number) => {
     const unit = isBundleKitPdp ? 'Kit' : 'Pair';
     return `${qty} ${unit}${qty === 1 ? '' : 's'} Option`;
   };
-  const offerSavingsLabel = (qty: number, defaultLabel: string) => {
-    if (!isBundleKitPdp) return defaultLabel;
+  const offerSavingsLabel = (qty: number, _defaultLabel: string) => {
     const saved = Math.max(0, savingsEach) * qty;
-    return saved > 0 ? `Save $${formatPrice(saved)}` : 'Limited offer';
+    return saved > 0 ? `Save ${formatPrice(saved, compareAtCurrency)}` : 'Limited offer';
   };
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
 
@@ -488,7 +495,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
             </div>
             <div className="md:w-1/2 flex flex-col justify-center">
               <h1 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tight mb-4">{product.name}</h1>
-              <div className="text-3xl font-black text-brand-orange mb-6">${formatPrice(product.price)}</div>
+              <div className="text-3xl font-black text-brand-orange mb-6">{formatPrice(product.price)}</div>
               <p className="text-slate-600 leading-relaxed md:text-lg mb-10">{product.description || product.tagline || 'Experience premium comfort and support with our advanced recovery technology designed to help you perform at your best every day.'}</p>
               
               <div className="flex flex-col gap-4">
@@ -624,10 +631,10 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                 
                 {/* Price Display — matches Shopify variant price / compare-at */}
                 <div className="flex items-end gap-3 mb-4 flex-wrap">
-                   <div className="text-4xl font-black text-brand-orange">${formatPrice(unitPrice)}</div>
+                   <div className="text-4xl font-black text-brand-orange">{formatPrice(unitPrice)}</div>
                    {compareAtEach != null && (
                      <div className="text-xl font-bold text-slate-400 line-through decoration-2 mb-1">
-                       ${formatPrice(compareAtEach)}
+                       {formatPrice(compareAtEach, compareAtCurrency)}
                      </div>
                    )}
                    {!isBundleKitPdp && (
@@ -635,7 +642,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                    )}
                    {savingsPercent > 0 && (
                      <div className="mb-2 bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">
-                       Save {savingsPercent}% (${formatPrice(savingsEach)})
+                       Save {savingsPercent}% ({formatPrice(savingsEach, compareAtCurrency)})
                      </div>
                    )}
                 </div>
@@ -643,7 +650,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                   <p className="text-sm font-bold text-slate-700 mb-4 -mt-2">
                     {bundle} pairs —{' '}
                     <span className="text-slate-900">
-                      ${formatPrice(unitPrice * bundle)} at checkout
+                      {formatPrice(unitPrice * bundle)} at checkout
                     </span>
                   </p>
                 )}
@@ -737,10 +744,10 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 1)}</span>
+                        <span className="font-bold text-brand-orange block text-xl">{formatPrice(unitPrice * 1)}</span>
                         {compareAtEach != null && compareAtEach > unitPrice && bundle === 1 && (
                           <span className="text-xs text-slate-400 line-through font-bold block">
-                            ${formatPrice(compareAtEach)}
+                            {formatPrice(compareAtEach, compareAtCurrency)}
                           </span>
                         )}
                       </div>
@@ -773,14 +780,14 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 2)}</span>
+                        <span className="font-bold text-brand-orange block text-xl">{formatPrice(unitPrice * 2)}</span>
                         {compareAtEach != null && compareAtEach > unitPrice ? (
                           <span className="text-xs text-slate-400 line-through font-bold block">
-                            ${formatPrice(compareAtEach * 2)}
+                            {formatPrice(compareAtEach * 2, compareAtCurrency)}
                           </span>
                         ) : (
                           <span className="text-xs text-slate-500 font-bold">
-                            ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                            {formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
                           </span>
                         )}
                       </div>
@@ -815,14 +822,14 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 3)}</span>
+                        <span className="font-bold text-brand-orange block text-xl">{formatPrice(unitPrice * 3)}</span>
                         {compareAtEach != null && compareAtEach > unitPrice ? (
                           <span className="text-xs text-slate-400 line-through font-bold block">
-                            ${formatPrice(compareAtEach * 3)}
+                            {formatPrice(compareAtEach * 3, compareAtCurrency)}
                           </span>
                         ) : (
                           <span className="text-xs text-slate-500 font-bold">
-                            ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                            {formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
                           </span>
                         )}
                       </div>
@@ -855,14 +862,14 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="font-bold text-brand-orange block text-xl">${formatPrice(unitPrice * 5)}</span>
+                        <span className="font-bold text-brand-orange block text-xl">{formatPrice(unitPrice * 5)}</span>
                         {compareAtEach != null && compareAtEach > unitPrice ? (
                           <span className="text-xs text-slate-400 line-through font-bold block">
-                            ${formatPrice(compareAtEach * 5)}
+                            {formatPrice(compareAtEach * 5, compareAtCurrency)}
                           </span>
                         ) : (
                           <span className="text-xs text-slate-500 font-bold">
-                            ${formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
+                            {formatPrice(unitPrice)} {isBundleKitPdp ? '/kit' : '/pair'}
                           </span>
                         )}
                       </div>
@@ -966,28 +973,28 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{offerQuantityLabel(1)}</span>
                            </div>
-                           <span className="text-xs font-black text-brand-dark bg-slate-100 px-2 py-1 rounded">{offerSavingsLabel(1, 'Save $24')}</span>
+                           <span className="text-xs font-black text-brand-dark bg-slate-100 px-2 py-1 rounded">{offerSavingsLabel(1, 'Limited offer')}</span>
                         </div>
                         <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-2 rounded-lg border border-slate-100">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{offerQuantityLabel(2)}</span>
                            </div>
-                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">{offerSavingsLabel(2, 'Save $48')}</span>
+                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">{offerSavingsLabel(2, 'Limited offer')}</span>
                         </div>
                         <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-2 rounded-lg border border-slate-100">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{offerQuantityLabel(3)}</span>
                            </div>
-                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">{offerSavingsLabel(3, 'Save $72')}</span>
+                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">{offerSavingsLabel(3, 'Limited offer')}</span>
                         </div>
                         <div className="flex justify-between items-center bg-brand-dark p-2 rounded-lg border border-brand-dark shadow-lg">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse" />
                                <span className="text-xs font-bold text-slate-300 uppercase tracking-tight">{offerQuantityLabel(5)}</span>
                            </div>
-                           <span className="text-xs font-black text-brand-dark bg-brand-lime px-2 py-1 rounded">{offerSavingsLabel(5, 'Save $120')}</span>
+                           <span className="text-xs font-black text-brand-dark bg-brand-lime px-2 py-1 rounded">{offerSavingsLabel(5, 'Limited offer')}</span>
                         </div>
                     </div>
                 </div>
@@ -1580,9 +1587,11 @@ export const ProductPage: React.FC<ProductPageProps> = ({
         imageAlt={productName || 'Product'}
         productName={productName || 'Product'}
         lineTotal={unitPrice * bundle}
+        currencyCode={productCurrency}
         compareAtLineTotal={
           compareAtEach != null && compareAtEach > unitPrice ? compareAtEach * bundle : null
         }
+        compareAtCurrencyCode={compareAtCurrency}
         variantSummary={
           selectedSize
             ? isBundleKitPdp

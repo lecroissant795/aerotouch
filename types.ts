@@ -3,8 +3,12 @@ export interface Product {
   name: string;
   tagline: string;
   price: number;
+  /** ISO currency code for `price`; absent local fallback prices are USD. */
+  currencyCode?: string;
   /** Shopify variant compare-at price (MSRP), when higher than `price` */
   compareAtPrice?: number;
+  /** ISO currency code for `compareAtPrice`; usually matches `currencyCode`. */
+  compareAtCurrencyCode?: string;
   rating: number;
   reviews: number;
   image: string;
@@ -51,6 +55,8 @@ export interface CartItem extends Product {
   quantity: number;
   selectedSize: string;
   selectedColor: string;
+  variantId?: string;
+  customAttributes?: Array<{ key: string; value: string }>;
   /** Shopify product id (GID) — line item `id` is the checkout line id, not the product */
   productShopifyId?: string;
   productHandle?: string;
@@ -87,7 +93,9 @@ export interface BundleKit {
   shopifyProductId: string;
   name: string;
   price: number;
+  currencyCode?: string;
   originalPrice: number;
+  originalCurrencyCode?: string;
   image: string;
   badge: string;
   items: string[];

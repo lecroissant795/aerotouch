@@ -1,5 +1,12 @@
 import { Product } from '../types';
-import { getVariantsArray, variantSalePrice, variantCompareAt } from './shopifyVariantMoney';
+import {
+  getVariantsArray,
+  variantSalePrice,
+  variantCompareAt,
+  variantSaleCurrencyCode,
+  variantCompareAtCurrencyCode,
+  parseMoneyCurrencyCode
+} from './shopifyVariantMoney';
 import { BUNDLE_KIT_INSOLE_COLOR_ATTR, BUNDLE_KIT_INSOLE_SIZE_ATTR } from './bundleKits';
 
 const generateReviewCount = (id: string | number | undefined = ''): number => {
@@ -47,6 +54,15 @@ const parseJson = (value: any): any => {
   return value;
 };
 
+const normalizeMetafields = (metafields: any): any[] => {
+  if (!metafields) return [];
+  if (Array.isArray(metafields)) return metafields.map((m) => m?.node ?? m).filter(Boolean);
+  if (Array.isArray(metafields.edges)) {
+    return metafields.edges.map((edge: any) => edge?.node).filter(Boolean);
+  }
+  return [];
+};
+
 /**
  * Map Shopify product to app Product type, including custom metafields
  */
@@ -71,10 +87,20 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
             shopifyProduct.variants?.[0]?.price?.amount ||
             '0'
         );
+    const currencyCode = firstVariant
+      ? variantSaleCurrencyCode(firstVariant)
+      : parseMoneyCurrencyCode(
+          shopifyProduct.variants?.edges?.[0]?.node?.price ||
+            shopifyProduct.variants?.[0]?.price
+        );
     let compareAtPrice: number | undefined;
+    let compareAtCurrencyCode: string | undefined;
     if (firstVariant) {
       const cap = variantCompareAt(firstVariant);
-      if (cap != null && cap > price) compareAtPrice = cap;
+      if (cap != null && cap > price) {
+        compareAtPrice = cap;
+        compareAtCurrencyCode = variantCompareAtCurrencyCode(firstVariant) ?? currencyCode;
+      }
     }
 
     // Extract tags
@@ -88,7 +114,7 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
     const reviews = isMainProduct ? 4823 : generateReviewCount(shopifyProduct.id);
 
     // Extract metafields (supports both edges format and direct array)
-    const rawMetafields = shopifyProduct.metafields || shopifyProduct.metafields?.edges?.map((e: any) => e.node) || [];
+    const rawMetafields = normalizeMetafields(shopifyProduct.metafields);
 
     // Build custom metafields object
     const customMetafields: Product['metafields'] = {
@@ -139,7 +165,9 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
         name: shopifyProduct.title,
         tagline: shopifyProduct.description || '',
         price: price,
+        ...(currencyCode ? { currencyCode } : {}),
         ...(compareAtPrice != null ? { compareAtPrice } : {}),
+        ...(compareAtCurrencyCode ? { compareAtCurrencyCode } : {}),
         rating: 5.0,
         reviews: reviews,
         image: image,
@@ -170,12 +198,21 @@ const sumLineItemDiscountAllocations = (lineItem: any): number => {
     return Math.round(sum * 100) / 100;
 };
 
-export const mapShopifyLineItem = (lineItem: any): any => {
+export const mapShopifyLineItem = (lineItem: any, fallbackCurrencyCode?: string): any => {
     const isMainProduct = lineItem.title?.toLowerCase().includes('massage insole');
     const reviews = isMainProduct ? 4823 : generateReviewCount(lineItem.id || '');
     const sale = variantSalePrice(lineItem.variant) || parseFloat(lineItem.variant?.price?.amount || lineItem.variant?.price || '0');
+    const currencyCode =
+        variantSaleCurrencyCode(lineItem.variant) ||
+        parseMoneyCurrencyCode(lineItem.variant?.price) ||
+        parseMoneyCurrencyCode(lineItem.originalTotalPrice) ||
+        fallbackCurrencyCode;
     const cap = variantCompareAt(lineItem.variant);
     const compareAtPrice = cap != null && cap > sale ? cap : undefined;
+    const compareAtCurrencyCode =
+        compareAtPrice != null
+            ? variantCompareAtCurrencyCode(lineItem.variant) ?? currencyCode
+            : undefined;
     const productRef = lineItem.variant?.product;
     const promoDiscount = sumLineItemDiscountAllocations(lineItem);
     const attrs = lineItem.customAttributes || [];
@@ -187,9 +224,13 @@ export const mapShopifyLineItem = (lineItem: any): any => {
         title: lineItem.title,
         name: lineItem.title,
         price: sale,
+        ...(currencyCode ? { currencyCode } : {}),
         ...(compareAtPrice != null ? { compareAtPrice } : {}),
+        ...(compareAtCurrencyCode ? { compareAtCurrencyCode } : {}),
         ...(promoDiscount > 0 ? { linePromoDiscountTotal: promoDiscount } : {}),
-        image: lineItem.variant?.image?.src || '',
+        image: lineItem.variant?.image?.src || lineItem.variant?.image?.url || '',
+        variantId: lineItem.variant?.id,
+        customAttributes: attrs,
         selectedSize:
             lineItem.variant?.selectedOptions?.find((o: any) => o.name === 'Size')?.value ||
             attrVal(BUNDLE_KIT_INSOLE_SIZE_ATTR) ||

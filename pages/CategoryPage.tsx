@@ -3,13 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { ProductCard } from '../components/ProductCard';
 import { BundleKitCardsRow } from '../components/BundleKitCardsRow';
 import { Product, BundleKit } from '../types';
-import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
 import { BUNDLE_KITS } from '../utils/bundleKits';
 import { isBundleKitsCategory } from '../utils/bundleKitsCategory';
 import { useShopifyBundleKits } from '../hooks/useShopifyBundleKits';
 import { ReferralSection } from '../components/ReferralSection';
 import { GivingBackSection } from '../components/GivingBackSection';
+import { useCurrency } from '../utils/CurrencyContext';
+import { fetchAllProducts } from '../utils/productFetcher';
 
 // Duplicated for now, ideally verified to be moved to a shared constant file
 const FEATURED_PRODUCTS: Product[] = [
@@ -98,6 +99,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const [loading, setLoading] = useState(true);
   const bundleKits = useShopifyBundleKits();
+  const { currency } = useCurrency();
 
   useEffect(() => {
     if (isBundleKitsCategory(category)) {
@@ -109,7 +111,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
       const catLower = category.toLowerCase();
 
       try {
-        const shopifyProducts = await shopify.product.fetchAll(50);
+        const shopifyProducts = await fetchAllProducts(50, currency);
         if (shopifyProducts && shopifyProducts.length > 0) {
            const mapped = shopifyProducts.map(mapShopifyProduct);
            const filtered = mapped.filter(p => {
@@ -139,7 +141,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
     };
     
     fetchProducts();
-  }, [category]);
+  }, [category, currency]);
 
 
   const showBundleKits = isBundleKitsCategory(category);
