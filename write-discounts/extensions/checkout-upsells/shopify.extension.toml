@@ -1,0 +1,17 @@
+# Learn more about configuring checkout UI extensions:
+# https://shopify.dev/docs/api/checkout-ui-extensions
+
+api_version = "2026-04"
+
+[[extensions]]
+name = "Checkout upsells"
+handle = "checkout-upsells"
+type = "ui_extension"
+
+[[extensions.targeting]]
+module = "./src/Checkout.jsx"
+target = "purchase.checkout.block.render"
+
+[extensions.capabilities]
+# Lets the extension query Storefront API product data from checkout.
+api_access = true
