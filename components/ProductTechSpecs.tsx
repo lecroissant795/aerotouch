@@ -2,8 +2,11 @@ import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { ChevronLeft, ChevronRight, Info, Layers, Activity, Zap, ShieldCheck, Globe, Trophy, Star, Check, X, ThumbsUp, Smile, Truck, Gift, Flame, Heart, Timer, Sparkles, Play, BadgeCheck, MoreHorizontal, MessageSquare, Share2, Quote, Award, Shield, Droplets, Scissors, ArrowLeftRight, ShoppingBag, Users, Copy } from 'lucide-react';
 import { ReferralSection } from './ReferralSection';
 import { GivingBackSection } from './GivingBackSection';
+import { ProductCard } from './ProductCard';
 import { Product } from '../types';
 import { sectionImages, reviewVideos, reviewAvatars, reviewPhotos, mediaUrl } from '../utils/mediaUrls';
+import { mapShopifyProduct } from '../utils/mapper';
+import { fetchAllProducts } from '../utils/productFetcher';
 
 const BUILT_FOR_PURPOSES = [
   { id: 'lifts', label: 'Heavy Lifts', image: sectionImages.heavyLift },
@@ -171,13 +174,73 @@ const DIFFERENCE_FEATURE_HIGHLIGHTS: { icon: typeof Star; title: string; desc: s
   { icon: Droplets, title: 'Easily Washable', desc: 'Simply hand wash with soap and water.' },
 ];
 
+const YOU_MAY_ALSO_LIKE_HANDLES = ['massage-roller', 'massage-gun', 'heel-cushion-pds'] as const;
+
+const YOU_MAY_ALSO_LIKE_FALLBACK_PRODUCTS: Product[] = [
+  {
+    id: 'massage-roller',
+    handle: 'massage-roller',
+    name: 'Massage Roller',
+    tagline: 'Deep tissue recovery for sore feet',
+    price: 19.00,
+    rating: 4.8,
+    reviews: 820,
+    image: '',
+    features: ['Ergonomic Shape', 'Deep Tissue Trigger', 'Portable Size'],
+    description: 'Professional-grade massage roller designed for targeted foot relief and recovery.'
+  },
+  {
+    id: 'massage-gun',
+    handle: 'massage-gun',
+    name: 'Massage Gun',
+    tagline: 'Targeted foot and calf recovery',
+    price: 49.00,
+    rating: 4.9,
+    reviews: 960,
+    image: '',
+    features: ['Six Speeds', 'USB-C Rechargeable', 'Compact Recovery'],
+    description: 'Portable percussion relief for tight arches, calves, and post-shift recovery.'
+  },
+  {
+    id: 'heel-cushion-pds',
+    handle: 'heel-cushion-pds',
+    name: 'Heel Cushion Pad',
+    tagline: 'Instant impact protection for heels',
+    price: 24.00,
+    rating: 4.9,
+    reviews: 2100,
+    image: '',
+    features: ['Shock Absorption', 'Non-Slip Grip', 'All-Day Support'],
+    description: 'Soft heel protection that helps reduce rubbing, slipping, and hard-shoe pressure.'
+  }
+];
+
+const selectYouMayAlsoLikeProducts = (products: Product[], currentProductId?: string): Product[] => {
+  const current = (currentProductId || '').toLowerCase();
+  const selected = products
+    .filter((product) => {
+      const id = String(product.id || '').toLowerCase();
+      const handle = (product.handle || '').toLowerCase();
+      return YOU_MAY_ALSO_LIKE_HANDLES.includes(handle as typeof YOU_MAY_ALSO_LIKE_HANDLES[number])
+        && id !== current
+        && handle !== current;
+    })
+    .sort((a, b) => {
+      const aIndex = YOU_MAY_ALSO_LIKE_HANDLES.indexOf((a.handle || '') as typeof YOU_MAY_ALSO_LIKE_HANDLES[number]);
+      const bIndex = YOU_MAY_ALSO_LIKE_HANDLES.indexOf((b.handle || '') as typeof YOU_MAY_ALSO_LIKE_HANDLES[number]);
+      return aIndex - bIndex;
+    });
+
+  return selected.length > 0 ? selected.slice(0, 3) : YOU_MAY_ALSO_LIKE_FALLBACK_PRODUCTS;
+};
+
 interface ProductTechSpecsProps {
   currentProductId?: string;
   onProductSelect?: (product: Product) => void;
   onNavigateToBlog?: () => void;
 }
 
-export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateToBlog }) => {
+export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProductId, onProductSelect, onNavigateToBlog }) => {
   const [activeFeature, setActiveFeature] = useState(-1);
   const [builtForIndex, setBuiltForIndex] = useState(0);
   const [splitPos, setSplitPos] = useState(50);
@@ -200,6 +263,34 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
   const TEXT_REVIEW_COUNT = 6;
   const REAL_RESULTS_BATCH_SIZE = 6;
   const REAL_RESULTS_TOTAL_COUNT = 57;
+  const [youMayAlsoLikeProducts, setYouMayAlsoLikeProducts] = useState<Product[]>(() =>
+    selectYouMayAlsoLikeProducts(YOU_MAY_ALSO_LIKE_FALLBACK_PRODUCTS, currentProductId)
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setYouMayAlsoLikeProducts(selectYouMayAlsoLikeProducts(YOU_MAY_ALSO_LIKE_FALLBACK_PRODUCTS, currentProductId));
+
+    const fetchYouMayAlsoLikeProducts = async () => {
+      try {
+        const shopifyProducts = await fetchAllProducts(50);
+        const selected = selectYouMayAlsoLikeProducts(shopifyProducts.map(mapShopifyProduct), currentProductId);
+
+        if (!cancelled && selected.length > 0) {
+          setYouMayAlsoLikeProducts(selected);
+        }
+      } catch (err) {
+        console.warn('Could not fetch You May Also Like products', err);
+      }
+    };
+
+    fetchYouMayAlsoLikeProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentProductId]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -2034,15 +2125,47 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
               <button
                 type="button"
                 onClick={() => setVisibleRealResultReviews((prev) => Math.min(prev + REAL_RESULTS_BATCH_SIZE, REAL_RESULTS_TOTAL_COUNT))}
-                className="inline-flex items-center gap-2 bg-white border-2 border-slate-200 px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest hover:border-brand-orange hover:text-brand-orange transition-all group"
+                className="view-more-reviews-button inline-flex items-center gap-2 bg-white border-2 border-slate-200 px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest text-slate-900 shadow-sm"
               >
                 View More Reviews
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
       </section>
+
+
+      {onProductSelect && youMayAlsoLikeProducts.length > 0 && (
+        <section className="bg-white py-20 md:py-24 border-t border-slate-100">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-10 text-center md:mb-12">
+                <div className="inline-flex items-center gap-2 bg-brand-orange/10 text-brand-orange text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-4">
+                  Complete Your Recovery
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight uppercase mb-4">
+                  You May Also Like
+                </h2>
+                <p className="text-slate-500 font-medium text-lg max-w-2xl mx-auto">
+                  Pair your AeroTouch insoles with recovery tools made for long days, sore feet, and everyday comfort.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {youMayAlsoLikeProducts.map((relatedProduct) => (
+                  <ProductCard
+                    key={relatedProduct.id}
+                    product={relatedProduct}
+                    onClick={onProductSelect}
+                    compactOnMobile
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
 
       {/* 4. Invite Friends – Give 15%, Get 15% */}

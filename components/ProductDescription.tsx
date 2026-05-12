@@ -1,226 +1,141 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, Zap, Wind, Thermometer, Heart, Leaf, Award, Clock, Users, Star, Truck, X } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { ShieldCheck, Zap, Wind, Thermometer, Heart, Leaf, Award, Clock, Users, Star, Truck, BadgeCheck, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
 import { isMassageRollerProduct, isHeightBoosterProduct } from '../utils/productDetection';
 
-function enlargedPhotoUrl(url: string): string {
-  if (!url) return url;
-  if (/[?&]w=\d+/i.test(url)) {
-    return url.replace(/([?&])w=\d+/i, '$1w=1600');
-  }
-  return url;
-}
+type SecondaryReviewProductKey =
+  | 'compressionSocks'
+  | 'gripSocks'
+  | 'heelCushions'
+  | 'heightBoosters'
+  | 'massageGun'
+  | 'massageRoller'
+  | 'toeCushionPads'
+  | 'toeSpacers'
+  | 'default';
 
-type CustomerReview = {
+type RealResultReview = {
+  id: number;
   name: string;
-  location: string;
+  role: string;
+  image: string;
   rating: number;
   title: string;
-  text: string;
-  image: string;
-  photos: string[];
+  content: string;
+  date: string;
 };
 
-const DEFAULT_CUSTOMER_REVIEWS: CustomerReview[] = [
-  {
-    name: 'Sarah M.',
-    location: 'Austin, TX',
-    rating: 5,
-    title: 'Finally pain-free after years!',
-    text: "I've struggled with plantar fasciitis for 3 years. After just 2 weeks of wearing these insoles, the pain is completely gone. I can finally run again!",
-    image: '',
-    photos: [
-      '',
-      ''
-    ]
-  },
-  {
-    name: 'Michael T.',
-    location: 'Seattle, WA',
-    rating: 5,
-    title: 'Worth every penny',
-    text: "As a nurse working 12-hour shifts, my feet used to kill me. These insoles have been game-changing. No more pain after long days on my feet.",
-    image: '',
-    photos: ['']
-  },
-  {
-    name: 'Jennifer K.',
-    location: 'Denver, CO',
-    rating: 5,
-    title: 'Best investment for running',
-    text: "Training for my first marathon and these insoles have made all the difference. My recovery time has improved dramatically.",
-    image: '',
-    photos: [
-      '',
-      ''
-    ]
-  },
-  {
-    name: 'David R.',
-    location: 'Miami, FL',
-    rating: 4,
-    title: 'Great for work boots',
-    text: "I work in construction and these insoles fit perfectly in my work boots. Much better than the generic ones I was using before.",
-    image: '',
-    photos: []
-  },
-  {
-    name: 'Amanda L.',
-    location: 'Portland, OR',
-    rating: 5,
-    title: 'Gift that keeps on giving',
-    text: "Bought these for my husband who has flat feet. He absolutely loves them! Ordered more for his work shoes and running shoes.",
-    image: '',
-    photos: ['']
-  },
-  {
-    name: 'Carlos M.',
-    location: 'Chicago, IL',
-    rating: 5,
-    title: 'Amazing support',
-    text: "The arch support is perfect for my high arches. I've tried many insoles and this is hands down the best one I've found.",
-    image: '',
-    photos: [
-      '',
-      ''
-    ]
-  }
-];
+const rr = (
+  id: number,
+  name: string,
+  role: string,
+  title: string,
+  content: string,
+  date: string,
+  rating: number = 5,
+): RealResultReview => ({ id, name, role, image: '', rating, title, content, date });
 
-/** Grid reviews for the Foot Massage Roller PDP only */
-const MASSAGE_ROLLER_CUSTOMER_REVIEWS: CustomerReview[] = [
-  {
-    name: 'Danielle K.',
-    location: 'Phoenix, AZ',
-    rating: 5,
-    title: 'Finally unwinds my arches after shifts',
-    text: "I'm on my feet in the ER all night. Two minutes on the AeroTouch roller before bed hits spots stretching never does. My arches feel noticeably looser by morning.",
-    image: '',
-    photos: [
-      '',
-      ''
-    ]
-  },
-  {
-    name: 'Marcus T.',
-    location: 'Boulder, CO',
-    rating: 5,
-    title: 'Post-long-run ritual',
-    text: "After 15+ mile weeks my plantar fascia and calves get angry. I roll slowly under the arch and up the calf—way more targeted than a lacrosse ball. Lives in my gym bag.",
-    image: '',
-    photos: [
-      '',
-      ''
-    ]
-  },
-  {
-    name: 'Elena R.',
-    location: 'Dallas, TX',
-    rating: 5,
-    title: 'Retail floors destroyed my heels',
-    text: "Concrete all day left my heels burning. I keep this roller by the couch and use it while I watch TV. It's small but the texture really digs into the right spots.",
-    image: '',
-    photos: ['']
-  },
-  {
-    name: 'James W.',
-    location: 'Atlanta, GA',
-    rating: 4,
-    title: 'Great for desk breaks too',
-    text: "I roll my forearms and feet during WFH breaks. Keeps tension from creeping up. Build feels solid—no squeaks after a month of daily use.",
-    image: '',
-    photos: [
-      ''
-    ]
-  },
-  {
-    name: 'Priya N.',
-    location: 'San Jose, CA',
-    rating: 5,
-    title: 'Plantar fasciitis maintenance',
-    text: "My PT suggested rolling daily. This one matches the contour of my arch better than the cheap wood roller I had. Less slipping, more consistent pressure.",
-    image: '',
-    photos: [
-      '',
-      ''
-    ]
-  },
-  {
-    name: 'Tomás V.',
-    location: 'San Diego, CA',
-    rating: 5,
-    title: 'Travel-friendly recovery',
-    text: "I fly for work and toss it in my carry-on. Hotel floors, airport lounges—anywhere I can sit for two minutes I can get relief. Game changer after long walking days.",
-    image: '',
-    photos: ['']
-  }
-];
-
-/** Grid reviews for Height Boosters PDP — insecurity → AeroTouch relief (not generic insoles). */
-const HEIGHT_BOOSTERS_CUSTOMER_REVIEWS: CustomerReview[] = [
-  {
-    name: 'James L.',
-    location: 'Boston, MA',
-    rating: 5,
-    title: 'I stopped dreading the conference-room lineup',
-    text: 'Being shorter than most of my clients genuinely messed with my head — I’d overcompensate with voice or jokes. Height Boosters in my Oxfords gave me a few cm without clown shoes; first week I noticed I wasn’t bracing for every handshake.',
-    image: '',
-    photos: [
-      ''
-    ]
-  },
-  {
-    name: 'Priya S.',
-    location: 'Chicago, IL',
-    rating: 5,
-    title: 'Family weddings used to ruin my mood',
-    text: 'I’m the shortest cousin — every reunion photo felt like proof. I refused ridiculous platforms. AeroTouch sits inside my actual heels so I’m not on display as “the tiny one” anymore; I can laugh at dinner instead of hovering at the edge.',
-    image: '',
-    photos: [
-      ''
-    ]
-  },
-  {
-    name: 'David O.',
-    location: 'Charlotte, NC',
-    rating: 5,
-    title: 'I felt easy to overlook next to taller staff',
-    text: 'Hall duty with colleagues who tower over you sounds dumb as a problem until you live it. One thin layer in my sneakers — not magic tall — just enough eye contact with kids and adults that I don’t feel like I’m speaking up from below.',
-    image: '',
-    photos: []
-  },
-  {
-    name: 'Rachel T.',
-    location: 'Denver, CO',
-    rating: 5,
-    title: 'Dating apps meet reality — I used to panic about it',
-    text: 'I spiraled before every first coffee: what if they expected taller? Height Boosters in boots level the walk-in moment so I’m not apologizing with my posture. Still me — just not negotiating my height in my head the whole date.',
-    image: '',
-    photos: [
-      ''
-    ]
-  },
-  {
-    name: 'André M.',
-    location: 'Montreal, QC',
-    rating: 4,
-    title: 'Cheaper lifts embarrassed me — these don’t',
-    text: 'I tried plastic stacks years ago and felt like everyone could tell. I almost gave up. These took a day to get used to but the cushioning is real; I’m not obsessing in every reflective window anymore.',
-    image: '',
-    photos: []
-  },
-  {
-    name: 'Mei K.',
-    location: 'San Jose, CA',
-    rating: 5,
-    title: 'Standing meetings made me feel boxed out',
-    text: 'Open floor + taller managers = I felt like I was craning or disappearing in the huddle. Slim Height Boosters for days on my feet — I’m not chasing inches for ego; I’m tired of feeling like the shortest voice in the circle.',
-    image: '',
-    photos: [
-      ''
-    ]
-  }
-];
+const REAL_RESULT_REVIEWS: Record<SecondaryReviewProductKey, RealResultReview[]> = {
+  compressionSocks: [
+    rr(1, 'Harper Ellis', 'Physical Therapist', 'Legs feel lighter after clinic days', "I am on my feet moving between patients all day. These socks give steady compression without squeezing my toes, and my calves do not feel as heavy by dinner.", '2 days ago'),
+    rr(2, 'Noah Singh', 'Flight Attendant', 'Perfect for long-haul flights', "I wear them under my uniform on international routes. The swelling I used to get around my ankles is way less noticeable after landing.", '4 days ago'),
+    rr(3, 'Lena Brooks', 'Retail Supervisor', 'Helped with end-of-day tightness', "Eight hours on the shop floor used to leave my lower legs buzzing. These feel supportive without being hot or scratchy.", '5 days ago'),
+    rr(4, 'Omar Patel', 'Warehouse Picker', 'Support that stays put', "I wanted compression socks that did not slide down halfway through a shift. These stay up and make the constant walking feel easier.", '1 week ago'),
+    rr(5, 'Grace Kim', 'Teacher', 'Comfortable enough for school days', "I stand at the board and walk the classroom nonstop. They are snug in the right way, and my ankles do not feel as puffy after work.", '1 week ago'),
+    rr(6, 'Anton Reed', 'Chef', 'Kitchen shift approved', "Hot kitchen, hard floors, long hours. I expected to peel them off after lunch, but they stayed comfortable through service.", '2 weeks ago'),
+    rr(7, 'Sofia Morales', 'Nurse', 'Reliable for 12-hour shifts', "Compression helps, but only if you can actually wear it all day. These are firm without cutting in behind my knees.", '2 weeks ago'),
+    rr(8, 'Caleb Turner', 'Mail Carrier', 'Great for walking routes', "My calves used to feel cooked after long routes. These have become part of my uniform because recovery feels easier at night.", '3 weeks ago'),
+    rr(9, 'Iris Chen', 'Hair Stylist', 'Less heaviness after appointments', "Standing behind the chair all day adds up. These give my legs that supported feeling without looking medical or bulky.", '3 weeks ago', 4),
+  ],
+  gripSocks: [
+    rr(1, 'Keira Walsh', 'Pilates Coach', 'No slipping on the reformer', "The grip is exactly where I need it. I can cue clients and demonstrate without adjusting my feet every few minutes.", '2 days ago'),
+    rr(2, 'Nathan Quinn', 'Physical Therapist', 'Stable through balance work', "I use them for mobility drills at home. The sole grip makes single-leg work feel controlled without needing shoes.", '3 days ago'),
+    rr(3, 'Priyanka Desai', 'Yoga Student', 'Better grounding in class', "My old socks twisted during flows. These stay put and help me feel more planted in lunges and standing poses.", '5 days ago'),
+    rr(4, 'Logan Reed', 'Home Gym User', 'Great for mat workouts', "I wanted something between barefoot and trainers. These are comfortable for stretching, core work, and light circuits.", '1 week ago'),
+    rr(5, 'Amelia Scott', 'Barre Instructor', 'Grip without bulk', "They are thin enough to feel the floor but grippy enough that my feet are not sliding during pulses.", '1 week ago'),
+    rr(6, 'Benji Morales', 'Dance Teacher', 'Secure for studio warmups', "I use them before switching into dance shoes. The fit is snug, and the traction gives me confidence on slick studio floors.", '2 weeks ago'),
+    rr(7, 'Clara Evans', 'Reformer Instructor', 'Clients keep asking about them', "They look clean, feel soft, and do not bunch at the toes. I bought a second pair after one week.", '2 weeks ago'),
+    rr(8, 'Owen Blake', 'Martial Arts Coach', 'Good for mobility sessions', "For warmups and recovery work, they give enough grip without locking my foot in place like a shoe.", '3 weeks ago'),
+    rr(9, 'Suri Park', 'Hospital Physio', 'Comfortable clinic pair', "I keep them in my bag for floor-based demos. They wash well and the grip has held up better than expected.", '3 weeks ago', 4),
+  ],
+  heelCushions: [
+    rr(1, 'Riley Shaw', 'Retail Lead', 'Saved my stiff work shoes', "My heels used to rub raw by closing time. These pads softened the back of the shoe and made the fit feel much more secure.", '2 days ago'),
+    rr(2, 'Monica Alvarez', 'Dental Assistant', 'Less heel ache on tile floors', "Clinic floors are unforgiving. The cushions take the sharp edge off every step, especially when I am standing chairside for hours.", '4 days ago'),
+    rr(3, 'Peter Lawson', 'Security Officer', 'No more heel slipping', "One pair of boots was just a little loose. These filled the gap neatly and stopped my heel from lifting with every step.", '6 days ago'),
+    rr(4, 'Sienna Hart', 'Flight Attendant', 'Great for breaking in flats', "New flats usually destroy the back of my heels. I added these before a trip and got through the day without blisters.", '1 week ago'),
+    rr(5, 'Graham Lee', 'Delivery Driver', 'Simple fix for hard shoes', "I am in and out of the van all day. They stay stuck, do not bunch up, and make my work shoes feel less harsh.", '1 week ago'),
+    rr(6, 'Hazel Price', 'Bartender', 'Helped during long service', "Standing behind the bar used to leave my heels tender. These cushions are small, but the comfort difference is obvious.", '2 weeks ago'),
+    rr(7, 'Andre Brooks', 'Teacher', 'Better fit in dress shoes', "My dress shoes slipped just enough to annoy me all day. The pads made them feel snug without needing thicker socks.", '2 weeks ago'),
+    rr(8, 'Naomi Reed', 'Wedding Planner', 'Saved event-day heels', "I added them to a pair I had to wear for a 10-hour event. My heels still felt tired, but not shredded.", '3 weeks ago', 4),
+    rr(9, 'Isaac Morgan', 'Chef', 'Stays in place under pressure', "Heat, movement, hard floors, and they still held up. I am surprised something this simple helped so much.", '3 weeks ago'),
+  ],
+  heightBoosters: [
+    rr(1, 'Adrian Cole', 'Sales Representative', 'Subtle confidence in work shoes', "I did not want obvious lifts. These sit inside my Oxfords cleanly and give me a bit more presence without changing how I walk.", '2 days ago'),
+    rr(2, 'Mira Weston', 'Event Planner', 'Great for photos and long events', "I use them in boots for client events. They add height without looking like platforms, and I can still move around all day.", '4 days ago'),
+    rr(3, 'Theo Banks', 'Graduate Student', 'No awkward stacked feeling', "Cheap inserts felt like standing on blocks. These feel more cushioned and gradual, so I actually kept wearing them.", '5 days ago'),
+    rr(4, 'Celeste Yang', 'Photographer', 'Helpful behind the camera', "A little extra height helps when I am shooting groups. They are discreet enough that nobody notices, which is the point.", '1 week ago'),
+    rr(5, 'Jonah Price', 'Realtor', 'Works in dress boots', "Showings mean a lot of standing and first impressions. These make me feel sharper without making my shoes uncomfortable.", '1 week ago'),
+    rr(6, 'Leila Morgan', 'Office Manager', 'Comfortable for full office days', "I expected to swap them out by lunch. Instead, they stayed comfortable and gave me the subtle lift I wanted.", '2 weeks ago'),
+    rr(7, 'Samir Rao', 'Product Designer', 'Discreet and easy to trim', "They fit my sneakers after a small trim. The lift is noticeable to me but not obvious to anyone else.", '2 weeks ago'),
+    rr(8, 'Olivia Hayes', 'Recruiter', 'Better posture in meetings', "I stand a little taller and stop thinking about height in every group conversation. That alone makes them worth it.", '3 weeks ago'),
+    rr(9, 'Mateo Cruz', 'Musician', 'Stage shoes feel better', "I use them in boots for gigs. They give me a cleaner stance without making my feet ache halfway through the set.", '3 weeks ago', 4),
+  ],
+  massageGun: [
+    rr(1, 'Erin Bell', 'ICU Nurse', 'Fast relief after shifts', "My calves feel locked up after hospital nights. A few minutes on low speed helps loosen everything before I even sit down for dinner.", '2 days ago'),
+    rr(2, 'Jason Kerr', 'Cyclist', 'Great for calves and arches', "I use the smaller head around my feet and the round head on calves. It saves my hands compared with manual massage.", '3 days ago'),
+    rr(3, 'Aisha Patel', 'Desk Worker', 'Easy evening reset', "Sitting all day still leaves my feet tight after commuting. This gets into the arch without needing a whole stretching routine.", '5 days ago'),
+    rr(4, 'Trevor Young', 'Contractor', 'Strong but controllable', "The lower settings are gentle enough for feet, and the higher ones handle calves after site work. Battery life has been solid.", '1 week ago'),
+    rr(5, 'Lila Chen', 'Marathon Volunteer', 'Helped after race weekends', "I am standing for hours at events. Using this on my calves afterward makes the next morning much easier.", '1 week ago'),
+    rr(6, 'Grant Miller', 'Firefighter', 'Good for heavy boot days', "After training in heavy boots, my lower legs need attention. This is quick, targeted, and easy to keep in my locker.", '2 weeks ago'),
+    rr(7, 'Rosa Diaz', 'Massage Therapist', 'Compact recovery tool', "I am picky about tools. For the size, it gives useful pressure and the attachments make it easy to avoid bony areas.", '2 weeks ago'),
+    rr(8, 'Henry Cole', 'Warehouse Supervisor', 'Less calf tightness at night', "I use it while watching TV after shift. It is simple, quiet enough, and helps my legs settle down.", '3 weeks ago'),
+    rr(9, 'Naomi Fields', 'Chef', 'Helpful after service', "Kitchen floors are brutal. Five minutes on the calves and arches has become part of my closing routine.", '3 weeks ago', 4),
+  ],
+  massageRoller: [
+    rr(1, 'Dana Walsh', 'ER Nurse', 'Finally unwinds my arches', "I use it under my feet after night shifts. The pressure points hit sore spots better than a tennis ball and my arches feel looser by morning.", '2 days ago'),
+    rr(2, 'Brett Nolan', 'Marathon Runner', 'Post-run ritual', "After tempo runs my plantar fascia gets tight. Rolling slowly for a few minutes helps me bounce back before the next session.", '4 days ago'),
+    rr(3, 'Kira Bennett', 'Retail Associate', 'Small but effective', "Concrete floors leave my heels burning. I keep the roller by the couch and use it after work while I decompress.", '6 days ago'),
+    rr(4, 'Luis Romero', 'Barista', 'Great for quick breaks', "I roll each foot before bed and sometimes during split shifts. It is simple, but the relief is real.", '1 week ago'),
+    rr(5, 'Tessa Grant', 'PT Aide', 'Better than the cheap roller I had', "The shape fits my arch better and does not slide around as much. It feels targeted without being too aggressive.", '1 week ago'),
+    rr(6, 'Malcolm Pierce', 'Consultant', 'Travel-friendly recovery', "It lives in my carry-on. After airport days, two minutes per foot makes hotel room recovery much easier.", '2 weeks ago'),
+    rr(7, 'Nina Cooper', 'Yoga Instructor', 'Good pressure control', "I can go gentle or lean in when my arches need more. It is useful after teaching back-to-back classes.", '2 weeks ago'),
+    rr(8, 'Victor Hale', 'Mechanic', 'Helps after boot days', "Work boots make my feet feel compressed. Rolling at night loosens the tight feeling along the sole.", '3 weeks ago'),
+    rr(9, 'Alana Fox', 'Server', 'End-of-shift staple', "I bought it for sore feet and ended up using it almost every night. Small enough to keep beside the sofa.", '3 weeks ago', 4),
+  ],
+  toeCushionPads: [
+    rr(1, 'Molly Harris', 'Boutique Associate', 'Stopped front-shoe rubbing', "My toes used to feel raw in new flats. These add just enough cushion where the shoe rubs without making the fit tight.", '2 days ago'),
+    rr(2, 'Julian Watts', 'Daily Commuter', 'Comfort in narrow sneakers', "I walk to the train every morning. The pads take away that hot spot near the front of my shoe.", '4 days ago'),
+    rr(3, 'Hana Mori', 'Server', 'No constant adjusting', "I needed cushioning that stayed put during a dinner rush. These are low profile and I barely notice them once they are in.", '5 days ago'),
+    rr(4, 'Felix Grant', 'Sales Associate', 'Helpful for break-in days', "New shoes usually punish my toes. I added these before a full shift and avoided the usual blisters.", '1 week ago'),
+    rr(5, 'Renee Foster', 'Flight Attendant', 'Soft barrier for long days', "They help where my work shoes press at the front. I like that they do not feel bulky in dress shoes.", '1 week ago'),
+    rr(6, 'Tina Nguyen', 'Nail Technician', 'Gentle cushioning in flats', "I sit and stand all day in flats. These make the toe area feel softer without sliding around.", '2 weeks ago'),
+    rr(7, 'Cole Bennett', 'Photographer', 'Saved my event shoes', "I had a wedding shoot in stiff shoes and these kept the toe rubbing manageable for the whole day.", '2 weeks ago', 4),
+    rr(8, 'Alina Brooks', 'Violinist', 'Comfort for performance shoes', "Concert shoes are not forgiving. These give a little cushion right where I need it and stay discreet.", '3 weeks ago'),
+    rr(9, 'Patrick Mills', 'Hotel Concierge', 'Better for polished work shoes', "I can keep wearing my dress shoes without the front edge digging into my toes by afternoon.", '3 weeks ago'),
+  ],
+  toeSpacers: [
+    rr(1, 'Brianna Cole', 'Yoga Teacher', 'Feet feel more open', "After teaching in bare feet all day, wearing these at night helps my toes relax instead of staying cramped together.", '2 days ago'),
+    rr(2, 'Devon Harper', 'Trail Runner', 'Great recovery after runs', "My forefoot gets tight after hills. Twenty minutes with the spacers makes my toes feel less compressed.", '4 days ago'),
+    rr(3, 'Elise Warner', 'Ballet Instructor', 'Gentle reset after class', "My feet spend hours inside tight shoes. These are an easy reset when I get home, especially around the big toe.", '6 days ago'),
+    rr(4, 'Martin Jensen', 'Office Manager', 'Helpful after dress shoes', "Dress shoes leave my toes squeezed by the end of the day. These help everything spread out again while I watch TV.", '1 week ago'),
+    rr(5, 'Paige Lin', 'Nurse', 'Comfortable nightly routine', "I started with ten minutes and worked up slowly. Now they are part of my post-shift recovery routine.", '1 week ago'),
+    rr(6, 'Carter Stone', 'Rock Climber', 'Good forefoot relief', "Climbing shoes are brutal. The spacers help my toes stop feeling jammed together after gym sessions.", '2 weeks ago'),
+    rr(7, 'Fiona Patel', 'Pilates Instructor', 'Better grounding work', "They make my feet feel more aware during footwork. I use them before bed and sometimes before class.", '2 weeks ago'),
+    rr(8, 'Simon Clarke', 'Mechanic', 'Less cramped after boots', "Steel-toe boots are not kind to toes. These help unwind that compressed feeling after long days.", '3 weeks ago', 4),
+    rr(9, 'Natalia Reyes', 'Stylist', 'Simple but effective', "I wear fashion shoes for work and my toes pay for it. These are the easiest way to reset at night.", '3 weeks ago'),
+  ],
+  default: [
+    rr(1, 'Maddie Sloan', 'Fitness Enthusiast', 'Simple comfort upgrade', "I added this to my daily routine and noticed the difference quickly. It is easy to use and feels built for regular wear.", '2 days ago'),
+    rr(2, 'Elliot Park', 'Office Worker', 'Useful every day', "I wanted something practical, not complicated. This has become one of those small comfort upgrades I actually keep using.", '4 days ago'),
+    rr(3, 'Tara Fields', 'Weekend Walker', 'Good quality for the price', "The materials feel better than the generic options I tried before. It does exactly what I needed without fuss.", '5 days ago'),
+    rr(4, 'Nolan Pierce', 'Trainer', 'Solid recovery support', "I recommend simple tools people will actually use. This fits that category: easy, portable, and helpful after long days.", '1 week ago'),
+    rr(5, 'Vivian Ross', 'Teacher', 'Made workdays easier', "Standing all day is easier when small pressure points are handled. This was a straightforward fix for daily comfort.", '1 week ago'),
+    rr(6, 'George Tan', 'Delivery Driver', 'Holds up well', "I use it constantly and it still feels solid. Good value for something that gets daily use.", '2 weeks ago'),
+    rr(7, 'Penny Moore', 'Caregiver', 'Comfort I noticed quickly', "Long shifts make little discomforts add up. This helped more than I expected for such a simple product.", '2 weeks ago'),
+    rr(8, 'Miles Hunter', 'Weekend Athlete', 'Easy to keep in my bag', "It is lightweight, practical, and useful after training. No complicated setup, which is why I keep using it.", '3 weeks ago', 4),
+    rr(9, 'Jade Norton', 'Retail Manager', 'Better than my old option', "The fit and feel are more comfortable than the generic one I had. I would buy it again.", '3 weeks ago'),
+  ],
+};
 
 // Animated counter hook
 const useCountUp = (end: number, duration: number = 2000, start: number = 0) => {
@@ -300,33 +215,56 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: any; title: str
   </div>
 );
 
+const INITIAL_REAL_RESULT_REVIEW_COUNT = 6;
+const REAL_RESULT_REVIEW_BATCH_SIZE = 3;
+
+const productMatches = (product: Product | undefined, handles: string[], names: string[]): boolean => {
+  if (!product) return false;
+  const handle = (product.handle || '').toLowerCase();
+  const id = String(product.id || '').toLowerCase();
+  const name = (product.name || '').toLowerCase();
+  return handles.some((value) => handle === value || id === value) || names.some((value) => name.includes(value));
+};
+
+const getReviewProductKey = (product?: Product): SecondaryReviewProductKey => {
+  if (product && isMassageRollerProduct(product)) return 'massageRoller';
+  if (product && isHeightBoosterProduct(product)) return 'heightBoosters';
+  if (productMatches(product, ['grip-socks'], ['grip socks'])) return 'gripSocks';
+  if (productMatches(product, ['heel-cushion-pds', 'heel-cushion-pad'], ['heel cushion'])) return 'heelCushions';
+  if (productMatches(product, ['massage-gun'], ['massage gun'])) return 'massageGun';
+  if (productMatches(product, ['toe-cushion-pds', 'toe-cushion-pad'], ['toe cushion'])) return 'toeCushionPads';
+  if (productMatches(product, ['toe-spacers'], ['toe spacers'])) return 'toeSpacers';
+  if (productMatches(product, ['compression-socks'], ['compression socks'])) return 'compressionSocks';
+  return 'default';
+};
+
+const REVIEW_SECTION_INTROS: Record<SecondaryReviewProductKey, string> = {
+  compressionSocks: 'Real stories from people who wear AeroTouch Compression Socks through long shifts, travel days, and everyday recovery.',
+  gripSocks: 'Real stories from people using AeroTouch Grip Socks for studio sessions, balance work, and barefoot-style training.',
+  heelCushions: 'Real stories from people who use AeroTouch Heel Cushions to reduce rubbing, slipping, and hard-shoe pressure.',
+  heightBoosters: 'Real stories from people using discreet AeroTouch Height Boosters for work, events, photos, and everyday confidence.',
+  massageGun: 'Real stories from people using the AeroTouch Massage Gun for tight calves, sore arches, and post-shift recovery.',
+  massageRoller: 'Real stories from people who use the AeroTouch Foot Massage Roller for tired feet, training, and long days on the move.',
+  toeCushionPads: 'Real stories from people who use AeroTouch Toe Cushion Pads to soften rubbing, hot spots, and front-shoe pressure.',
+  toeSpacers: 'Real stories from people using AeroTouch Toe Spacers to reset cramped toes after shoes, training, and long days.',
+  default: 'Real stories from people using AeroTouch accessories for simple, everyday comfort and recovery.',
+};
+
 interface ProductDescriptionProps {
-  /** When set, review grid copy matches the PDP product (Massage Roller / Height Boosters). */
+  /** When set, review grid copy matches the active secondary PDP product. */
   product?: Product;
 }
 
 export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product }) => {
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const customerReviews =
-    product && isMassageRollerProduct(product)
-      ? MASSAGE_ROLLER_CUSTOMER_REVIEWS
-      : product && isHeightBoosterProduct(product)
-        ? HEIGHT_BOOSTERS_CUSTOMER_REVIEWS
-        : DEFAULT_CUSTOMER_REVIEWS;
+  const reviewProductKey = useMemo(() => getReviewProductKey(product), [product]);
+  const realResultReviews = REAL_RESULT_REVIEWS[reviewProductKey];
+  const [visibleRealResultReviews, setVisibleRealResultReviews] = useState(INITIAL_REAL_RESULT_REVIEW_COUNT);
+  const [failedRealResultImageIds, setFailedRealResultImageIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    if (!lightboxUrl) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLightboxUrl(null);
-    };
-    document.addEventListener('keydown', onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [lightboxUrl]);
+    setVisibleRealResultReviews(INITIAL_REAL_RESULT_REVIEW_COUNT);
+    setFailedRealResultImageIds(new Set());
+  }, [reviewProductKey]);
 
   const features = [
     {
@@ -423,144 +361,110 @@ export const ProductDescription: React.FC<ProductDescriptionProps> = ({ product 
         </div>
       </div>
 
-      {/* Customer Reviews with Photos */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8">
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-brand-orange/10 text-brand-orange text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-4">
-              <Star className="w-3 h-3 fill-current" />
-              Real Results
+      {/* More Customer Reviews Section */}
+      <section className="bg-slate-50 py-24 border-t border-slate-100">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight uppercase mb-4">
+                Real Results from Real People
+              </h2>
+              <p className="text-slate-500 font-medium text-lg max-w-2xl mx-auto">
+                {REVIEW_SECTION_INTROS[reviewProductKey]}
+              </p>
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tight mb-4">
-              What Our <span className="text-brand-orange">Customers Say</span>
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              {product && isMassageRollerProduct(product)
-                ? 'Real stories from people who use the AeroTouch Foot Massage Roller for tired feet, training, and long days on the move.'
-                : product && isHeightBoosterProduct(product)
-                  ? 'Real people on feeling shorter in rooms, photos, and dating — and how discreet AeroTouch Height Boosters helped them show up without the mental spiral.'
-                  : 'See what real customers are saying about their experience with AeroTouch.'}
-            </p>
-          </div>
 
-          {/* Reviews with Photos Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {customerReviews.map((review, idx) => (
-              <div key={idx} className="bg-slate-50 rounded-2xl p-6 border border-slate-100 hover:shadow-lg transition-shadow">
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-4">
-                  <img
-                    src={review.image}
-                    alt={review.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div>
-                    <h4 className="font-black text-slate-900">{review.name}</h4>
-                    <p className="text-xs text-slate-500">{review.location}</p>
-                  </div>
-                </div>
-
-                {/* Rating */}
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${i < review.rating ? 'text-brand-orange fill-current' : 'text-slate-300'}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Title */}
-                <h5 className="font-bold text-slate-900 mb-2">{review.title}</h5>
-
-                {/* Text */}
-                <p className="text-sm text-slate-600 leading-relaxed mb-4">{review.text}</p>
-
-                {/* Customer Photos */}
-                {review.photos.length > 0 && (
-                  <div className="flex flex-wrap gap-3">
-                    {review.photos.map((photo, photoIdx) => (
-                      <button
-                        key={photoIdx}
-                        type="button"
-                        className="relative w-28 h-28 rounded-xl overflow-hidden cursor-zoom-in group border-0 p-0 bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
-                        onClick={() => setLightboxUrl(photo)}
-                        aria-label={`Enlarge photo ${photoIdx + 1} from ${review.name}`}
-                      >
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {realResultReviews
+                .slice(0, visibleRealResultReviews)
+                .map((review) => {
+                  const showPhoto = Boolean(review.image) && !failedRealResultImageIds.has(review.id);
+                  return (
+                    <div
+                      key={review.id}
+                      className="group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl cursor-pointer transition-shadow duration-500"
+                      style={{ height: '480px' }}
+                    >
+                      {showPhoto ? (
                         <img
-                          src={photo}
-                          alt=""
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          src={review.image}
+                          alt={review.name + ' using AeroTouch'}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                          onError={() =>
+                            setFailedRealResultImageIds((prev) => {
+                              const next = new Set(prev);
+                              next.add(review.id);
+                              return next;
+                            })
+                          }
                         />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
-                      </button>
-                    ))}
-                  </div>
-                )}
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900" aria-hidden />
+                      )}
 
-                {/* Verified Badge */}
-                <div className="mt-4 flex items-center gap-2">
-                  <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                    <span className="text-[10px] font-bold text-emerald-700 uppercase">Verified Purchase</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-          {/* Stats Row */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-6 bg-slate-50 rounded-2xl">
-              <div className="text-3xl font-black text-brand-orange mb-1">4.9</div>
-              <div className="flex justify-center mb-2">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-brand-orange fill-current" />
-                ))}
+                      <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-0 group-hover:-translate-y-1 transition-transform duration-500 ease-out">
+                        <h5 className="text-xl font-black text-white mb-2">{review.title}</h5>
+
+                        <div className="flex items-center gap-3 mb-3">
+                          <div>
+                            <h4 className="font-black text-white text-sm leading-none">{review.name}</h4>
+                            <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest">{review.role}</p>
+                          </div>
+                          <div className="ml-auto flex items-center gap-1 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-full">
+                            <BadgeCheck className="w-3 h-3 text-brand-lime" />
+                            <span className="text-[8px] font-bold text-white/80 uppercase">Verified</span>
+                          </div>
+                        </div>
+
+                        <div className="flex text-yellow-400 gap-0.5 mb-3">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3 h-3 ${i < review.rating ? 'fill-current' : 'text-white/30'}`}
+                            />
+                          ))}
+                        </div>
+
+                        <div className="relative">
+                          <p className="text-white/80 text-xs leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all duration-500">
+                            "{review.content}"
+                          </p>
+                        </div>
+
+                        <div className="mt-2 flex items-center gap-1.5 opacity-60 group-hover:opacity-0 transition-opacity duration-300">
+                          <span className="text-[10px] text-white/70 font-semibold uppercase tracking-wider">
+                            Hover to read more
+                          </span>
+                          <ChevronRight className="w-3 h-3 text-white/50" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {visibleRealResultReviews < realResultReviews.length && (
+              <div className="mt-12 text-center">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVisibleRealResultReviews((prev) =>
+                      Math.min(prev + REAL_RESULT_REVIEW_BATCH_SIZE, realResultReviews.length)
+                    )
+                  }
+                  className="view-more-reviews-button inline-flex items-center gap-2 bg-white border-2 border-slate-200 px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest text-slate-900 shadow-sm"
+                >
+                  View More Reviews
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-              <div className="text-sm font-bold text-slate-600">Average Rating</div>
-            </div>
-            <div className="text-center p-6 bg-slate-50 rounded-2xl">
-              <div className="text-3xl font-black text-brand-orange mb-1">4,000+</div>
-              <div className="text-sm font-bold text-slate-600">Reviews</div>
-            </div>
-            <div className="text-center p-6 bg-slate-50 rounded-2xl">
-              <div className="text-3xl font-black text-brand-orange mb-1">98%</div>
-              <div className="text-sm font-bold text-slate-600">Would Recommend</div>
-            </div>
-            <div className="text-center p-6 bg-slate-50 rounded-2xl">
-              <div className="text-3xl font-black text-brand-orange mb-1">50,000+</div>
-              <div className="text-sm font-bold text-slate-600">Happy Customers</div>
-            </div>
+            )}
           </div>
         </div>
       </section>
-
-      {lightboxUrl && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={() => setLightboxUrl(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Enlarged customer photo"
-        >
-          <button
-            type="button"
-            className="absolute top-4 right-4 z-[101] rounded-full bg-white/10 p-2.5 text-white hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            onClick={() => setLightboxUrl(null)}
-            aria-label="Close enlarged image"
-          >
-            <X className="w-6 h-6" strokeWidth={2} />
-          </button>
-          <img
-            src={enlargedPhotoUrl(lightboxUrl)}
-            alt="Customer photo enlarged"
-            className="max-h-[min(90vh,900px)] max-w-full w-auto object-contain rounded-xl shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
     </section>
   );
 };

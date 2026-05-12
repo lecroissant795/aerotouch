@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { Product } from '../types';
 import { Button } from '../components/Button';
 import { Star, Truck, RotateCcw, Check, ShoppingBag, ShieldCheck, Timer, Users, CreditCard, Lock, ChevronDown, ChevronUp, Flame, BadgeCheck, Smile, Headphones, X, Play, Volume2, VolumeX, MapPin, Box, CircleDollarSign, Activity, Wrench, Tag } from 'lucide-react';
@@ -7,6 +7,7 @@ import { mapShopifyProduct } from '../utils/mapper';
 import { fetchProductByHandle } from '../utils/productFetcher';
 import { useProductMetafields } from '../utils/useProductMetafields';
 import { ProductCard } from '../components/ProductCard';
+import { ProductStickyAddToCart } from '../components/ProductStickyAddToCart';
 import {
   findVariantBySizeAndColor,
   variantSalePrice,
@@ -693,9 +694,11 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 12, seconds: 45 });
   const [paymentMethodsOpen, setPaymentMethodsOpen] = useState(false);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
+  const [stickyPurchaseBar, setStickyPurchaseBar] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
+  const mainPurchaseRef = useRef<HTMLDivElement>(null);
 
   // Fetch product from Shopify
   useEffect(() => {
@@ -901,6 +904,35 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
       onAddToCart(product, selectedSize, selectedColor, bundle);
     }
   };
+
+  const handleStickyBarCta = () => {
+    if (!selectedSize) {
+      mainPurchaseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    handleAddToCart();
+  };
+
+  useLayoutEffect(() => {
+    const el = mainPurchaseRef.current;
+    if (!el) {
+      setStickyPurchaseBar(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const pastMainCta = !entry.isIntersecting && entry.boundingClientRect.bottom < 0;
+        setStickyPurchaseBar(pastMainCta);
+      },
+      { threshold: [0, 0.01, 0.5, 1], root: null, rootMargin: '0px' }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [product.id, initialProduct.id]);
 
   const currentTestimonial =
     testimonialItems[Math.min(activeTestimonial, testimonialItems.length - 1)] ?? testimonialItems[0];
@@ -1325,21 +1357,23 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                     </div>
                 )}
 
-                {/* Main Action - Add to Cart */}
-                <Button
-                    fullWidth
-                    size="lg"
-                    className={`h-16 text-xl shadow-xl relative overflow-hidden group bg-black text-white hover:bg-[#C1F11D] hover:text-white transition-all duration-300 ${isLoading ? 'opacity-90 cursor-wait' : ''}`}
-                    onClick={handleAddToCart}
-                    disabled={!selectedSize || isLoading || typeof selectedSize === 'undefined'}
-                >
-                   <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
-                       {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
-                       {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || `ADD TO CART - $${(unitPrice * bundle).toFixed(2)}`) : (meta.secondary_cta_text || 'SELECT SIZE'))}
-                   </span>
-                   {/* Shine effect */}
-                   {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
-                </Button>
+                {/* Main Action - Add to Cart (scroll sentinel for sticky bar) */}
+                <div ref={mainPurchaseRef}>
+                  <Button
+                      fullWidth
+                      size="lg"
+                      className={`h-16 text-xl shadow-xl relative overflow-hidden group bg-black text-white hover:bg-[#C1F11D] hover:text-white transition-all duration-300 ${isLoading ? 'opacity-90 cursor-wait' : ''}`}
+                      onClick={handleAddToCart}
+                      disabled={!selectedSize || isLoading || typeof selectedSize === 'undefined'}
+                  >
+                     <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-tight uppercase">
+                         {isLoading && <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
+                         {isLoading ? 'PROCESSING...' : (selectedSize ? (meta.primary_cta_text || `ADD TO CART - $${(unitPrice * bundle).toFixed(2)}`) : (meta.secondary_cta_text || 'SELECT SIZE'))}
+                     </span>
+                     {/* Shine effect */}
+                     {!isLoading && <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shine mix-blend-overlay" />}
+                  </Button>
+                </div>
 
                 {/* Payment methods under buy button - link opens popup */}
                 <div className="mt-4 flex flex-col items-center gap-3">
@@ -1437,40 +1471,33 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                         onMouseEnter={() => setIsTestimonialHovered(true)}
                         onMouseLeave={() => setIsTestimonialHovered(false)}
                     >
-                        <div className="flex gap-4 items-start relative z-10">
-                            <img
-                                src={currentTestimonial.image}
-                                alt={currentTestimonial.name}
-                                className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
-                            />
-                            <div className="flex-1">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div>
-                                        <p className="text-sm font-black text-slate-900 leading-none">{currentTestimonial.name}</p>
-                                        <p className="text-[11px] text-slate-500 mt-1">{currentTestimonial.role}</p>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
-                                        <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Verified</span>
-                                    </div>
+                        <div className="relative z-10">
+                            <div className="flex items-center justify-between mb-2">
+                                <div>
+                                    <p className="text-sm font-black text-slate-900 leading-none">{currentTestimonial.name}</p>
+                                    <p className="text-[11px] text-slate-500 mt-1">{currentTestimonial.role}</p>
                                 </div>
+                                <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
+                                    <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Verified</span>
+                                </div>
+                            </div>
 
-                                <p className="text-sm font-medium text-slate-800 leading-snug mb-3">
-                                    "{currentTestimonial.quote}"
-                                </p>
+                            <p className="text-sm font-medium text-slate-800 leading-snug mb-3">
+                                "{currentTestimonial.quote}"
+                            </p>
 
-                                <div className="mt-3 flex flex-col gap-2">
-                                    <div className="flex text-brand-orange gap-0.5">
-                                        {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
+                            <div className="mt-3 flex flex-col gap-2">
+                                <div className="flex text-brand-orange gap-0.5">
+                                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                        <Check className="w-2.5 h-2.5 text-emerald-600" />
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                                            <Check className="w-2.5 h-2.5 text-emerald-600" />
-                                        </div>
-                                        <span className="text-xs font-bold text-slate-700">
-                                            {currentTestimonial.result}
-                                        </span>
-                                    </div>
+                                    <span className="text-xs font-bold text-slate-700">
+                                        {currentTestimonial.result}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -1632,6 +1659,39 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
 
       <ReferralSection />
       {onNavigateToBlog ? <GivingBackSection onLearnMore={onNavigateToBlog} /> : null}
+
+      <ProductStickyAddToCart
+        visible={stickyPurchaseBar}
+        imageSrc={images[activeImgIndex] || images[0] || fallbackImage}
+        imageAlt={product.name || 'Product'}
+        productName={product.name || 'Product'}
+        lineTotal={unitPrice * bundle}
+        compareAtLineTotal={
+          compareAtEach != null && compareAtEach > unitPrice ? compareAtEach * bundle : null
+        }
+        variantSummary={
+          selectedSize
+            ? [
+                availableSizes.length > 1 ? selectedSize : null,
+                availableColors.length > 1 ? selectedColor : null,
+                `${bundle} ${quantityUsesPairs ? (bundle === 1 ? 'pair' : 'pairs') : (bundle === 1 ? 'item' : 'items')}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')
+            : 'Select size and options above'
+        }
+        ctaLabel={
+          selectedSize ? meta.primary_cta_text || 'Add to cart' : meta.secondary_cta_text || 'Select size'
+        }
+        ctaAriaLabel={
+          !selectedSize
+            ? 'Choose your size or options on this page'
+            : `${meta.primary_cta_text || 'Add to cart'} — ${product.name || 'product'}`
+        }
+        isLoading={isLoading}
+        disabled={!selectedSize || typeof selectedSize === 'undefined'}
+        onCtaClick={handleStickyBarCta}
+      />
     </div>
   );
 };

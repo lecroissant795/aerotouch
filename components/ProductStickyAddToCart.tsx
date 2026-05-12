@@ -8,6 +8,7 @@ export interface ProductStickyAddToCartProps {
   imageAlt: string;
   productName: string;
   lineTotal: number;
+  compareAtLineTotal?: number | null;
   variantSummary: string;
   ctaLabel: string;
   ctaAriaLabel: string;
@@ -24,6 +25,7 @@ export const ProductStickyAddToCart: React.FC<ProductStickyAddToCartProps> = ({
   imageAlt,
   productName,
   lineTotal,
+  compareAtLineTotal,
   variantSummary,
   ctaLabel,
   ctaAriaLabel,
@@ -92,9 +94,18 @@ export const ProductStickyAddToCart: React.FC<ProductStickyAddToCartProps> = ({
                 <p className="truncate text-sm font-bold text-slate-900 md:text-base">{productName}</p>
                 <p className="mt-0.5 truncate text-xs text-slate-600 md:text-sm">{variantSummary}</p>
               </div>
-              <p className="mt-[0.35rem] shrink-0 text-right text-base font-black text-brand-orange md:mt-2 md:text-xl md:font-black">
-                ${formatMoney(lineTotal)}
-              </p>
+              <div className="mt-[0.35rem] shrink-0 text-right md:mt-2">
+                <div className="flex flex-wrap items-baseline justify-end gap-2">
+                  {compareAtLineTotal != null && compareAtLineTotal > lineTotal && (
+                    <span className="text-sm font-bold text-slate-400 line-through decoration-2 md:text-base">
+                      ${formatMoney(compareAtLineTotal)}
+                    </span>
+                  )}
+                  <span className="text-base font-black text-brand-orange md:text-xl">
+                    ${formatMoney(lineTotal)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

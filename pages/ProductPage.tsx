@@ -1573,6 +1573,9 @@ export const ProductPage: React.FC<ProductPageProps> = ({
         imageAlt={productName || 'Product'}
         productName={productName || 'Product'}
         lineTotal={unitPrice * bundle}
+        compareAtLineTotal={
+          compareAtEach != null && compareAtEach > unitPrice ? compareAtEach * bundle : null
+        }
         variantSummary={
           selectedSize
             ? isBundleKitPdp
