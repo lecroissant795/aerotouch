@@ -69,26 +69,37 @@ export async function adminGraphQL({ shopDomain, accessToken, query, variables }
 /** Resolve Admin API credentials from env. Supports aliases used elsewhere in this repo / Vercel. */
 export function readShopifyConfig(getEnv) {
   const shopDomain = normalizeShopDomain(
-    getEnv('SHOPIFY_STORE_DOMAIN') || getEnv('VITE_SHOPIFY_STORE_DOMAIN')
+    getEnv('SHOPIFY_STORE_DOMAIN') ||
+      getEnv('SHOPIFY_ADMIN_DOMAIN') ||
+      getEnv('VITE_SHOPIFY_STORE_DOMAIN') ||
+      getEnv('VITE_SHOPIFY_ADMIN_DOMAIN')
   )
-  const staticToken =
+  const adminStaticToken =
     getEnv('SHOPIFY_ADMIN_ACCESS_TOKEN') ||
-    getEnv('SHOPIFY_ACCESS_TOKEN') ||
+    getEnv('SHOPIFY_ADMIN_API_TOKEN') ||
+    getEnv('VITE_SHOPIFY_ADMIN_API_TOKEN') ||
     /* common typo seen in env files */
     getEnv('ADIMN_ACCESS_TOKEN')
+  const legacyStaticToken = getEnv('SHOPIFY_ACCESS_TOKEN')
   const clientId =
-    getEnv('SHOPIFY_CLIENT_ID') ||
     getEnv('SHOPIFY_ADMIN_CLIENT_ID') ||
+    getEnv('VITE_SHOPIFY_ADMIN_CLIENT_ID') ||
+    getEnv('SHOPIFY_CLIENT_ID') ||
     getEnv('VITE_SHOPIFY_CLIENT_ID')
   const clientSecret =
-    getEnv('SHOPIFY_CLIENT_SECRET') ||
     getEnv('SHOPIFY_ADMIN_CLIENT_SECRET') ||
+    getEnv('VITE_SHOPIFY_ADMIN_CLIENT_SECRET') ||
+    getEnv('SHOPIFY_CLIENT_SECRET') ||
     getEnv('VITE_SHOPIFY_CLIENT_SECRET') ||
     getEnv('VITE_VITE_SHOPIFY_CLIENT_SECRET')
 
+  const hasClientCredentials = Boolean(clientId && clientSecret)
+
   return {
     shopDomain,
-    staticToken,
+    // Prefer Admin client credentials when present; stale static tokens should
+    // not block the client_credentials flow.
+    staticToken: hasClientCredentials ? '' : adminStaticToken || legacyStaticToken,
     clientId,
     clientSecret,
   }
