@@ -386,6 +386,15 @@ export const ProductPage: React.FC<ProductPageProps> = ({
     if (saved <= 0) return `You save $${formatPrice(0)}`;
     return `You save $${formatPrice(saved)}`;
   };
+  const offerQuantityLabel = (qty: number) => {
+    const unit = isBundleKitPdp ? 'Kit' : 'Pair';
+    return `${qty} ${unit}${qty === 1 ? '' : 's'} Option`;
+  };
+  const offerSavingsLabel = (qty: number, defaultLabel: string) => {
+    if (!isBundleKitPdp) return defaultLabel;
+    const saved = Math.max(0, savingsEach) * qty;
+    return saved > 0 ? `Save $${formatPrice(saved)}` : 'Limited offer';
+  };
   const [isTestimonialHovered, setIsTestimonialHovered] = useState(false);
 
   useEffect(() => {
@@ -924,7 +933,6 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                 </div>
 
                 {/* Offer Ends Soon Section */}
-                {!isBundleKitPdp && (
                 <div className="mb-6 bg-brand-orange/5 border-2 border-dashed border-brand-orange/30 rounded-2xl p-4 overflow-hidden relative group hover:border-brand-orange/50 transition-colors">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 relative z-10">
                         <div className="flex items-center gap-2">
@@ -956,34 +964,33 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-2 rounded-lg border border-slate-100">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                               <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">1 Pair Option</span>
+                               <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{offerQuantityLabel(1)}</span>
                            </div>
-                           <span className="text-xs font-black text-brand-dark bg-slate-100 px-2 py-1 rounded">Save $24</span>
+                           <span className="text-xs font-black text-brand-dark bg-slate-100 px-2 py-1 rounded">{offerSavingsLabel(1, 'Save $24')}</span>
                         </div>
                         <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-2 rounded-lg border border-slate-100">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
-                               <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">2 Pairs Option</span>
+                               <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{offerQuantityLabel(2)}</span>
                            </div>
-                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">Save $48</span>
+                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">{offerSavingsLabel(2, 'Save $48')}</span>
                         </div>
                         <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-2 rounded-lg border border-slate-100">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
-                               <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">3 Pairs Option</span>
+                               <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{offerQuantityLabel(3)}</span>
                            </div>
-                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">Save $72</span>
+                           <span className="text-xs font-black text-white bg-brand-orange px-2 py-1 rounded shadow-sm shadow-brand-orange/20">{offerSavingsLabel(3, 'Save $72')}</span>
                         </div>
                         <div className="flex justify-between items-center bg-brand-dark p-2 rounded-lg border border-brand-dark shadow-lg">
                            <div className="flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse" />
-                               <span className="text-xs font-bold text-slate-300 uppercase tracking-tight">5 Pairs Option</span>
+                               <span className="text-xs font-bold text-slate-300 uppercase tracking-tight">{offerQuantityLabel(5)}</span>
                            </div>
-                           <span className="text-xs font-black text-brand-dark bg-brand-lime px-2 py-1 rounded">Save $120</span>
+                           <span className="text-xs font-black text-brand-dark bg-brand-lime px-2 py-1 rounded">{offerSavingsLabel(5, 'Save $120')}</span>
                         </div>
                     </div>
                 </div>
-                )}
 
                 {/* Promo marquee strip */}
                 <div className="py-3.5 mb-6 rounded-2xl overflow-hidden border border-[#a5c918]" style={{ backgroundColor: '#C1F11D' }}>

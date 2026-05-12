@@ -261,7 +261,7 @@ interface SecondaryProductPageProps {
   onProductSelect?: (product: Product) => void;
   isLoading?: boolean;
   error?: string | null;
-  /** Optional MSRP / compare-at price (e.g. custom PDPs). Shown struck-through when above the live sale price. */
+  /** Optional compare-at price (e.g. custom PDPs). Shown struck-through when above the live sale price. */
   compareAtPrice?: number;
   /** When set, replaces the default description / metafield bullets / feature list in the right detail card. */
   detailCardBody?: React.ReactNode;
@@ -1249,16 +1249,13 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                       </p>
                                   </div>
                               </div>
-                              <div className="text-right">
-                                  <span className="font-bold text-brand-orange block text-xl">
+                              <div className="min-w-[92px] text-right">
+                                  <span className="block text-xl font-bold text-brand-orange">
                                     ${(unitPrice * qty).toFixed(2)}
                                   </span>
-                                  <span className="text-xs text-slate-500 font-bold">
-                                    ${unitPrice.toFixed(2)} /{quantityUsesPairs ? 'pair' : 'item'}
-                                  </span>
-                                  {qty === 1 && compareAtEach != null && compareAtEach > unitPrice && (
-                                    <span className="text-xs text-slate-400 line-through font-bold block">
-                                      ${compareAtEach.toFixed(2)} MSRP
+                                  {compareAtEach != null && compareAtEach > unitPrice && (
+                                    <span className="block text-xs font-bold text-slate-400 line-through">
+                                      ${(compareAtEach * qty).toFixed(2)}
                                     </span>
                                   )}
                               </div>

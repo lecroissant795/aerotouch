@@ -35,6 +35,17 @@ const rr = (
   rating: number = 5,
 ): RealResultReview => ({ id, name, role, image: '', rating, title, content, date });
 
+const withImage = (review: RealResultReview, image: string): RealResultReview => ({ ...review, image });
+
+const MASSAGE_ROLLER_REAL_RESULT_PHOTOS = [
+  'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/massage-roller/1778579984496-fksr8u6ow2i.png',
+  'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/massage-roller/1778580043014-l0fc2si14i.png',
+  'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/massage-roller/1778580098751-7fcqeii992o.png',
+  'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/massage-roller/1778580139126-m2wn6qbok1s.png',
+  'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/massage-roller/1778580312421-ewssauel2nc.png',
+  'https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/massage-roller/1778580414838-oqcqgpbd5gn.png',
+] as const;
+
 const REAL_RESULT_REVIEWS: Record<SecondaryReviewProductKey, RealResultReview[]> = {
   compressionSocks: [
     rr(1, 'Harper Ellis', 'Physical Therapist', 'Legs feel lighter after clinic days', "I am on my feet moving between patients all day. These socks give steady compression without squeezing my toes, and my calves do not feel as heavy by dinner.", '2 days ago'),
@@ -92,12 +103,12 @@ const REAL_RESULT_REVIEWS: Record<SecondaryReviewProductKey, RealResultReview[]>
     rr(9, 'Naomi Fields', 'Chef', 'Helpful after service', "Kitchen floors are brutal. Five minutes on the calves and arches has become part of my closing routine.", '3 weeks ago', 4),
   ],
   massageRoller: [
-    rr(1, 'Dana Walsh', 'ER Nurse', 'Finally unwinds my arches', "I use it under my feet after night shifts. The pressure points hit sore spots better than a tennis ball and my arches feel looser by morning.", '2 days ago'),
-    rr(2, 'Brett Nolan', 'Marathon Runner', 'Post-run ritual', "After tempo runs my plantar fascia gets tight. Rolling slowly for a few minutes helps me bounce back before the next session.", '4 days ago'),
-    rr(3, 'Kira Bennett', 'Retail Associate', 'Small but effective', "Concrete floors leave my heels burning. I keep the roller by the couch and use it after work while I decompress.", '6 days ago'),
-    rr(4, 'Luis Romero', 'Barista', 'Great for quick breaks', "I roll each foot before bed and sometimes during split shifts. It is simple, but the relief is real.", '1 week ago'),
-    rr(5, 'Tessa Grant', 'PT Aide', 'Better than the cheap roller I had', "The shape fits my arch better and does not slide around as much. It feels targeted without being too aggressive.", '1 week ago'),
-    rr(6, 'Malcolm Pierce', 'Consultant', 'Travel-friendly recovery', "It lives in my carry-on. After airport days, two minutes per foot makes hotel room recovery much easier.", '2 weeks ago'),
+    withImage(rr(1, 'Dana Walsh', 'ER Nurse', 'Finally unwinds my arches', "I use it under my feet after night shifts. The pressure points hit sore spots better than a tennis ball and my arches feel looser by morning.", '2 days ago'), MASSAGE_ROLLER_REAL_RESULT_PHOTOS[0]),
+    withImage(rr(2, 'Brett Nolan', 'Marathon Runner', 'Post-run ritual', "After tempo runs my plantar fascia gets tight. Rolling slowly for a few minutes helps me bounce back before the next session.", '4 days ago'), MASSAGE_ROLLER_REAL_RESULT_PHOTOS[1]),
+    withImage(rr(3, 'Kira Bennett', 'Retail Associate', 'Small but effective', "Concrete floors leave my heels burning. I keep the roller by the couch and use it after work while I decompress.", '6 days ago'), MASSAGE_ROLLER_REAL_RESULT_PHOTOS[2]),
+    withImage(rr(4, 'Luis Romero', 'Barista', 'Great for quick breaks', "I roll each foot before bed and sometimes during split shifts. It is simple, but the relief is real.", '1 week ago'), MASSAGE_ROLLER_REAL_RESULT_PHOTOS[3]),
+    withImage(rr(5, 'Tessa Grant', 'PT Aide', 'Better than the cheap roller I had', "The shape fits my arch better and does not slide around as much. It feels targeted without being too aggressive.", '1 week ago'), MASSAGE_ROLLER_REAL_RESULT_PHOTOS[4]),
+    withImage(rr(6, 'Malcolm Pierce', 'Consultant', 'Travel-friendly recovery', "It lives in my carry-on. After airport days, two minutes per foot makes hotel room recovery much easier.", '2 weeks ago'), MASSAGE_ROLLER_REAL_RESULT_PHOTOS[5]),
     rr(7, 'Nina Cooper', 'Yoga Instructor', 'Good pressure control', "I can go gentle or lean in when my arches need more. It is useful after teaching back-to-back classes.", '2 weeks ago'),
     rr(8, 'Victor Hale', 'Mechanic', 'Helps after boot days', "Work boots make my feet feel compressed. Rolling at night loosens the tight feeling along the sole.", '3 weeks ago'),
     rr(9, 'Alana Fox', 'Server', 'End-of-shift staple', "I bought it for sore feet and ended up using it almost every night. Small enough to keep beside the sofa.", '3 weeks ago', 4),

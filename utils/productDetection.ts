@@ -1,4 +1,5 @@
 import { Product } from '../types';
+import { isBundleKitProductByProduct } from './bundleKits';
 
 /**
  * Product type detection utilities based on Shopify tags
@@ -75,6 +76,8 @@ export const isHeightBoosterProduct = (product: Product): boolean => {
 };
 
 export const isMassageRollerProduct = (product: Product): boolean => {
+  if (isBundleKitProductByProduct(product)) return false;
+
   const handle = (product.handle || '').toLowerCase();
   if (handle === MASSAGE_ROLLER_HANDLE) return true;
   const name = (product.name || '').toLowerCase();
@@ -85,6 +88,12 @@ export const isMassageRollerProduct = (product: Product): boolean => {
 };
 
 export const isSecondaryProduct = (product: Product): boolean => {
+  // Bundle kits must always use the primary PDP, even if Shopify tags/metafields
+  // include broad recovery/accessory wording.
+  if (isBundleKitProductByProduct(product)) {
+    return false;
+  }
+
   // Explicit PDP templates (override tag/name heuristics)
   if (isHeightBoosterProduct(product)) {
     return true;
@@ -122,6 +131,10 @@ export const isSecondaryProduct = (product: Product): boolean => {
  * Determine if product is a main/primary product
  */
 export const isMainProduct = (product: Product): boolean => {
+  if (isBundleKitProductByProduct(product)) {
+    return true;
+  }
+
   if (isHeightBoosterProduct(product)) {
     return false;
   }

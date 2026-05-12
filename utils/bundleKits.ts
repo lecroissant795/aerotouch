@@ -77,16 +77,34 @@ export const BUNDLE_KITS: BundleKit[] = [
   },
 ];
 
-const BUNDLE_KIT_HANDLE_SET = new Set(BUNDLE_KITS.map((k) => k.handle));
+const BUNDLE_KIT_HANDLE_SET = new Set(BUNDLE_KITS.map((k) => k.handle.toLowerCase()));
+
+export function getBundleKitByHandle(handle: string | undefined): BundleKit | undefined {
+  if (!handle) return undefined;
+  const normalized = handle.toLowerCase();
+  return BUNDLE_KITS.find((k) => k.handle.toLowerCase() === normalized || k.id.toLowerCase() === normalized);
+}
+
+export function getBundleKitByProduct(product: { handle?: string; id?: string }): BundleKit | undefined {
+  const byHandle = getBundleKitByHandle(product.handle);
+  if (byHandle) return byHandle;
+
+  const id = String(product.id || '').toLowerCase();
+  if (!id) return undefined;
+  return BUNDLE_KITS.find((k) => {
+    const numericId = k.shopifyProductId.toLowerCase();
+    return k.id.toLowerCase() === id || k.handle.toLowerCase() === id || numericId === id || id.includes(numericId);
+  });
+}
 
 /** True when the product is one of our Shopify bundle kit PDPs (by handle). */
 export function isBundleKitProductByHandle(handle: string | undefined): boolean {
   if (!handle) return false;
-  return BUNDLE_KIT_HANDLE_SET.has(handle);
+  return BUNDLE_KIT_HANDLE_SET.has(handle.toLowerCase());
 }
 
-export function isBundleKitProductByProduct(product: { handle?: string }): boolean {
-  return isBundleKitProductByHandle(product.handle);
+export function isBundleKitProductByProduct(product: { handle?: string; id?: string }): boolean {
+  return Boolean(getBundleKitByProduct(product));
 }
 
 /** Featured grid / search card for the primary bundle (Plantar Fasciitis kit). */

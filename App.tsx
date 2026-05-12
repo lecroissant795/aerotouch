@@ -30,7 +30,8 @@ import { BundleKitsPage } from './pages/BundleKitsPage';
 import {
   bundleKitToGridProduct,
   bundleKitInsoleLineAttributes,
-  isBundleKitProductByHandle
+  isBundleKitProductByHandle,
+  getBundleKitByProduct
 } from './utils/bundleKits';
 import { AccessoriesPage } from './pages/AccessoriesPage';
 import { WarrantyPage } from './pages/WarrantyPage';
@@ -101,6 +102,26 @@ function resolveVariantForAddToCart(shopifyProduct: any, size: string, color: st
   });
   if (allLackSizeAndColor) return variants[0];
   return undefined;
+}
+
+function mergeBundleKitProductData(product: Product): Product {
+  const kit = getBundleKitByProduct(product);
+  if (!kit) return product;
+
+  const fallback = bundleKitToGridProduct(kit);
+  return {
+    ...fallback,
+    ...product,
+    tagline: product.tagline || fallback.tagline,
+    price: product.price > 0 ? product.price : fallback.price,
+    compareAtPrice: product.compareAtPrice ?? fallback.compareAtPrice,
+    rating: product.rating > 0 ? product.rating : fallback.rating,
+    reviews: product.reviews > 0 ? product.reviews : fallback.reviews,
+    image: product.image || fallback.image,
+    images: product.images && product.images.length > 0 ? product.images : fallback.images,
+    features: product.features && product.features.length > 0 ? product.features : fallback.features,
+    description: product.description || fallback.description,
+  };
 }
 
 // Import static data for blog posts and bundle kits
@@ -177,6 +198,10 @@ function AppShell() {
     () => (kitId ? shopifyBundleKits.find((k) => k.id === kitId) ?? null : null),
     [kitId, shopifyBundleKits]
   );
+  const selectedBundleKit = useMemo(
+    () => (selectedProduct ? getBundleKitByProduct(selectedProduct) ?? null : null),
+    [selectedProduct]
+  );
 
   // Analytics
   useEffect(() => {
@@ -221,10 +246,10 @@ function AppShell() {
     logShopifyProducts();
   }, [shopify]);
 
-  // Scroll to top on page change
+  // Scroll to top on route change, including same-template product/kit links.
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [page]);
+  }, [page, productHandle, blogSlug, kitId, category, searchQuery]);
 
   // Initialize Checkout
   useEffect(() => {
@@ -304,7 +329,7 @@ function AppShell() {
           console.log('[App]   → productHandle (URL param):', productHandle);
 
           // Map Shopify product to our Product type
-          const mappedProduct = mapShopifyProduct(product);
+          const mappedProduct = mergeBundleKitProductData(mapShopifyProduct(product));
           console.log('[App]   → mapped product.name:', mappedProduct.name);
           console.log('[App]   → mapped product.id:', mappedProduct.id);
           console.log('[App]   → mapped product.handle:', mappedProduct.handle);
@@ -323,14 +348,15 @@ function AppShell() {
           console.log('[App] Known fallback IDs:', Object.keys(PRODUCT_DATA_MAP));
           const fallbackProduct = getFallbackProduct(productHandle);
           if (fallbackProduct) {
-            console.log('[App] ✅ Using fallback product:', fallbackProduct.name);
-            console.log('[App]   → product.id:', fallbackProduct.id);
+            const mergedFallbackProduct = mergeBundleKitProductData(fallbackProduct);
+            console.log('[App] ✅ Using fallback product:', mergedFallbackProduct.name);
+            console.log('[App]   → product.id:', mergedFallbackProduct.id);
 
-            const debug = getProductClassificationDebug(fallbackProduct);
+            const debug = getProductClassificationDebug(mergedFallbackProduct);
             console.log('[App]   → Classification:', debug.type);
-            console.log('[App]   → Tags:', fallbackProduct.tags);
+            console.log('[App]   → Tags:', mergedFallbackProduct.tags);
 
-            if (isMounted) setSelectedProduct(fallbackProduct);
+            if (isMounted) setSelectedProduct(mergedFallbackProduct);
           } else {
             console.log('[App] ❌ No fallback data available for:', productHandle);
             console.log('[App] Available fallback products:', Object.keys(PRODUCT_DATA_MAP));
@@ -774,6 +800,7 @@ function AppShell() {
                 isLoading={isCartLoading}
                 error={cartError}
                 onBuyNow={handleBuyNow}
+                bundleItems={selectedBundleKit?.items}
               />
             )
           ) : productError ? (
