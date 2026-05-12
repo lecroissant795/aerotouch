@@ -11,11 +11,11 @@ export interface MaskedDomainConfig {
 
 export const MASKED_DOMAINS: Record<string, MaskedDomainConfig> = {
   // Replace the key with your actual *.vercel.app project URL once created
-  'your-project-name.vercel.app': {
+  'how-to-make-your-foot-pain-go-away.vercel.app': {
     slug: '3',
     title: 'How to Make Your Foot Pain Go Away',
     description: 'Doctor-backed guide to ending plantar fasciitis and heel pain for good.',
-    ctaText: 'Fix My Foot Pain — Shop AeroTouch',
+    ctaText: 'Fix My Foot Pain',
     ctaUrl: 'https://aerotouch.shop',
   },
   // Local preview — visit http://localhost:5173 after adding to /etc/hosts, or use query param trick
