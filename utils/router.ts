@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Page } from '../types';
+import { getMaskedDomain } from './maskedDomains';
 
 // URL pattern definitions
 const ROUTES = {
@@ -54,6 +55,10 @@ interface RouterState {
 
 // Parse the current URL and return page, params, and query
 export const parseUrl = (url: string = window.location.href): RouterState => {
+  if (getMaskedDomain()) {
+    return { page: Page.MASKED_LANDING, params: {}, query: {} };
+  }
+
   try {
     const { pathname, search } = new URL(url, window.location.origin);
 

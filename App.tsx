@@ -44,6 +44,7 @@ import { applyPageSeo } from './utils/seo';
 import { isSecondaryProduct, isMassageRollerProduct, getProductClassificationDebug } from './utils/productDetection';
 import { SizeSelectorModal } from './components/SizeSelectorModal';
 import { RouterProvider, useRouter } from './utils/router';
+import { MaskedLandingPage } from './pages/MaskedLandingPage';
 import { ProductPageSkeleton } from './components/ProductPageSkeleton';
 import {
   getShopifyHandle,
@@ -691,6 +692,10 @@ function AppShell() {
     };
     await handleAddToCart(kitAsProduct, resolvedSize, resolvedColor, quantity);
   };
+
+  if (page === Page.MASKED_LANDING) {
+    return <MaskedLandingPage />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
