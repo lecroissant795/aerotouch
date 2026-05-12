@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Info, Layers, Activity, Zap, ShieldCheck, Gl
 import { ReferralSection } from './ReferralSection';
 import { GivingBackSection } from './GivingBackSection';
 import { Product } from '../types';
-import { sectionImages, reviewVideos, reviewAvatars, reviewPhotos } from '../utils/mediaUrls';
+import { sectionImages, reviewVideos, reviewAvatars, reviewPhotos, mediaUrl } from '../utils/mediaUrls';
 
 const BUILT_FOR_PURPOSES = [
   { id: 'lifts', label: 'Heavy Lifts', image: sectionImages.heavyLift },
@@ -95,6 +95,55 @@ const VIDEO_REVIEWS = [
 
 const MOBILE_BREAKPOINT = 768;
 const TABLET_BREAKPOINT = 1024;
+const REAL_RESULTS_SUPABASE_PHOTOS = [
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.15.45 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.16.29 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.16.49 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.17.00 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.17.23 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.17.36 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.17.46 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.17.57 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.18.08 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.18.20 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.18.38 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.18.52 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.19.02 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.19.13 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.19.24 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.19.35 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.19.50 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.19.59 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.20.09 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.20.23 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.20.31 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.20.42 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.20.51 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.21.22 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.21.32 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.21.41 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.21.49 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.22.01 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.22.14 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.22.23 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.22.32 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.22.47 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.22.59 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.23.07 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.23.15 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.23.23 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.23.31 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.23.39 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.23.47 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.23.56 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.24.07 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.24.14 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.24.24 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.24.33 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.24.44 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.24.52 pm.png'),
+  mediaUrl('real_reasults_from_real_people/Screenshot 2026-05-11 at 9.25.04 pm.png'),
+] as const;
 
 /** Pixel tweak per comfort hotspot (index matches map order); folded into tooltip center before viewport clamp. */
 const COMFORT_FEATURE_TOOLTIP_SHIFT_PX: readonly number[] = [2, 0, 0, 4];
@@ -137,6 +186,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
   const [playingVideoId, setPlayingVideoId] = useState<number | null>(null);
   const [videoReviewSlideIndex, setVideoReviewSlideIndex] = useState(0);
   const [textReviewSlideIndex, setTextReviewSlideIndex] = useState(0);
+  const [failedRealResultImageIds, setFailedRealResultImageIds] = useState<Set<number>>(new Set());
   const [visibleRealResultReviews, setVisibleRealResultReviews] = useState(6);
   const splitRef = useRef<HTMLDivElement>(null);
   const comfortInteractiveRef = useRef<HTMLDivElement>(null);
@@ -148,7 +198,6 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
   const textReviewScrollRef = useRef<HTMLDivElement>(null);
   const textReviewCardRefs = useRef<(HTMLElement | null)[]>([]);
   const TEXT_REVIEW_COUNT = 6;
-  const INITIAL_REAL_RESULTS_COUNT = 6;
   const REAL_RESULTS_BATCH_SIZE = 6;
   const REAL_RESULTS_TOTAL_COUNT = 57;
 
@@ -1912,15 +1961,31 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                   date: "2 days ago"
                 }
               ]
+                .map((review) => {
+                  if (review.id < 7 || review.id > 57) return review;
+                  const imageIndex = review.id - 7;
+                  return {
+                    ...review,
+                    image: REAL_RESULTS_SUPABASE_PHOTOS[imageIndex],
+                  };
+                })
                 .slice(0, visibleRealResultReviews)
-                .map((review) => (
+                .map((review) => {
+                  const showPhoto = Boolean(review.image) && !failedRealResultImageIds.has(review.id);
+                  return (
                 <div key={review.id} className="group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl cursor-pointer transition-shadow duration-500" style={{ height: '480px' }}>
-                  {/* Keep photos only for the original six reviews; newer entries are text-first until dedicated photos are assigned */}
-                  {review.id <= INITIAL_REAL_RESULTS_COUNT ? (
+                  {showPhoto ? (
                     <img 
                       src={review.image} 
                       alt={review.name + " using AeroTouch"}
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                      onError={() =>
+                        setFailedRealResultImageIds((prev) => {
+                          const next = new Set(prev);
+                          next.add(review.id);
+                          return next;
+                        })
+                      }
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900" aria-hidden />
@@ -1962,21 +2027,19 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ onNavigateTo
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
 
-            {visibleRealResultReviews < REAL_RESULTS_TOTAL_COUNT && (
-              <div className="mt-12 text-center">
-                <button
-                  type="button"
-                  onClick={() => setVisibleRealResultReviews((prev) => Math.min(prev + REAL_RESULTS_BATCH_SIZE, REAL_RESULTS_TOTAL_COUNT))}
-                  className="inline-flex items-center gap-2 bg-white border-2 border-slate-200 px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest hover:border-brand-orange hover:text-brand-orange transition-all group"
-                >
-                  View More Reviews
-                  <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </button>
-              </div>
-            )}
+            <div className="mt-12 text-center">
+              <button
+                type="button"
+                onClick={() => setVisibleRealResultReviews((prev) => Math.min(prev + REAL_RESULTS_BATCH_SIZE, REAL_RESULTS_TOTAL_COUNT))}
+                className="inline-flex items-center gap-2 bg-white border-2 border-slate-200 px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest hover:border-brand-orange hover:text-brand-orange transition-all group"
+              >
+                View More Reviews
+                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
