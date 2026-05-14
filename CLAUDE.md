@@ -105,3 +105,16 @@ Required additional env vars:
 Compliance: every promotional email (Day 0 popup + the 3 drip steps) includes a footer unsubscribe link plus `List-Unsubscribe` / `List-Unsubscribe-Post: One-Click` headers. The unsubscribe endpoint is `GET/POST /api/unsubscribe?token=<token>` and flips `unsubscribed_at` on the row. Tokens are generated on signup and stored unique in `popup_discount_claims.unsubscribe_token` (see migration `utils/supabase/migrations/20260512_welcome_series.sql`).
 
 Production Resend tip: don't ship the welcome series with the default `onboarding@resend.dev` from-address — verify a domain (e.g. `hello@aerotouch.com`) in Resend and set `RESEND_FROM_EMAIL` before the first cron run, otherwise deliverability tanks after the first dozen sends.
+
+### Meta Conversions API (`api/meta-capi.shared.js`)
+
+Server-side Meta CAPI helper. Currently called from `send-popup-email.handler.shared.js` to fire a **Lead** event on first-time popup signups (skipped for duplicates). Storefront events (ViewContent / AddToCart / InitiateCheckout / Purchase) on `aerotouch.shop` are sent by Shopify's Meta sales channel app, not from this repo.
+
+Required env vars (server-only — do **not** prefix with `VITE_`):
+- **`META_PIXEL_ID`** — dataset ID from Events Manager (currently `1026449477008373`).
+- **`META_CAPI_ACCESS_TOKEN`** — generate at Events Manager > dataset > Settings > Conversions API > "Generate access token". Shown once; treat as a secret.
+- **`META_CAPI_TEST_EVENT_CODE`** — *temporary*. Set to the value from Events Manager > Test Events to make events show up there during verification. **Remove for production** or events won't go to the live dataset.
+
+PII (email, first name) is SHA-256 hashed before sending per Meta's requirements. Match quality is improved by forwarding `client_ip_address`, `client_user_agent`, and the `_fbp` / `_fbc` cookies — `extractClientContext(req)` does this for both Vercel and the Vite dev middleware. Each event includes a UUID `event_id` and is returned in the API response as `leadEventId` so a future browser-side `fbq('track','Lead', ..., {eventID})` can dedupe against it.
+
+CAPI failures are logged but never break the signup flow — the helper always resolves with `{ ok: false, error }` rather than throwing.

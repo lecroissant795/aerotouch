@@ -40,7 +40,7 @@ import { PrivacyPage } from './pages/PrivacyPage';
 import { CookiesPage } from './pages/CookiesPage';
 import { SecondaryProductPage } from './pages/SecondaryProductPage';
 import { MassageRollerPage } from './pages/MassageRollerPage';
-import { initGA, logPageView, logAddToCart, logBeginCheckout } from './utils/analytics';
+import { initGA, logPageView, logAddToCart, logBeginCheckout, logViewContent } from './utils/analytics';
 import { applyPageSeo } from './utils/seo';
 import { isSecondaryProduct, isMassageRollerProduct, getProductClassificationDebug } from './utils/productDetection';
 import { SizeSelectorModal } from './components/SizeSelectorModal';
@@ -248,7 +248,15 @@ function AppShell() {
 
   useEffect(() => {
     logPageView();
-  }, [page, params, query]);
+    if (page === Page.PRODUCT && selectedProduct) {
+      logViewContent(
+        selectedProduct.name,
+        selectedProduct.price,
+        selectedProduct.handle ?? selectedProduct.id,
+        selectedProduct.currencyCode || currency
+      );
+    }
+  }, [page, params, query, selectedProduct, currency]);
 
   useEffect(() => {
     applyPageSeo({
