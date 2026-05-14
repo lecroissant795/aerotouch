@@ -31,6 +31,16 @@ import {
   isShippingRegionId,
   type ShippingRegionId
 } from '../utils/shippingEstimates';
+import {
+  buildResponsiveSrcSet,
+  withDisplayWidth,
+  SIZES_GALLERY_MAIN,
+  SIZES_GALLERY_THUMB,
+  SIZES_BUILT_FOR_CARD,
+  WIDTHS_GALLERY_MAIN,
+  WIDTHS_GALLERY_THUMB,
+  WIDTHS_BUILT_FOR_CARD
+} from '../utils/imageUrls';
 
 interface ProductPageProps {
   product: Product;
@@ -490,7 +500,15 @@ export const ProductPage: React.FC<ProductPageProps> = ({
           <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm max-w-5xl mx-auto flex flex-col md:flex-row gap-8 md:gap-16">
             <div className="md:w-1/2">
               <div className="aspect-square bg-slate-50 rounded-2xl border border-slate-100 p-8 flex items-center justify-center">
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover object-center" />
+                <img
+                  src={withDisplayWidth(product.image, 1000)}
+                  srcSet={buildResponsiveSrcSet(product.image, [500, 800, 1200])}
+                  sizes="(max-width: 768px) 100vw, 45vw"
+                  alt={product.name}
+                  className="w-full h-full object-cover object-center"
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
             </div>
             <div className="md:w-1/2 flex flex-col justify-center">
@@ -547,11 +565,16 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                             className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full w-full"
                         >
                             {images.map((img, idx) => (
-                                <img 
-                                    key={idx} 
-                                    src={img} 
-                                    className="w-full h-full object-cover object-center flex-shrink-0 snap-center" 
-                                    alt={`${product.name} view ${idx + 1}`} 
+                                <img
+                                    key={idx}
+                                    src={withDisplayWidth(img, 1200)}
+                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_MAIN)}
+                                    sizes={SIZES_GALLERY_MAIN}
+                                    className="w-full h-full object-cover object-center flex-shrink-0 snap-center"
+                                    alt={`${product.name} view ${idx + 1}`}
+                                    loading={idx === 0 ? 'eager' : 'lazy'}
+                                    fetchPriority={idx === 0 ? 'high' : 'low'}
+                                    decoding="async"
                                 />
                             ))}
                         </div>
@@ -588,9 +611,13 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                 } bg-white`}
                             >
                                 <img
-                                    src={img}
+                                    src={withDisplayWidth(img, 200)}
+                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_THUMB)}
+                                    sizes={SIZES_GALLERY_THUMB}
                                     alt={`${product.name} thumbnail ${idx + 1}`}
                                     className="w-full h-full object-cover object-center mix-blend-multiply"
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                             </button>
                         ))}
@@ -599,9 +626,14 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     {/* Main Image (Right) */}
                     <div className="flex-1 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative items-center justify-center aspect-[4/5] md:aspect-square object-cover shadow-sm">
                         <img
-                            src={images[activeImgIndex] || images[0]}
+                            key={(images[activeImgIndex] || images[0]) ?? ''}
+                            src={withDisplayWidth(images[activeImgIndex] || images[0], 1200)}
+                            srcSet={buildResponsiveSrcSet(images[activeImgIndex] || images[0], WIDTHS_GALLERY_MAIN)}
+                            sizes={SIZES_GALLERY_MAIN}
                             alt={product.name}
                             className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-300"
+                            fetchPriority="high"
+                            decoding="async"
                         />
                     </div>
                 </div>
@@ -1215,9 +1247,13 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     >
                         <div className="flex gap-4 items-start relative z-10">
                             <img
-                                src={currentTestimonial.image}
+                                src={withDisplayWidth(currentTestimonial.image, 112)}
+                                srcSet={buildResponsiveSrcSet(currentTestimonial.image, [56, 112])}
+                                sizes="56px"
                                 alt={currentTestimonial.name}
                                 className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
+                                loading="lazy"
+                                decoding="async"
                             />
                             <div className="flex-1">
                                 <div className="flex items-center justify-between mb-2">
@@ -1508,9 +1544,13 @@ export const ProductPage: React.FC<ProductPageProps> = ({
               >
                 <div className="relative aspect-[3/4] overflow-hidden">
                   <img
-                    src={item.image}
+                    src={withDisplayWidth(item.image, 720)}
+                    srcSet={buildResponsiveSrcSet(item.image, WIDTHS_BUILT_FOR_CARD)}
+                    sizes={SIZES_BUILT_FOR_CARD}
                     alt={item.label}
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="bg-slate-900 py-4 px-4">

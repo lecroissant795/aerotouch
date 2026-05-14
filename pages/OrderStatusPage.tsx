@@ -17,6 +17,11 @@ import {
 } from 'lucide-react';
 import { useCurrency } from '../utils/CurrencyContext';
 import { DEFAULT_CURRENCY } from '../utils/currency';
+import {
+  buildResponsiveSrcSet,
+  withDisplayWidth,
+  WIDTHS_CART_THUMB
+} from '../utils/imageUrls';
 
 interface OrderStep {
   label: string;
@@ -405,7 +410,15 @@ export const OrderStatusPage: React.FC = () => {
                     {orderDetails.items.map((item, index) => (
                       <div key={index} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
                         {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                          <img
+                            src={withDisplayWidth(item.image, 128)}
+                            srcSet={buildResponsiveSrcSet(item.image, WIDTHS_CART_THUMB)}
+                            sizes="64px"
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                            loading="lazy"
+                            decoding="async"
+                          />
                         ) : (
                           <div className="w-16 h-16 bg-slate-200 rounded-lg flex items-center justify-center">
                             <Package className="w-6 h-6 text-slate-400" />

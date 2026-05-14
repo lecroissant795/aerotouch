@@ -6,6 +6,7 @@ import { getCartProductLookupKey, getShopifyHandle } from '../utils/productMappi
 import { useCurrency } from '../utils/CurrencyContext';
 import { DEFAULT_CURRENCY } from '../utils/currency';
 import { fetchProductByHandle } from '../utils/productFetcher';
+import { buildResponsiveSrcSet, withDisplayWidth } from '../utils/imageUrls';
 
 const EXTRA_PAIRS = 2;
 const OFFER_TIMER_SECONDS = 10 * 60;
@@ -186,9 +187,13 @@ export const CheckoutUpsellModal: React.FC<CheckoutUpsellModalProps> = ({
           <div className="mt-6 flex gap-4">
             <div className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
               <img
-                src={upsellProduct.image}
+                src={withDisplayWidth(upsellProduct.image, 280)}
+                srcSet={buildResponsiveSrcSet(upsellProduct.image, [160, 280, 400])}
+                sizes="112px"
                 alt={upsellProduct.name}
                 className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             <div className="min-w-0 flex-1">

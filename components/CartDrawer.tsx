@@ -28,6 +28,12 @@ import { getCartLineDisplay, sumCartFinalSubtotals, sumCartLineSavings } from '.
 import { BUNDLE_KITS } from '../utils/bundleKits';
 import { useCurrency } from '../utils/CurrencyContext';
 import { DEFAULT_CURRENCY } from '../utils/currency';
+import {
+  buildResponsiveSrcSet,
+  withDisplayWidth,
+  SIZES_CART_LINE,
+  WIDTHS_CART_THUMB
+} from '../utils/imageUrls';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -408,9 +414,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         >
                           <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-200">
                             <img
-                              src={item.image}
+                              src={withDisplayWidth(item.image, 160)}
+                              srcSet={buildResponsiveSrcSet(item.image, WIDTHS_CART_THUMB)}
+                              sizes={SIZES_CART_LINE}
                               alt={item.name}
                               className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
                             />
                           </div>
                           <div className="min-w-0 flex-1 flex flex-col gap-2">
@@ -523,9 +533,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <div className="flex items-center gap-3">
                         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-200">
                           <img
-                            src={MAKE_IT_A_KIT_OFFER.image}
+                            src={withDisplayWidth(liveMakeItAKitOffer.image, 160)}
+                            srcSet={buildResponsiveSrcSet(liveMakeItAKitOffer.image, WIDTHS_CART_THUMB)}
+                            sizes={SIZES_CART_LINE}
                             alt={MAKE_IT_A_KIT_OFFER.name}
                             className="h-full w-full object-cover object-center"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -578,9 +592,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                             aria-label={`View ${upsellProduct.name}`}
                           >
                             <img
-                              src={upsellProduct.image}
+                              src={withDisplayWidth(upsellProduct.image, 160)}
+                              srcSet={buildResponsiveSrcSet(upsellProduct.image, WIDTHS_CART_THUMB)}
+                              sizes={SIZES_CART_LINE}
                               alt=""
                               className="h-full w-full object-cover object-center"
+                              loading="lazy"
+                              decoding="async"
                             />
                           </button>
                           <button

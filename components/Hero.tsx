@@ -2,6 +2,12 @@ import React from 'react';
 import { Button } from './Button';
 import { Star } from 'lucide-react';
 import { miscImages } from '../utils/mediaUrls';
+import {
+  buildResponsiveSrcSet,
+  withDisplayWidth,
+  SIZES_HERO_FULL,
+  WIDTHS_HERO
+} from '../utils/imageUrls';
 
 interface HeroProps {
   /** Main product: Massage Insoles PDP */
@@ -32,10 +38,14 @@ export const Hero: React.FC<HeroProps> = ({ onShopMassageInsolesClick, onShopAll
       <section className="relative h-screen min-h-[600px] w-full overflow-hidden flex items-end pb-24 lg:pb-32">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src={miscImages.hero} 
-            alt="Hands inserting AeroTouch insoles into sneakers on grass" 
+          <img
+            src={withDisplayWidth(miscImages.hero, 1600)}
+            srcSet={buildResponsiveSrcSet(miscImages.hero, WIDTHS_HERO)}
+            sizes={SIZES_HERO_FULL}
+            alt="Hands inserting AeroTouch insoles into sneakers on grass"
             className="w-full h-full object-cover object-[75%_100%] md:object-[58%_42%] lg:object-center"
+            fetchPriority="high"
+            decoding="async"
           />
           {/* Dark Overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>

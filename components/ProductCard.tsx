@@ -4,6 +4,12 @@ import { Star, ShoppingBag } from 'lucide-react';
 import { createUrl } from '../utils/router';
 import { useCurrency } from '../utils/CurrencyContext';
 import { DEFAULT_CURRENCY } from '../utils/currency';
+import {
+  buildResponsiveSrcSet,
+  withDisplayWidth,
+  SIZES_PRODUCT_CARD,
+  WIDTHS_PRODUCT_CARD
+} from '../utils/imageUrls';
 
 interface ProductCardProps {
   product: Product;
@@ -55,9 +61,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
         <div className={`relative w-full bg-slate-100 overflow-hidden ${compactOnMobile ? 'aspect-[0.9] md:aspect-square' : 'aspect-square'}`}>
           {product.image ? (
             <img
-              src={product.image}
+              src={withDisplayWidth(product.image, 800)}
+              srcSet={buildResponsiveSrcSet(product.image, WIDTHS_PRODUCT_CARD)}
+              sizes={SIZES_PRODUCT_CARD}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-full bg-slate-100" />
@@ -83,10 +93,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
           {/* Secondary image on hover (if available) */}
           {product.images && product.images.length > 1 && product.images[1] && (
             <img
-              src={product.images[1]}
+              src={withDisplayWidth(product.images[1], 800)}
+              srcSet={buildResponsiveSrcSet(product.images[1], WIDTHS_PRODUCT_CARD)}
+              sizes={SIZES_PRODUCT_CARD}
               alt=""
               className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               aria-hidden
+              loading="lazy"
+              decoding="async"
             />
           )}
         </div>

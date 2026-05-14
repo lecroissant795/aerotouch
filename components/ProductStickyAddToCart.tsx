@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from './Button';
 import { useCurrency } from '../utils/CurrencyContext';
 import { DEFAULT_CURRENCY } from '../utils/currency';
+import {
+  buildResponsiveSrcSet,
+  withDisplayWidth,
+  WIDTHS_CART_THUMB
+} from '../utils/imageUrls';
 
 export interface ProductStickyAddToCartProps {
   visible: boolean;
@@ -86,7 +91,9 @@ export const ProductStickyAddToCart: React.FC<ProductStickyAddToCartProps> = ({
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 sm:h-16 sm:w-16">
             <img
-              src={imageSrc}
+              src={withDisplayWidth(imageSrc, 160)}
+              srcSet={buildResponsiveSrcSet(imageSrc, WIDTHS_CART_THUMB)}
+              sizes="(max-width: 640px) 56px, 64px"
               alt={imageAlt}
               className="h-full w-full object-cover object-center"
               loading="lazy"

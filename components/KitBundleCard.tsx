@@ -4,6 +4,12 @@ import { Page, type BundleKit } from '../types';
 import { bundleKitBadgeLabel } from '../utils/bundleKitBadge';
 import { useCurrency } from '../utils/CurrencyContext';
 import { DEFAULT_CURRENCY } from '../utils/currency';
+import {
+  buildResponsiveSrcSet,
+  withDisplayWidth,
+  SIZES_PRODUCT_CARD,
+  WIDTHS_PRODUCT_CARD
+} from '../utils/imageUrls';
 
 function savingsPercent(price: number, original: number): number {
   if (original <= 0 || original <= price) return 0;
@@ -49,9 +55,12 @@ export const KitBundleCard: React.FC<KitBundleCardProps> = ({ kit, onKitSelect, 
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100 sm:aspect-[5/6]">
           {kit.image ? (
             <img
-              src={kit.image}
+              src={withDisplayWidth(kit.image, 800)}
+              srcSet={buildResponsiveSrcSet(kit.image, WIDTHS_PRODUCT_CARD)}
+              sizes={SIZES_PRODUCT_CARD}
               alt={kit.name}
               className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+              loading="lazy"
               decoding="async"
             />
           ) : (

@@ -27,6 +27,14 @@ import {
 import { MASSAGE_GUN_PDP_COPY } from '../utils/productMapping';
 import { useCurrency } from '../utils/CurrencyContext';
 import { DEFAULT_CURRENCY } from '../utils/currency';
+import {
+  buildResponsiveSrcSet,
+  withDisplayWidth,
+  SIZES_GALLERY_MAIN,
+  SIZES_GALLERY_THUMB,
+  WIDTHS_GALLERY_MAIN,
+  WIDTHS_GALLERY_THUMB
+} from '../utils/imageUrls';
 
 type BundleTierHighlight = NonNullable<
   NonNullable<NonNullable<Product['metafields']>['bundle_options_override']>[number]['highlight']
@@ -974,11 +982,16 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                             className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full w-full"
                         >
                             {images.map((img, idx) => (
-                                <img 
-                                    key={idx} 
-                                    src={img} 
-                                    className="w-full h-full object-cover object-center flex-shrink-0 snap-center" 
-                                    alt={`${product.name} view ${idx + 1}`} 
+                                <img
+                                    key={idx}
+                                    src={withDisplayWidth(img, 1200)}
+                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_MAIN)}
+                                    sizes={SIZES_GALLERY_MAIN}
+                                    className="w-full h-full object-cover object-center flex-shrink-0 snap-center"
+                                    alt={`${product.name} view ${idx + 1}`}
+                                    loading={idx === 0 ? 'eager' : 'lazy'}
+                                    fetchPriority={idx === 0 ? 'high' : 'low'}
+                                    decoding="async"
                                 />
                             ))}
                         </div>
@@ -1015,9 +1028,13 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                 } bg-white`}
                             >
                                 <img
-                                    src={img}
+                                    src={withDisplayWidth(img, 200)}
+                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_THUMB)}
+                                    sizes={SIZES_GALLERY_THUMB}
                                     alt={`${product.name} thumbnail ${idx + 1}`}
                                     className="w-full h-full object-cover object-center mix-blend-multiply"
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                             </button>
                         ))}
@@ -1025,10 +1042,15 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
 
                     {/* Main Image (Right) */}
                     <div className="flex-1 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative items-center justify-center aspect-[4/5] md:aspect-square object-cover shadow-sm">
-                        <img 
-                            src={images[activeImgIndex] || images[0]} 
-                            alt={product.name} 
+                        <img
+                            key={(images[activeImgIndex] || images[0]) ?? ''}
+                            src={withDisplayWidth(images[activeImgIndex] || images[0], 1200)}
+                            srcSet={buildResponsiveSrcSet(images[activeImgIndex] || images[0], WIDTHS_GALLERY_MAIN)}
+                            sizes={SIZES_GALLERY_MAIN}
+                            alt={product.name}
                             className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-300"
+                            fetchPriority="high"
+                            decoding="async"
                         />
                     </div>
                 </div>
