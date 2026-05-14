@@ -1,4 +1,5 @@
 import { handlePopupDiscountRequest } from './send-popup-email.handler.shared.js'
+import { extractClientContext } from './meta-capi.shared.js'
 import fs from 'fs'
 import path from 'path'
 
@@ -49,6 +50,7 @@ export default async function handler(req, res) {
   const payload =
     req.body && typeof req.body === 'object' ? req.body : {}
 
-  const result = await handlePopupDiscountRequest(payload, getEnv)
+  const clientContext = extractClientContext(req)
+  const result = await handlePopupDiscountRequest(payload, getEnv, clientContext)
   return res.status(result.status).json(result.body)
 }

@@ -3,6 +3,7 @@ import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { handlePopupDiscountRequest } from './api/send-popup-email.handler.shared.js';
+import { extractClientContext } from './api/meta-capi.shared.js';
 import { handleReturnRequest } from './api/return-request.shared.js';
 
 export default defineConfig(({ mode }) => {
@@ -77,7 +78,7 @@ export default defineConfig(({ mode }) => {
                 res.end(JSON.stringify({ error: 'Invalid JSON body.' }));
                 return;
               }
-              const result = await handlePopupDiscountRequest(parsed, getConfigEnv);
+              const result = await handlePopupDiscountRequest(parsed, getConfigEnv, extractClientContext(req));
 
               res.statusCode = result.status;
               res.setHeader('Content-Type', 'application/json');

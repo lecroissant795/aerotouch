@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import { sendPopupEmail } from './send-popup-email.shared.js'
 import { createWelcomeDiscount } from './create-discount-code.shared.js'
 import { readShopifyConfig } from './shopify-admin.shared.js'
+import { sendCapiEvent } from './meta-capi.shared.js'
 import {
   ensureUnsubscribeToken,
   findClaimByEmail,
@@ -45,9 +46,10 @@ function buildUnsubscribeUrl(siteBaseUrl, token) {
  *
  * @param {{ firstName?: string, email?: string }} payload
  * @param {(name: string) => string} getEnv
+ * @param {{ clientIp?: string, clientUserAgent?: string, fbp?: string, fbc?: string, eventSourceUrl?: string }} [clientContext]
  * @returns {Promise<{ status: number, body: Record<string, unknown> }>}
  */
-export async function handlePopupDiscountRequest(payload, getEnv) {
+export async function handlePopupDiscountRequest(payload, getEnv, clientContext = {}) {
   const firstName = sanitizeFirstName(payload?.firstName)
   const emailNorm = normalizeEmail(payload?.email)
 
@@ -169,11 +171,29 @@ export async function handlePopupDiscountRequest(payload, getEnv) {
     return { status: emailResult.status, body: { error: emailResult.error } }
   }
 
+  // Fire a server-side Meta CAPI Lead event for the new signup.
+  // event_id matches a (future) browser-side fbq('track','Lead',...) so Meta can dedupe.
+  const leadEventId = crypto.randomUUID()
+  await sendCapiEvent({
+    eventName: 'Lead',
+    eventId: leadEventId,
+    eventSourceUrl: clientContext.eventSourceUrl,
+    email: emailNorm,
+    firstName,
+    clientIp: clientContext.clientIp,
+    clientUserAgent: clientContext.clientUserAgent,
+    fbp: clientContext.fbp,
+    fbc: clientContext.fbc,
+    customData: { content_name: 'welcome_popup_discount', currency: 'USD', value: 0 },
+    getEnv,
+  })
+
   return {
     status: 200,
     body: {
       ok: true,
       duplicate: false,
+      leadEventId,
     },
   }
 }
