@@ -17,7 +17,12 @@ export const ReferralPopup: React.FC = () => {
     if (sessionStorage.getItem('referral_popup_dismissed')) return;
 
     const scheduleShow = (delayMs: number) => {
-      timerRef.current = setTimeout(() => setVisible(true), delayMs);
+      timerRef.current = setTimeout(() => {
+        if (!(window as any).__activePopup) {
+          (window as any).__activePopup = 'referral';
+          setVisible(true);
+        }
+      }, delayMs);
     };
 
     // Case 1: First popup was already dismissed earlier (e.g. previous session or just now)
@@ -46,6 +51,7 @@ export const ReferralPopup: React.FC = () => {
     setTimeout(() => {
       setVisible(false);
       setClosing(false);
+      (window as any).__activePopup = null;
       sessionStorage.setItem('referral_popup_dismissed', '1');
     }, 300);
   };

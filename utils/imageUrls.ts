@@ -47,7 +47,7 @@ export function isSupabaseRenderImageUrl(url: string): boolean {
 
 /** True if we can append width (and optionally format) for a smaller response. */
 export function isOptimizableImageUrl(url: string): boolean {
-  return isShopifyCdnUrl(url) || isSupabaseObjectImageUrl(url) || isSupabaseRenderImageUrl(url);
+  return isShopifyCdnUrl(url);
 }
 
 /**
@@ -63,19 +63,8 @@ export function withDisplayWidth(url: string, width: number, quality = 82): stri
       u.searchParams.set('width', String(w));
       return u.toString();
     }
-    if (isSupabaseObjectImageUrl(url)) {
-      const u = new URL(url);
-      u.pathname = u.pathname.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
-      u.searchParams.set('width', String(w));
-      u.searchParams.set('quality', String(quality));
-      u.searchParams.set('format', 'webp');
-      return u.toString();
-    }
-    if (isSupabaseRenderImageUrl(url)) {
-      const u = new URL(url);
-      u.searchParams.set('width', String(w));
-      if (!u.searchParams.has('quality')) u.searchParams.set('quality', String(quality));
-      return u.toString();
+    if (isSupabaseObjectImageUrl(url) || isSupabaseRenderImageUrl(url)) {
+      return url;
     }
   } catch {
     return url;

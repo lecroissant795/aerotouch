@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { ProductCard } from '../components/ProductCard';
 import { Product } from '../types';
-import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
+import { fetchAllProducts } from '../utils/productFetcher';
+import { useCurrency } from '../utils/CurrencyContext';
 import { getFascilitesBundleGridProduct } from '../utils/bundleKits';
 import { PageHero } from '../components/PageHero';
 
@@ -78,18 +79,16 @@ interface BestSellersPageProps {
 }
 
 export const BestSellersPage: React.FC<BestSellersPageProps> = ({ onProductSelect, onQuickAddToCart }) => {
+  const { currency } = useCurrency();
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ... (existing fetch logic remains the same)
     const fetchProducts = async () => {
       try {
-        const shopifyProducts = await shopify.product.fetchAll(20);
+        const shopifyProducts = await fetchAllProducts(20, currency);
         if (shopifyProducts && shopifyProducts.length > 0) {
            const mapped = shopifyProducts.map(mapShopifyProduct);
-           // In a real app, we would filter for "Best Sellers" collection or tag
-           // For now, we just show all products as best sellers
            setProducts(mapped);
         }
       } catch (err) {
@@ -98,9 +97,9 @@ export const BestSellersPage: React.FC<BestSellersPageProps> = ({ onProductSelec
         setLoading(false);
       }
     };
-    
+
     fetchProducts();
-  }, []);
+  }, [currency]);
 
   return (
     <div className="animate-in fade-in duration-500 pt-24">

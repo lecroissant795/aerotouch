@@ -8,8 +8,9 @@ import { Newsletter } from '../components/Newsletter';
 import { TrustedPartners } from '../components/TrustedPartners';
 import { PressLogos } from '../components/PressLogos';
 import { Product, BundleKit } from '../types';
-import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
+import { fetchAllProducts } from '../utils/productFetcher';
+import { useCurrency } from '../utils/CurrencyContext';
 import { BUNDLE_KITS } from '../utils/bundleKits';
 import { LimitedTimeKits } from '../components/LimitedTimeKits';
 import { ValueProps } from '../components/ValueProps';
@@ -45,7 +46,7 @@ const VIDEO_REVIEWS = [
   {
     id: 3,
     videoSrc: reviewVideos.lewis,
-    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/1778487632061-104iuf1sw2j.png",
+    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/Duong%20Pham.png",
     name: "Duong Pham",
     description: "Very comfortable",
     time: "2d ago",
@@ -89,7 +90,7 @@ const VIDEO_REVIEWS = [
   {
     id: 7,
     videoSrc: reviewVideos.charlieHart,
-    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/1778487732497-q5z729k61i.png",
+    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/Charlie%20Hart.png",
     name: "Charlie Hart",
     description: "Worth every penny",
     time: "1w ago",
@@ -176,6 +177,7 @@ const MASSAGE_INSOLES_PRODUCT =
   FEATURED_PRODUCTS.find((p) => p.handle === 'massage-insoles') ?? FEATURED_PRODUCTS[0];
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQuickAddToCart, onCategorySelect, onShopSaleClick, onKitSelect, onAddKitToCart }) => {
+  const { currency } = useCurrency();
   const [products, setProducts] = useState<Product[]>(FEATURED_PRODUCTS);
   const bestSellerSectionRef = useRef<HTMLElement | null>(null);
 
@@ -212,7 +214,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const shopifyProducts = await shopify.product.fetchAll(20);
+        const shopifyProducts = await fetchAllProducts(20, currency);
         if (shopifyProducts && shopifyProducts.length > 0) {
            const mapped = shopifyProducts.map(mapShopifyProduct);
            const bundleKitHandles = new Set(BUNDLE_KITS.map((k) => k.handle));
@@ -221,13 +223,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onProductSelect, onQui
            );
         }
       } catch (err) {
-        // Fallback to local data if fetch fails (e.g. invalid creds)
         console.warn('Failed to fetch Shopify products, using local data:', err);
       }
     };
-    
+
     fetchProducts();
-  }, []);
+  }, [currency]);
 
   const handleHeroPrimaryCta = () => {
     bestSellerSectionRef.current?.scrollIntoView({

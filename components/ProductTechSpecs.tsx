@@ -7,6 +7,7 @@ import { Product } from '../types';
 import { sectionImages, reviewVideos, reviewAvatars, reviewPhotos, mediaUrl } from '../utils/mediaUrls';
 import { mapShopifyProduct } from '../utils/mapper';
 import { fetchAllProducts } from '../utils/productFetcher';
+import { useCurrency } from '../utils/CurrencyContext';
 
 const BUILT_FOR_PURPOSES = [
   { id: 'lifts', label: 'Heavy Lifts', image: sectionImages.heavyLift },
@@ -42,7 +43,7 @@ const VIDEO_REVIEWS = [
   {
     id: 3,
     videoSrc: reviewVideos.lewis,
-    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/1778487632061-104iuf1sw2j.png",
+    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/Duong%20Pham.png",
     name: "Duong Pham",
     description: "Very comfortable",
     time: "2d ago",
@@ -86,7 +87,7 @@ const VIDEO_REVIEWS = [
   {
     id: 7,
     videoSrc: reviewVideos.charlieHart,
-    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/1778487732497-q5z729k61i.png",
+    avatar: "https://mhecgxhcmohbmeimrfud.supabase.co/storage/v1/object/public/media/reviews/Charlie%20Hart.png",
     name: "Charlie Hart",
     description: "Worth every penny",
     time: "1w ago",
@@ -241,6 +242,7 @@ interface ProductTechSpecsProps {
 }
 
 export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProductId, onProductSelect, onNavigateToBlog }) => {
+  const { currency } = useCurrency();
   const [activeFeature, setActiveFeature] = useState(-1);
   const [builtForIndex, setBuiltForIndex] = useState(0);
   const [splitPos, setSplitPos] = useState(50);
@@ -274,7 +276,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
 
     const fetchYouMayAlsoLikeProducts = async () => {
       try {
-        const shopifyProducts = await fetchAllProducts(50);
+        const shopifyProducts = await fetchAllProducts(50, currency);
         const selected = selectYouMayAlsoLikeProducts(shopifyProducts.map(mapShopifyProduct), currentProductId);
 
         if (!cancelled && selected.length > 0) {
@@ -290,7 +292,7 @@ export const ProductTechSpecs: React.FC<ProductTechSpecsProps> = ({ currentProdu
     return () => {
       cancelled = true;
     };
-  }, [currentProductId]);
+  }, [currentProductId, currency]);
 
   useEffect(() => {
     const handleResize = () => {

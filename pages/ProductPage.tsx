@@ -327,7 +327,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const selectedColorImage = colorToVariantImage.get(selectedColor) || '';
 
   // Product gallery: use product imagery only (no stock-photo fallback tiles).
-  const fallbackGalleryImage = product.image || '/images/IMG_4813-removebg-preview.png';
+  const fallbackGalleryImage = product.image || '';
   const rawImages = product.images || [];
   // Filter to only strings with content (Shopify may return objects in some formats)
   const validImages: string[] = useMemo(

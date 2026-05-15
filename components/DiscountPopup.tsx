@@ -23,7 +23,12 @@ export const DiscountPopup: React.FC = () => {
   useEffect(() => {
     const dismissed = sessionStorage.getItem('discount_popup_dismissed');
     if (dismissed) return;
-    const timer = setTimeout(() => setVisible(true), 5000);
+    const timer = setTimeout(() => {
+      if (!(window as any).__activePopup) {
+        (window as any).__activePopup = 'discount';
+        setVisible(true);
+      }
+    }, 5000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -32,6 +37,7 @@ export const DiscountPopup: React.FC = () => {
     setTimeout(() => {
       setVisible(false);
       setClosing(false);
+      (window as any).__activePopup = null;
       sessionStorage.setItem('discount_popup_dismissed', '1');
       sessionStorage.setItem('discount_popup_dismissed_at', String(Date.now()));
       window.dispatchEvent(new CustomEvent('discount_popup_dismissed'));
