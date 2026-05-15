@@ -1,8 +1,8 @@
 /**
- * Cart-abandonment drip runner. Called by /api/cron/cart-abandonment (hourly).
+ * Cart-abandonment drip runner. Called by /api/cron/cart-abandonment (daily).
  *
  * For each step in CART_ABANDONMENT_STEPS:
- *   1. Pull candidates whose signup falls in an hour-based window (hoursAfterSignup ago + 2h buffer).
+ *   1. Pull candidates whose signup falls in a 24h window (hoursAfterSignup ago + 24h buffer).
  *   2. Skip anyone whose code was already redeemed in Shopify.
  *   3. Send the step email via Resend.
  *   4. Mark the step column so we never resend.
@@ -20,7 +20,7 @@ import { readShopifyConfig } from './shopify-admin.shared.js'
 import { CART_ABANDONMENT_STEPS } from './cart-abandonment-templates.shared.js'
 
 const HOUR_MS = 60 * 60 * 1000
-const BUFFER_HOURS = 2
+const BUFFER_HOURS = 24
 
 function readResendConfig(getEnv) {
   const apiKey = getEnv('RESEND_API_KEY') || getEnv('VITE_RESEND_API_KEY')
