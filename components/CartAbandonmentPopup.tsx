@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { CartItem } from '../types';
-import { useCurrency } from '../utils/currencyContext';
+import { useCurrency } from '../utils/CurrencyContext';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CROSS_SESSION_KEY = 'cart_abandon_last_shown';
