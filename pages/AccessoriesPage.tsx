@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { ProductCard } from '../components/ProductCard';
 import { Product } from '../types';
-import { shopify } from '../utils/shopify';
 import { mapShopifyProduct } from '../utils/mapper';
+import { fetchAllProducts } from '../utils/productFetcher';
+import { useCurrency } from '../utils/CurrencyContext';
 import { ReferralSection } from '../components/ReferralSection';
 import { GivingBackSection } from '../components/GivingBackSection';
 
@@ -68,6 +69,7 @@ export const AccessoriesPage: React.FC<AccessoriesPageProps> = ({
   onQuickAddToCart,
   onNavigateToBlog
 }) => {
+  const { currency } = useCurrency();
   const [products, setProducts] = useState<Product[]>(SECONDARY_PRODUCTS);
   const [loading, setLoading] = useState(true);
 
@@ -75,7 +77,7 @@ export const AccessoriesPage: React.FC<AccessoriesPageProps> = ({
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const shopifyProducts = await shopify.product.fetchAll(50);
+        const shopifyProducts = await fetchAllProducts(50, currency);
         if (shopifyProducts && shopifyProducts.length > 0) {
           const filtered = shopifyProducts.filter(isAccessoryProduct);
           const mapped = filtered.map(mapShopifyProduct);
@@ -83,7 +85,6 @@ export const AccessoriesPage: React.FC<AccessoriesPageProps> = ({
           if (mapped.length > 0) {
             setProducts(mapped);
           } else {
-            // No accessories found, use fallback
             setProducts(SECONDARY_PRODUCTS);
           }
         }
@@ -96,7 +97,7 @@ export const AccessoriesPage: React.FC<AccessoriesPageProps> = ({
     };
 
     fetchProducts();
-  }, []);
+  }, [currency]);
 
   return (
     <div className="animate-in fade-in duration-500 pt-24">

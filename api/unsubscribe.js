@@ -15,6 +15,10 @@ import {
   findClaimByUnsubToken,
   markUnsubscribed,
 } from './popup-discount-db.shared.js'
+import {
+  findAbandonmentByUnsubToken,
+  markAbandonmentUnsubscribed,
+} from './cart-abandonment-db.shared.js'
 
 function getEnvValue(name) {
   const value = process.env[name]
@@ -117,7 +121,20 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
 
   if (!claim) {
-    // Don't leak whether the token exists; just return a generic confirmation.
+    // Check cart abandonment claims too
+    const abandonClaim = await findAbandonmentByUnsubToken(admin, token)
+    if (abandonClaim) {
+      if (!abandonClaim.unsubscribed_at) {
+        await markAbandonmentUnsubscribed(admin, abandonClaim.id)
+      }
+      return res.status(200).send(
+        renderHtml({
+          heading: "You're unsubscribed",
+          body: '<p>You won&rsquo;t receive any more cart recovery emails from AeroTouch. Order confirmations and shipping updates from Shopify are sent separately and are not affected.</p>',
+        })
+      )
+    }
+
     return res.status(200).send(
       renderHtml({
         heading: "You're unsubscribed",

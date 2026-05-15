@@ -12,6 +12,7 @@ import { CheckoutUpsellModal } from './components/CheckoutUpsellModal';
 import { SalesBanner } from './components/SalesBanner';
 import { DiscountPopup } from './components/DiscountPopup';
 import { ReferralPopup } from './components/ReferralPopup';
+import { CartAbandonmentPopup } from './components/CartAbandonmentPopup';
 import { LivePurchaseNotification } from './components/LivePurchaseNotification';
 import { Product, CartItem, Page, BlogPost, BundleKit } from './types';
 import { shopify } from './utils/shopify';
@@ -1062,7 +1063,12 @@ function AppShell() {
 
       <CartDrawer
         isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
+        onClose={() => {
+          setIsCartOpen(false);
+          if (cartItems.length > 0) {
+            window.dispatchEvent(new CustomEvent('cart_drawer_closed_with_items'));
+          }
+        }}
         items={cartItems}
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeItem}
@@ -1121,6 +1127,7 @@ function AppShell() {
 
       <DiscountPopup />
       <ReferralPopup />
+      <CartAbandonmentPopup cartItems={cartItems} checkoutUrl={checkoutUrl} />
       <LivePurchaseNotification onCtaClick={() => {
         // Use the handle from mapping for SEO-friendly URL
         const handle = getShopifyHandle('massage-insoles');

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, Star, Ruler } from 'lucide-react';
 import { Product } from '../types';
-import { shopify } from '../utils/shopify';
 import { getCartProductLookupKey, getShopifyHandle } from '../utils/productMapping';
+import { fetchProductByHandle } from '../utils/productFetcher';
 import { useCurrency } from '../utils/CurrencyContext';
 import { DEFAULT_CURRENCY } from '../utils/currency';
 
@@ -35,7 +35,7 @@ export const SizeSelectorModal: React.FC<SizeSelectorModalProps> = ({
   onConfirm,
   isLoading = false,
 }) => {
-  const { formatMoney } = useCurrency();
+  const { currency, formatMoney } = useCurrency();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [availableSizes, setAvailableSizes] = useState(DEFAULT_SIZES);
   /** First Color option from Shopify (insoles use Color + Size; "One Size" breaks variant match). */
@@ -49,29 +49,26 @@ export const SizeSelectorModal: React.FC<SizeSelectorModalProps> = ({
     setDefaultColorForCart('Default');
 
     const fetchSizes = async () => {
-      if (!shopify) return;
       try {
         const lookupKey = getCartProductLookupKey(product);
         const handle = getShopifyHandle(lookupKey);
-        const shopifyProduct =
-          (await shopify.product.fetchByHandle(handle)) ||
-          (await shopify.product.fetch(product.id));
+        const shopifyProduct = await fetchProductByHandle(handle, currency);
         const sizeOption = shopifyProduct?.options?.find(
           (o: any) => o.name === 'Size'
         );
         if (sizeOption?.values?.length) {
           setAvailableSizes(
-            sizeOption.values.map((v: any) => ({
-              label: v.value,
-              detail: v.value,
-            }))
+            sizeOption.values.map((v: any) => {
+              const label = typeof v === 'string' ? v : v?.value ?? v?.name ?? String(v);
+              return { label, detail: label };
+            })
           );
         }
         const colorOption = shopifyProduct?.options?.find(
           (o: any) => o.name === 'Color'
         );
         const colors: string[] =
-          colorOption?.values?.map((v: any) => v.value).filter(Boolean) || [];
+          colorOption?.values?.map((v: any) => typeof v === 'string' ? v : v?.value ?? v?.name).filter(Boolean) || [];
         if (colors.length) {
           const preferred =
             colors.find((c) => /^orange$/i.test(c)) ||
@@ -87,7 +84,7 @@ export const SizeSelectorModal: React.FC<SizeSelectorModalProps> = ({
     };
 
     fetchSizes();
-  }, [isOpen, product]);
+  }, [isOpen, product, currency]);
 
   // Lock body scroll when open
   useEffect(() => {
