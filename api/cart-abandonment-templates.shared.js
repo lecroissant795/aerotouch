@@ -1,118 +1,124 @@
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+/**
+ * Cart abandonment drip templates (1h, 24h, 72h).
+ * Template 2: Abandoned Cart Email series.
+ */
+
+import {
+  escapeHtml,
+  emailShell,
+  header,
+  heroSection,
+  cartItemsTable,
+  discountCode,
+  ctaButton,
+  trustSection,
+  guaranteeBanner,
+  bodyText,
+  spacer,
+  divider,
+  footer,
+} from './email-design-system.shared.js'
+
+/**
+ * Step 1 (1h): Reminder — "You left something behind"
+ */
+function buildReminderHtml({ firstName, discountCode: code, cartSnapshot, unsubscribeUrl, siteBaseUrl }) {
+  const safeName = escapeHtml(firstName)
+  const base = (siteBaseUrl || 'https://aerotouch.com').replace(/\/+$/, '')
+
+  const content =
+    header() +
+    heroSection({
+      title: `${safeName}, You Left Something Behind`,
+      subtitle: "Your cart is saved and waiting for you — plus we've added a little extra incentive.",
+      badge: '15% OFF',
+    }) +
+    spacer(8) +
+    bodyText(`<p style="margin:0 0 4px 0;font-weight:700;color:#0f172a;">Your items:</p>`) +
+    cartItemsTable(cartSnapshot) +
+    spacer(8) +
+    bodyText(`<p style="margin:0;text-align:center;">Use this exclusive code to save <strong>15% off</strong> your order:</p>`) +
+    discountCode(code, { label: 'Cart recovery code', description: '15% off your order' }) +
+    spacer(4) +
+    ctaButton('Complete Your Order', base) +
+    guaranteeBanner() +
+    spacer(8) +
+    trustSection([
+      { text: "I was on the fence, but I'm so glad I went through with it. My feet feel brand new after just a few days.", name: 'Rachel P.', role: 'Verified Buyer', rating: 5 },
+      { text: 'The comfort is unreal. I stand on concrete floors all day and these saved my knees.', name: 'Chris D.', role: 'Warehouse Worker, Verified Buyer', rating: 5 },
+    ]) +
+    bodyText(`<p style="margin:0;font-size:13px;color:#64748b;text-align:center;">This code expires in 7 days and can only be used once.</p>`) +
+    spacer(8) +
+    footer({ unsubscribeUrl, siteBaseUrl: base })
+
+  return emailShell(content)
 }
 
-function unsubscribeFooter(unsubscribeUrl) {
-  if (!unsubscribeUrl) {
-    return `
-      <p style="margin:20px 0 0 0;font-size:12px;color:#64748b;">
-        AeroTouch &middot; If you did not request this, you can ignore this email.
-      </p>
-    `
-  }
-  return `
-    <p style="margin:24px 0 0 0;font-size:12px;color:#64748b;line-height:1.5;">
-      AeroTouch &middot; You're receiving this because you showed interest in our products.<br/>
-      No longer interested? <a href="${escapeHtml(unsubscribeUrl)}" style="color:#64748b;text-decoration:underline;">Unsubscribe</a>.
-    </p>
-  `
+/**
+ * Step 2 (24h): Social proof — reviews and testimonials
+ */
+function buildSocialProofHtml({ firstName, discountCode: code, cartSnapshot, unsubscribeUrl, siteBaseUrl }) {
+  const safeName = escapeHtml(firstName)
+  const base = (siteBaseUrl || 'https://aerotouch.com').replace(/\/+$/, '')
+
+  const content =
+    header() +
+    heroSection({
+      title: 'People Are Loving What You Picked',
+      subtitle: `${safeName}, thousands of customers agree — AeroTouch insoles deliver real relief.`,
+    }) +
+    spacer(8) +
+    trustSection([
+      { text: "The heel pain that kept me up at night is gone. Completely gone. I ordered a second pair for my work boots.", name: 'Michael T.', role: 'Construction Worker, Verified Buyer', rating: 5 },
+      { text: "I've tried every insole brand out there. AeroTouch is the only one that lasted more than a month and still feels like new.", name: 'Jennifer W.', role: 'Nurse, Verified Buyer', rating: 5 },
+      { text: 'My plantar fasciitis was ruining my mornings. Two weeks with these and I can walk pain-free again.', name: 'Robert A.', role: 'Teacher, Verified Buyer', rating: 5 },
+    ]) +
+    divider() +
+    spacer(8) +
+    bodyText(`<p style="margin:0 0 4px 0;font-weight:700;color:#0f172a;">Still in your cart:</p>`) +
+    cartItemsTable(cartSnapshot) +
+    spacer(4) +
+    bodyText(`<p style="margin:0;text-align:center;">Your 15% off code is still active:</p>`) +
+    discountCode(code, { label: 'Your code', description: '15% off your order' }) +
+    ctaButton('Complete Your Order', base) +
+    guaranteeBanner() +
+    spacer(8) +
+    footer({ unsubscribeUrl, siteBaseUrl: base })
+
+  return emailShell(content)
 }
 
-function cartItemsHtml(cartSnapshot) {
-  if (!Array.isArray(cartSnapshot) || cartSnapshot.length === 0) return ''
-  const rows = cartSnapshot.slice(0, 5).map(item => {
-    const img = item.image
-      ? `<img src="${escapeHtml(item.image)}" alt="" width="60" height="60" style="border-radius:8px;object-fit:cover;display:block;" />`
-      : ''
-    return `
-      <tr>
-        <td style="padding:8px 12px 8px 0;vertical-align:middle;width:60px;">${img}</td>
-        <td style="padding:8px 0;vertical-align:middle;">
-          <span style="font-weight:600;color:#0f172a;">${escapeHtml(item.name)}</span>
-          ${item.size ? `<br/><span style="font-size:12px;color:#64748b;">Size: ${escapeHtml(item.size)}</span>` : ''}
-          ${item.quantity > 1 ? `<br/><span style="font-size:12px;color:#64748b;">Qty: ${item.quantity}</span>` : ''}
-        </td>
-      </tr>
-    `
-  }).join('')
-  return `
-    <table cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:16px 0;">
-      ${rows}
-    </table>
-  `
-}
+/**
+ * Step 3 (72h): Final nudge — last chance urgency
+ */
+function buildFinalNudgeHtml({ firstName, discountCode: code, cartSnapshot, unsubscribeUrl, siteBaseUrl }) {
+  const safeName = escapeHtml(firstName)
+  const base = (siteBaseUrl || 'https://aerotouch.com').replace(/\/+$/, '')
 
-function ctaButton(text, siteBaseUrl) {
-  const url = siteBaseUrl ? `${siteBaseUrl.replace(/\/+$/, '')}` : '#'
-  return `
-    <div style="margin:24px 0;text-align:center;">
-      <a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 32px;background:#ea580c;color:#ffffff;font-weight:700;font-size:16px;text-decoration:none;border-radius:12px;">
-        ${escapeHtml(text)}
-      </a>
-    </div>
-  `
-}
+  const content =
+    header() +
+    heroSection({
+      title: 'Last Chance — Your 15% Off Expires Soon',
+      subtitle: `${safeName}, this is your final reminder before your discount goes away.`,
+      badge: 'FINAL REMINDER',
+    }) +
+    spacer(8) +
+    bodyText(`
+      <p style="margin:0 0 14px 0;">We've been holding your cart, but your exclusive <strong>15% off</strong> code is about to expire. After this, we won't email you about this cart again.</p>
+    `) +
+    bodyText(`<p style="margin:0 0 4px 0;font-weight:700;color:#0f172a;">Your items:</p>`) +
+    cartItemsTable(cartSnapshot) +
+    spacer(4) +
+    discountCode(code, { label: 'Expiring soon', description: '15% off — last chance' }) +
+    ctaButton('Use My Code Now', base) +
+    guaranteeBanner() +
+    spacer(8) +
+    trustSection([
+      { text: "Almost didn't buy these. So glad I pulled the trigger — my feet haven't felt this good in years.", name: 'Amanda S.', role: 'Verified Buyer', rating: 5 },
+    ]) +
+    footer({ unsubscribeUrl, siteBaseUrl: base })
 
-function discountBadge(code) {
-  return `
-    <div style="margin:16px 0;padding:14px 16px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;text-align:center;">
-      <span style="font-size:14px;color:#64748b;">Your 15% off code:</span><br/>
-      <span style="font-size:24px;font-weight:700;letter-spacing:1px;color:#ea580c;">${escapeHtml(code)}</span>
-    </div>
-  `
-}
-
-function buildReminderHtml({ firstName, discountCode, cartSnapshot, unsubscribeUrl, siteBaseUrl }) {
-  return `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:600px;margin:0 auto;padding:16px;">
-      <h2 style="margin:0 0 12px 0;">${escapeHtml(firstName)}, you left something behind</h2>
-      <p style="margin:0 0 12px 0;">We noticed you didn't finish checking out. No worries — your items are still waiting for you.</p>
-      ${cartItemsHtml(cartSnapshot)}
-      <p style="margin:12px 0;">Use this exclusive code for <strong>15% off</strong> your order:</p>
-      ${discountBadge(discountCode)}
-      ${ctaButton('Complete Your Order', siteBaseUrl)}
-      <p style="margin:12px 0 0 0;font-size:13px;color:#64748b;">This code expires in 7 days and can only be used once.</p>
-      ${unsubscribeFooter(unsubscribeUrl)}
-    </div>
-  `
-}
-
-function buildSocialProofHtml({ firstName, discountCode, cartSnapshot, unsubscribeUrl, siteBaseUrl }) {
-  return `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:600px;margin:0 auto;padding:16px;">
-      <h2 style="margin:0 0 12px 0;">People are loving what's in your cart</h2>
-      <p style="margin:0 0 4px 0;">Hey ${escapeHtml(firstName)},</p>
-      <p style="margin:0 0 12px 0;">Our customers rate AeroTouch products 4.9/5 stars. Here's what people are saying:</p>
-      <div style="margin:16px 0;padding:16px;background:#f8fafc;border-radius:10px;border-left:4px solid #ea580c;">
-        <p style="margin:0;font-style:italic;color:#334155;">"The moment I put them in, the heel pain vanished. I'm back to running 20 miles a week."</p>
-        <p style="margin:8px 0 0 0;font-size:13px;font-weight:600;color:#64748b;">— Michael T., Verified Buyer</p>
-      </div>
-      <p style="margin:16px 0 4px 0;">Your 15% off code is still active:</p>
-      ${discountBadge(discountCode)}
-      ${ctaButton('Complete Your Order', siteBaseUrl)}
-      ${unsubscribeFooter(unsubscribeUrl)}
-    </div>
-  `
-}
-
-function buildFinalNudgeHtml({ firstName, discountCode, cartSnapshot, unsubscribeUrl, siteBaseUrl }) {
-  return `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:600px;margin:0 auto;padding:16px;">
-      <h2 style="margin:0 0 12px 0;">Last chance: your 15% off expires soon</h2>
-      <p style="margin:0 0 4px 0;">Hey ${escapeHtml(firstName)},</p>
-      <p style="margin:0 0 12px 0;">Just a heads up — your exclusive <strong>15% off</strong> code is about to expire. Once it's gone, it's gone.</p>
-      ${cartItemsHtml(cartSnapshot)}
-      ${discountBadge(discountCode)}
-      ${ctaButton('Use My Code Now', siteBaseUrl)}
-      <p style="margin:12px 0 0 0;font-size:13px;color:#64748b;">After this, we won't email you about this cart again.</p>
-      ${unsubscribeFooter(unsubscribeUrl)}
-    </div>
-  `
+  return emailShell(content)
 }
 
 export const CART_ABANDONMENT_STEPS = [
@@ -127,14 +133,14 @@ export const CART_ABANDONMENT_STEPS = [
     id: 'social_proof',
     column: 'social_proof_sent_at',
     hoursAfterSignup: 24,
-    subject: () => "People are loving what's in your cart",
+    subject: () => 'People are loving what you picked',
     build: buildSocialProofHtml,
   },
   {
     id: 'final_nudge',
     column: 'final_nudge_sent_at',
     hoursAfterSignup: 72,
-    subject: () => 'Last chance: your 15% off expires soon',
+    subject: () => 'Last chance — your 15% off expires soon',
     build: buildFinalNudgeHtml,
   },
 ]
