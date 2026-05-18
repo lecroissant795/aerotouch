@@ -299,24 +299,8 @@ function AppShell() {
     window.scrollTo(0, 0);
   }, [page, productHandle, blogSlug, kitId, category, searchQuery]);
 
-  // Initialize Checkout for the selected presentment currency.
   useEffect(() => {
     let cancelled = false;
-
-    const createCheckoutResilient = async (input: { lineItems?: any[] }) => {
-      const withPresentment = { ...input, presentmentCurrencyCode: currency };
-      try {
-        return await shopify!.checkout.create(withPresentment);
-      } catch (e) {
-        console.warn('[Checkout] create with presentmentCurrencyCode failed, retrying without:', e);
-      }
-      try {
-        return await shopify!.checkout.create(input);
-      } catch (e2) {
-        console.error('[Checkout] create without presentment also failed:', e2);
-        throw e2;
-      }
-    };
 
     const initCheckout = async () => {
       if (!shopify) {
@@ -351,7 +335,7 @@ function AppShell() {
 
       if (migrationLines.length > 0) {
         try {
-          const checkout = await createCheckoutResilient({ lineItems: migrationLines });
+          const checkout = await shopify!.checkout.create({ lineItems: migrationLines });
           if (cancelled) return;
           setCheckoutId(String(checkout.id));
           persistCheckoutId(String(checkout.id), currency);
@@ -363,7 +347,7 @@ function AppShell() {
       }
 
       try {
-        const checkout = await createCheckoutResilient({});
+        const checkout = await shopify!.checkout.create({});
         if (cancelled) return;
         setCheckoutId(String(checkout.id));
         persistCheckoutId(String(checkout.id), currency);
