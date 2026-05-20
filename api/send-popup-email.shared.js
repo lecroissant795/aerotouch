@@ -1,3 +1,24 @@
+/**
+ * Welcome email (Day 0) — sent immediately when a user submits the discount popup.
+ * Template 1: Welcome Email + Discount Code
+ */
+
+import {
+  escapeHtml,
+  emailShell,
+  header,
+  heroSection,
+  productShowcase,
+  discountCode,
+  ctaButton,
+  benefitsList,
+  trustSection,
+  guaranteeBanner,
+  spacer,
+  footer,
+  bodyText,
+} from './email-design-system.shared.js'
+
 function sanitizeName(name) {
   return String(name || '')
     .trim()
@@ -13,49 +34,45 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+function buildHtml({ firstName, discountCode: code, unsubscribeUrl, siteBaseUrl = 'https://aerotouch.com', productImageUrl }) {
+  const safeName = escapeHtml(firstName)
+  const base = siteBaseUrl.replace(/\/+$/, '')
+
+  const content =
+    header() +
+    heroSection({
+      title: `Welcome to AeroTouch, ${safeName}!`,
+      subtitle: 'Your feet are about to feel a whole lot better.',
+      badge: '20% OFF YOUR FIRST ORDER',
+    }) +
+    spacer(8) +
+    bodyText(`
+      <p style="margin:0 0 4px 0;">Thanks for joining us. We made you a personal discount code&mdash;use it any time in the next 30 days:</p>
+    `) +
+    discountCode(code, { label: 'Your welcome code', description: '20% off your entire order' }) +
+    spacer(4) +
+    ctaButton('Shop Now', base) +
+    productShowcase({ imageUrl: productImageUrl, altText: 'AeroTouch performance insoles', caption: 'Engineered for all-day comfort and pain relief' }) +
+    bodyText(`<p style="margin:0 0 8px 0;font-weight:700;color:#0f172a;">Why thousands choose AeroTouch:</p>`) +
+    benefitsList([
+      'Targeted arch support that adapts to your foot',
+      'Shock-absorbing cushioning for joints and lower back',
+      'Breathable, moisture-wicking design for all-day wear',
+      'Fits running shoes, work boots, and everyday sneakers',
+    ]) +
+    spacer(8) +
+    guaranteeBanner() +
+    spacer(8) +
+    trustSection() +
+    footer({ unsubscribeUrl, siteBaseUrl })
+
+  return emailShell(content)
 }
 
-function unsubscribeFooter(unsubscribeUrl) {
-  if (!unsubscribeUrl) {
-    return `
-      <p style="margin:20px 0 0 0;font-size:12px;color:#64748b;">
-        AeroTouch &middot; If you did not request this, you can ignore this email.
-      </p>
-    `
-  }
-  return `
-    <p style="margin:24px 0 0 0;font-size:12px;color:#64748b;line-height:1.5;">
-      AeroTouch &middot; You're receiving this because you signed up for our welcome offer.<br/>
-      No longer interested? <a href="${escapeHtml(unsubscribeUrl)}" style="color:#64748b;text-decoration:underline;">Unsubscribe</a>.
-    </p>
-  `
-}
-
-function buildHtml({ firstName, discountCode, unsubscribeUrl }) {
-  return `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;max-width:600px;margin:0 auto;padding:16px;">
-      <h2 style="margin:0 0 12px 0;">Hey ${escapeHtml(firstName)}, your AeroTouch discount is ready.</h2>
-      <p style="margin:0 0 12px 0;">Thanks for signing up. Here is your personal code:</p>
-      <div style="margin:16px 0;padding:14px 16px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;display:inline-block;">
-        <span style="font-size:24px;font-weight:700;letter-spacing:1px;color:#ea580c;">${escapeHtml(discountCode)}</span>
-      </div>
-      <p style="margin:12px 0 0 0;">Use it at checkout on your next order.</p>
-      ${unsubscribeFooter(unsubscribeUrl)}
-    </div>
-  `
-}
-
-export async function sendPopupEmail({ firstName, email, discountCode, resendApiKey, fromEmail, unsubscribeUrl }) {
+export async function sendPopupEmail({ firstName, email, discountCode: code, resendApiKey, fromEmail, unsubscribeUrl, siteBaseUrl, productImageUrl }) {
   const safeFirstName = sanitizeName(firstName)
   const safeEmail = sanitizeEmail(email)
-  const safeCode = String(discountCode || '')
+  const safeCode = String(code || '')
     .trim()
     .toUpperCase()
     .slice(0, 32)
@@ -89,11 +106,13 @@ export async function sendPopupEmail({ firstName, email, discountCode, resendApi
       body: JSON.stringify({
         from: fromEmail,
         to: [safeEmail],
-        subject: `Your AeroTouch discount code: ${safeCode}`,
+        subject: `${safeFirstName}, here's your 20% off welcome code`,
         html: buildHtml({
           firstName: safeFirstName,
           discountCode: safeCode,
           unsubscribeUrl: trimmedUnsubUrl,
+          siteBaseUrl,
+          productImageUrl,
         }),
         ...(headers ? { headers } : {}),
       }),
