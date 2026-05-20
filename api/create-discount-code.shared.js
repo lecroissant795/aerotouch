@@ -10,8 +10,17 @@ const MUTATION = `
   }
 `
 
-function generateCode() {
-  return `WELCOME-${crypto.randomBytes(3).toString('hex').toUpperCase()}`
+export function generateCode(firstName, date = new Date()) {
+  const name = String(firstName || '').trim()
+  if (!name) {
+    return `WELCOME-${crypto.randomBytes(3).toString('hex').toUpperCase()}`
+  }
+
+  const dd = String(date.getDate()).padStart(2, '0')
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const suffix = String(crypto.randomInt(0, 100)).padStart(2, '0')
+
+  return `${name}-${dd}${mm}-${suffix}`
 }
 
 export async function createWelcomeDiscount({ firstName, shopifyConfig }) {
@@ -30,7 +39,7 @@ export async function createWelcomeDiscount({ firstName, shopifyConfig }) {
     return { ok: false, status: 500, error: 'Shopify is not configured.' }
   }
 
-  const code = generateCode()
+  const code = generateCode(firstName)
   const startsAt = new Date().toISOString()
   const endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
