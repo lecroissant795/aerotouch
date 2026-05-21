@@ -74,7 +74,6 @@ export async function sendPopupEmail({ firstName, email, discountCode: code, res
   const safeEmail = sanitizeEmail(email)
   const safeCode = String(code || '')
     .trim()
-    .toUpperCase()
     .slice(0, 32)
 
   if (!safeFirstName || !safeEmail || !safeCode) {
