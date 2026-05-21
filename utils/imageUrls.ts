@@ -1,24 +1,47 @@
 /**
  * Width-capped URLs for Shopify CDN and Supabase Storage so the browser
- * downloads fewer bytes. Use with srcSet + sizes on <img>.
+ * can pick a reasonable size via srcSet + sizes.
  */
 
 const SHOPIFY_HOST_RE = /\.(shopify\.com|shopifycdn\.com)$/i;
 const IMAGE_EXT_RE = /\.(png|jpe?g|webp|gif|avif|bmp|tiff?)(\?|$)/i;
 const VIDEO_EXT_RE = /\.(mov|mp4|webm|m4v|avi)(\?|$)/i;
 
+/** Shopify / Supabase: larger cap for hero & product photography */
+const SHOPIFY_MAX_WIDTH = 5760;
+
+export type ImageTransformOptions = {
+  quality?: number;
+  /** Supabase render only: 'webp' saves bytes; 'origin' keeps PNG/JPEG for max fidelity */
+  supabaseFormat?: 'webp' | 'origin';
+};
+
+const DEFAULT_TRANSFORM: ImageTransformOptions = {
+  quality: 82,
+  supabaseFormat: 'webp',
+};
+
+/** Hero + PDP gallery + product cards: high quality, preserve Supabase codec */
+export const HIGH_FIDELITY: ImageTransformOptions = {
+  quality: 96,
+  supabaseFormat: 'origin',
+};
+
+function normalizeTransformOpts(qualityOrOpts?: number | ImageTransformOptions): ImageTransformOptions {
+  if (qualityOrOpts == null) return { ...DEFAULT_TRANSFORM };
+  if (typeof qualityOrOpts === 'number') {
+    return { quality: qualityOrOpts, supabaseFormat: 'webp' };
+  }
+  return {
+    quality: qualityOrOpts.quality ?? DEFAULT_TRANSFORM.quality,
+    supabaseFormat: qualityOrOpts.supabaseFormat ?? DEFAULT_TRANSFORM.supabaseFormat,
+  };
+}
+
 export function isShopifyCdnUrl(url: string): boolean {
   if (!url || url.startsWith('/')) return false;
   try {
     return SHOPIFY_HOST_RE.test(new URL(url).hostname);
-  } catch {
-    return false;
-  }
-}
-
-function isSupabaseStorageUrl(url: string): boolean {
-  try {
-    return new URL(url).pathname.includes('/storage/v1/');
   } catch {
     return false;
   }
@@ -54,17 +77,35 @@ export function isOptimizableImageUrl(url: string): boolean {
  * Returns a URL scaled to at most `width` CSS pixels (Shopify `width` param;
  * Supabase image renderer). Non-CDN URLs are returned unchanged.
  */
-export function withDisplayWidth(url: string, width: number, quality = 82): string {
+export function withDisplayWidth(
+  url: string,
+  width: number,
+  qualityOrOpts?: number | ImageTransformOptions
+): string {
   if (!url) return url;
-  const w = Math.max(32, Math.min(4096, Math.round(width)));
+  const maxW = isShopifyCdnUrl(url) ? SHOPIFY_MAX_WIDTH : 4096;
+  const w = Math.max(32, Math.min(maxW, Math.round(width)));
+  const { quality, supabaseFormat } = normalizeTransformOpts(qualityOrOpts);
   try {
     if (isShopifyCdnUrl(url)) {
       const u = new URL(url);
       u.searchParams.set('width', String(w));
       return u.toString();
     }
-    if (isSupabaseObjectImageUrl(url) || isSupabaseRenderImageUrl(url)) {
-      return url;
+    if (isSupabaseObjectImageUrl(url)) {
+      const u = new URL(url);
+      u.pathname = u.pathname.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+      u.searchParams.set('width', String(w));
+      u.searchParams.set('quality', String(quality));
+      u.searchParams.set('format', supabaseFormat === 'origin' ? 'origin' : 'webp');
+      return u.toString();
+    }
+    if (isSupabaseRenderImageUrl(url)) {
+      const u = new URL(url);
+      u.searchParams.set('width', String(w));
+      if (!u.searchParams.has('quality')) u.searchParams.set('quality', String(quality));
+      if (supabaseFormat === 'origin') u.searchParams.set('format', 'origin');
+      return u.toString();
     }
   } catch {
     return url;
@@ -72,10 +113,14 @@ export function withDisplayWidth(url: string, width: number, quality = 82): stri
   return url;
 }
 
-export function buildResponsiveSrcSet(url: string, widths: readonly number[]): string {
+export function buildResponsiveSrcSet(
+  url: string,
+  widths: readonly number[],
+  qualityOrOpts?: number | ImageTransformOptions
+): string {
   if (!url || !isOptimizableImageUrl(url)) return '';
   const unique = [...new Set(widths.map((n) => Math.round(n)).filter((n) => n > 0))].sort((a, b) => a - b);
-  return unique.map((wi) => `${withDisplayWidth(url, wi)} ${wi}w`).join(', ');
+  return unique.map((wi) => `${withDisplayWidth(url, wi, qualityOrOpts)} ${wi}w`).join(', ');
 }
 
 /** Main PDP gallery — single column mobile, ~half desktop inside lg:w-3/5. */
@@ -83,12 +128,17 @@ export const SIZES_GALLERY_MAIN = '(max-width: 768px) 100vw, (max-width: 1280px)
 
 export const WIDTHS_GALLERY_MAIN = [480, 800, 1200, 1600] as const;
 
+/** Product gallery / zoom: prioritize sharpness (Shopify up to 5760w). */
+export const WIDTHS_GALLERY_MAIN_HI = [960, 1440, 1920, 2560, 3840] as const;
+
 export const SIZES_GALLERY_THUMB = '100px';
 export const WIDTHS_GALLERY_THUMB = [100, 200] as const;
+export const WIDTHS_GALLERY_THUMB_HI = [200, 400] as const;
 
 /** Product grid cards — ~2 cols mobile, 3 tablet, fixed max on desktop. */
 export const SIZES_PRODUCT_CARD = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 360px';
 export const WIDTHS_PRODUCT_CARD = [400, 600, 800] as const;
+export const WIDTHS_PRODUCT_CARD_HI = [640, 960, 1280, 1600, 1920] as const;
 
 export const SIZES_CART_LINE = '80px';
 export const WIDTHS_CART_THUMB = [80, 160] as const;
@@ -96,6 +146,7 @@ export const WIDTHS_CART_THUMB = [80, 160] as const;
 /** Full-viewport marketing hero. */
 export const SIZES_HERO_FULL = '100vw';
 export const WIDTHS_HERO = [800, 1200, 1600, 1920] as const;
+export const WIDTHS_HERO_HI = [1280, 1920, 2560, 3840] as const;
 
 /** Horizontal "Built for" cards on PDP (~280–320px slot). */
 export const SIZES_BUILT_FOR_CARD = '(max-width: 768px) 280px, 320px';

@@ -8,7 +8,8 @@ import {
   buildResponsiveSrcSet,
   withDisplayWidth,
   SIZES_PRODUCT_CARD,
-  WIDTHS_PRODUCT_CARD
+  WIDTHS_PRODUCT_CARD_HI,
+  HIGH_FIDELITY
 } from '../utils/imageUrls';
 
 interface ProductCardProps {
@@ -61,8 +62,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
         <div className={`relative w-full bg-slate-100 overflow-hidden ${compactOnMobile ? 'aspect-[0.9] md:aspect-square' : 'aspect-square'}`}>
           {product.image ? (
             <img
-              src={withDisplayWidth(product.image, 800)}
-              srcSet={buildResponsiveSrcSet(product.image, WIDTHS_PRODUCT_CARD)}
+              src={withDisplayWidth(product.image, 1920, HIGH_FIDELITY)}
+              srcSet={buildResponsiveSrcSet(product.image, WIDTHS_PRODUCT_CARD_HI, HIGH_FIDELITY)}
               sizes={SIZES_PRODUCT_CARD}
               alt={product.name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -93,8 +94,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAd
           {/* Secondary image on hover (if available) */}
           {product.images && product.images.length > 1 && product.images[1] && (
             <img
-              src={withDisplayWidth(product.images[1], 800)}
-              srcSet={buildResponsiveSrcSet(product.images[1], WIDTHS_PRODUCT_CARD)}
+              src={withDisplayWidth(product.images[1], 1920, HIGH_FIDELITY)}
+              srcSet={buildResponsiveSrcSet(product.images[1], WIDTHS_PRODUCT_CARD_HI, HIGH_FIDELITY)}
               sizes={SIZES_PRODUCT_CARD}
               alt=""
               className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"

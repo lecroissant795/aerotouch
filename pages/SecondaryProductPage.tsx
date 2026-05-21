@@ -32,8 +32,9 @@ import {
   withDisplayWidth,
   SIZES_GALLERY_MAIN,
   SIZES_GALLERY_THUMB,
-  WIDTHS_GALLERY_MAIN,
-  WIDTHS_GALLERY_THUMB
+  WIDTHS_GALLERY_MAIN_HI,
+  WIDTHS_GALLERY_THUMB_HI,
+  HIGH_FIDELITY
 } from '../utils/imageUrls';
 
 type BundleTierHighlight = NonNullable<
@@ -984,8 +985,8 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                             {images.map((img, idx) => (
                                 <img
                                     key={idx}
-                                    src={withDisplayWidth(img, 1200)}
-                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_MAIN)}
+                                    src={withDisplayWidth(img, 3840, HIGH_FIDELITY)}
+                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_MAIN_HI, HIGH_FIDELITY)}
                                     sizes={SIZES_GALLERY_MAIN}
                                     className="w-full h-full object-cover object-center flex-shrink-0 snap-center"
                                     alt={`${product.name} view ${idx + 1}`}
@@ -1028,8 +1029,8 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                                 } bg-white`}
                             >
                                 <img
-                                    src={withDisplayWidth(img, 200)}
-                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_THUMB)}
+                                    src={withDisplayWidth(img, 400, HIGH_FIDELITY)}
+                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_THUMB_HI, HIGH_FIDELITY)}
                                     sizes={SIZES_GALLERY_THUMB}
                                     alt={`${product.name} thumbnail ${idx + 1}`}
                                     className="w-full h-full object-cover object-center mix-blend-multiply"
@@ -1044,8 +1045,8 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                     <div className="flex-1 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative items-center justify-center aspect-[4/5] md:aspect-square object-cover shadow-sm">
                         <img
                             key={(images[activeImgIndex] || images[0]) ?? ''}
-                            src={withDisplayWidth(images[activeImgIndex] || images[0], 1200)}
-                            srcSet={buildResponsiveSrcSet(images[activeImgIndex] || images[0], WIDTHS_GALLERY_MAIN)}
+                            src={withDisplayWidth(images[activeImgIndex] || images[0], 3840, HIGH_FIDELITY)}
+                            srcSet={buildResponsiveSrcSet(images[activeImgIndex] || images[0], WIDTHS_GALLERY_MAIN_HI, HIGH_FIDELITY)}
                             sizes={SIZES_GALLERY_MAIN}
                             alt={product.name}
                             className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-300"

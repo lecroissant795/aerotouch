@@ -37,9 +37,10 @@ import {
   SIZES_GALLERY_MAIN,
   SIZES_GALLERY_THUMB,
   SIZES_BUILT_FOR_CARD,
-  WIDTHS_GALLERY_MAIN,
-  WIDTHS_GALLERY_THUMB,
-  WIDTHS_BUILT_FOR_CARD
+  WIDTHS_GALLERY_MAIN_HI,
+  WIDTHS_GALLERY_THUMB_HI,
+  WIDTHS_BUILT_FOR_CARD,
+  HIGH_FIDELITY
 } from '../utils/imageUrls';
 
 interface ProductPageProps {
@@ -124,6 +125,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const [expandedVideo, setExpandedVideo] = useState<{ id: number; src: string } | null>(null);
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
   const expandedVideoRef = useRef<HTMLVideoElement | null>(null);
+  const customerVideosSectionRef = useRef<HTMLDivElement>(null);
+  const [customerVideosPreload, setCustomerVideosPreload] = useState(false);
   const [builtForIndex, setBuiltForIndex] = useState(0);
   const builtForScrollRef = useRef<HTMLDivElement>(null);
   const [shippingRegionOverride, setShippingRegionOverride] = useState<ShippingRegionId | null>(() =>
@@ -135,6 +138,25 @@ export const ProductPage: React.FC<ProductPageProps> = ({
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const mainPurchaseRef = useRef<HTMLDivElement>(null);
   const [stickyPurchaseBar, setStickyPurchaseBar] = useState(false);
+
+  useEffect(() => {
+    setCustomerVideosPreload(false);
+    const el = customerVideosSectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setCustomerVideosPreload(true);
+      },
+      { rootMargin: '320px 0px', threshold: 0 }
+    );
+    io.observe(el);
+    const rect = el.getBoundingClientRect();
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 0;
+    if (rect.top < vh + 320 && rect.bottom > -320) {
+      setCustomerVideosPreload(true);
+    }
+    return () => io.disconnect();
+  }, [product.handle]);
 
   useEffect(() => {
     if (!isBundleKitProductByProduct(initialProduct)) {
@@ -501,8 +523,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
             <div className="md:w-1/2">
               <div className="aspect-square bg-slate-50 rounded-2xl border border-slate-100 p-8 flex items-center justify-center">
                 <img
-                  src={withDisplayWidth(product.image, 1000)}
-                  srcSet={buildResponsiveSrcSet(product.image, [500, 800, 1200])}
+                  src={withDisplayWidth(product.image, 3840, HIGH_FIDELITY)}
+                  srcSet={buildResponsiveSrcSet(product.image, WIDTHS_GALLERY_MAIN_HI, HIGH_FIDELITY)}
                   sizes="(max-width: 768px) 100vw, 45vw"
                   alt={product.name}
                   className="w-full h-full object-cover object-center"
@@ -567,8 +589,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                             {images.map((img, idx) => (
                                 <img
                                     key={idx}
-                                    src={withDisplayWidth(img, 1200)}
-                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_MAIN)}
+                                    src={withDisplayWidth(img, 3840, HIGH_FIDELITY)}
+                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_MAIN_HI, HIGH_FIDELITY)}
                                     sizes={SIZES_GALLERY_MAIN}
                                     className="w-full h-full object-cover object-center flex-shrink-0 snap-center"
                                     alt={`${product.name} view ${idx + 1}`}
@@ -611,8 +633,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                 } bg-white`}
                             >
                                 <img
-                                    src={withDisplayWidth(img, 200)}
-                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_THUMB)}
+                                    src={withDisplayWidth(img, 400, HIGH_FIDELITY)}
+                                    srcSet={buildResponsiveSrcSet(img, WIDTHS_GALLERY_THUMB_HI, HIGH_FIDELITY)}
                                     sizes={SIZES_GALLERY_THUMB}
                                     alt={`${product.name} thumbnail ${idx + 1}`}
                                     className="w-full h-full object-cover object-center mix-blend-multiply"
@@ -627,8 +649,8 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                     <div className="flex-1 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative items-center justify-center aspect-[4/5] md:aspect-square object-cover shadow-sm">
                         <img
                             key={(images[activeImgIndex] || images[0]) ?? ''}
-                            src={withDisplayWidth(images[activeImgIndex] || images[0], 1200)}
-                            srcSet={buildResponsiveSrcSet(images[activeImgIndex] || images[0], WIDTHS_GALLERY_MAIN)}
+                            src={withDisplayWidth(images[activeImgIndex] || images[0], 3840, HIGH_FIDELITY)}
+                            srcSet={buildResponsiveSrcSet(images[activeImgIndex] || images[0], WIDTHS_GALLERY_MAIN_HI, HIGH_FIDELITY)}
                             sizes={SIZES_GALLERY_MAIN}
                             alt={product.name}
                             className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-300"
@@ -1300,7 +1322,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                         </div>
 
                     {/* Customer Video Snippets */}
-                    <div id="customer-videos-section" className="mt-8">
+                    <div id="customer-videos-section" ref={customerVideosSectionRef} className="mt-8">
                         <div className="flex items-center justify-between mb-4">
                             <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
                                 <Play className="w-3.5 h-3.5 text-brand-orange fill-brand-orange" />
@@ -1340,7 +1362,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                                             muted
                                             loop
                                             playsInline
-                                            preload="metadata"
+                                            preload={customerVideosPreload ? 'auto' : 'none'}
                                         />
                                         {/* Mobile mute/unmute toggle */}
                                         <button

@@ -6,7 +6,8 @@ import {
   buildResponsiveSrcSet,
   withDisplayWidth,
   SIZES_HERO_FULL,
-  WIDTHS_HERO
+  WIDTHS_HERO_HI,
+  HIGH_FIDELITY
 } from '../utils/imageUrls';
 
 interface HeroProps {
@@ -39,8 +40,8 @@ export const Hero: React.FC<HeroProps> = ({ onShopMassageInsolesClick, onShopAll
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
-            src={withDisplayWidth(miscImages.hero, 1600)}
-            srcSet={buildResponsiveSrcSet(miscImages.hero, WIDTHS_HERO)}
+            src={withDisplayWidth(miscImages.hero, 3840, HIGH_FIDELITY)}
+            srcSet={buildResponsiveSrcSet(miscImages.hero, WIDTHS_HERO_HI, HIGH_FIDELITY)}
             sizes={SIZES_HERO_FULL}
             alt="Hands inserting AeroTouch insoles into sneakers on grass"
             className="w-full h-full object-cover object-[75%_100%] md:object-[58%_42%] lg:object-center"
