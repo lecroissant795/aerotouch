@@ -10,6 +10,14 @@ const fbq = (...args: unknown[]) => {
     if (typeof f === 'function') f(...args);
 };
 
+function sendCapiMirror(eventName: string, eventId: string, customData?: Record<string, unknown>) {
+    fetch('/api/meta-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventName, eventId, customData }),
+    }).catch(() => { /* fire-and-forget: never block the user flow */ });
+}
+
 export const initGA = () => {
     if (GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
         ReactGA.initialize(GA_MEASUREMENT_ID);
@@ -34,13 +42,16 @@ export const logViewContent = (
     contentId?: string,
     currency = DEFAULT_CURRENCY
 ) => {
-    fbq('track', 'ViewContent', {
+    const eventId = crypto.randomUUID();
+    const customData = {
         content_name: productName,
         content_type: 'product',
         content_ids: contentId ? [contentId] : undefined,
         value,
         currency,
-    });
+    };
+    fbq('track', 'ViewContent', customData, { eventID: eventId });
+    sendCapiMirror('ViewContent', eventId, customData);
 };
 
 export const logEvent = (category: string, action: string, label?: string) => {
@@ -66,12 +77,10 @@ export const logAddToCart = (productName: string, value: number, currency = DEFA
             ]
         });
     }
-    fbq('track', 'AddToCart', {
-        content_name: productName,
-        content_type: 'product',
-        value,
-        currency,
-    });
+    const addToCartEventId = crypto.randomUUID();
+    const addToCartData = { content_name: productName, content_type: 'product', value, currency };
+    fbq('track', 'AddToCart', addToCartData, { eventID: addToCartEventId });
+    sendCapiMirror('AddToCart', addToCartEventId, addToCartData);
 };
 
 export const logBeginCheckout = (items: { name: string, price: number, quantity: number }[], value: number, currency = DEFAULT_CURRENCY) => {
@@ -86,7 +95,8 @@ export const logBeginCheckout = (items: { name: string, price: number, quantity:
             }))
         });
     }
-    fbq('track', 'InitiateCheckout', {
+    const checkoutEventId = crypto.randomUUID();
+    const checkoutData = {
         value,
         currency,
         num_items: items.reduce((n, item) => n + item.quantity, 0),
@@ -95,5 +105,7 @@ export const logBeginCheckout = (items: { name: string, price: number, quantity:
             quantity: item.quantity,
             item_price: item.price,
         })),
-    });
+    };
+    fbq('track', 'InitiateCheckout', checkoutData, { eventID: checkoutEventId });
+    sendCapiMirror('InitiateCheckout', checkoutEventId, checkoutData);
 };
