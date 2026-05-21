@@ -1,5 +1,5 @@
-import crypto from 'crypto'
 import { adminGraphQL, getShopifyAdminAccessToken } from './shopify-admin.shared.js'
+import { generateCode } from './create-discount-code.shared.js'
 
 const MUTATION = `
   mutation discountCodeBasicCreate($basicCodeDiscount: DiscountCodeBasicInput!) {
@@ -10,11 +10,7 @@ const MUTATION = `
   }
 `
 
-function generateCode() {
-  return `COMEBACK-${crypto.randomBytes(3).toString('hex').toUpperCase()}`
-}
-
-export async function createAbandonmentDiscount({ email, shopifyConfig }) {
+export async function createAbandonmentDiscount({ firstName, email, shopifyConfig }) {
   const { shopDomain } = shopifyConfig
   if (!shopDomain) {
     return { ok: false, status: 500, error: 'Shopify is not configured.' }
@@ -30,7 +26,7 @@ export async function createAbandonmentDiscount({ email, shopifyConfig }) {
     return { ok: false, status: 500, error: 'Shopify is not configured.' }
   }
 
-  const code = generateCode()
+  const code = generateCode(firstName)
   const startsAt = new Date().toISOString()
   const endsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 

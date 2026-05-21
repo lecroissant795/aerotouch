@@ -117,7 +117,7 @@ export async function handleCartAbandonmentRequest(payload, getEnv, clientContex
   let discountCode = existing?.discount_code
   if (!discountCode) {
     const shopifyConfig = readShopifyConfig(getEnv)
-    const discountResult = await createAbandonmentDiscount({ email: emailNorm, shopifyConfig })
+    const discountResult = await createAbandonmentDiscount({ firstName, email: emailNorm, shopifyConfig })
     if (!discountResult.ok) {
       return { status: discountResult.status, body: { error: discountResult.error } }
     }
