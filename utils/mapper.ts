@@ -8,6 +8,7 @@ import {
   parseMoneyCurrencyCode
 } from './shopifyVariantMoney';
 import { BUNDLE_KIT_INSOLE_COLOR_ATTR, BUNDLE_KIT_INSOLE_SIZE_ATTR } from './bundleKits';
+import { PRODUCT_DATA_MAP } from './productMapping';
 
 const generateReviewCount = (id: string | number | undefined = ''): number => {
     // Convert to string if it's not already
@@ -159,11 +160,14 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
       }
     });
 
+    const handle = shopifyProduct.handle || '';
+    const localData = PRODUCT_DATA_MAP[handle]?.product;
+
     return {
         id: shopifyProduct.id,
-        handle: shopifyProduct.handle,
+        handle: handle,
         name: shopifyProduct.title,
-        tagline: shopifyProduct.description || '',
+        tagline: shopifyProduct.description || localData?.tagline || '',
         price: price,
         ...(currencyCode ? { currencyCode } : {}),
         ...(compareAtPrice != null ? { compareAtPrice } : {}),
@@ -172,8 +176,8 @@ export const mapShopifyProduct = (shopifyProduct: any): Product => {
         reviews: reviews,
         image: image,
         images: images,
-        features: [],
-        description: shopifyProduct.descriptionHtml || shopifyProduct.description || '',
+        features: localData?.features ?? [],
+        description: shopifyProduct.descriptionHtml || shopifyProduct.description || localData?.description || '',
         descriptionHtml: shopifyProduct.descriptionHtml || '',
         tags: tags,
         metafields: Object.keys(customMetafields).length > 0 ? customMetafields : undefined
