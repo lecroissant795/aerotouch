@@ -92,20 +92,11 @@ export function withDisplayWidth(
       u.searchParams.set('width', String(w));
       return u.toString();
     }
-    if (isSupabaseObjectImageUrl(url)) {
-      const u = new URL(url);
-      u.pathname = u.pathname.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
-      u.searchParams.set('width', String(w));
-      u.searchParams.set('quality', String(quality));
-      u.searchParams.set('format', supabaseFormat === 'origin' ? 'origin' : 'webp');
-      return u.toString();
-    }
+    // Supabase Image Transformations (/render/image) are not enabled for this project
+    // (403 FeatureNotEnabled), so serve the original object URL instead of rewriting it.
+    // Re-enable the rewrite below if the project moves to a plan with transformations.
     if (isSupabaseRenderImageUrl(url)) {
-      const u = new URL(url);
-      u.searchParams.set('width', String(w));
-      if (!u.searchParams.has('quality')) u.searchParams.set('quality', String(quality));
-      if (supabaseFormat === 'origin') u.searchParams.set('format', 'origin');
-      return u.toString();
+      return url.replace('/storage/v1/render/image/public/', '/storage/v1/object/public/').split('?')[0];
     }
   } catch {
     return url;
