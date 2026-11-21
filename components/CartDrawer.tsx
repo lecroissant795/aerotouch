@@ -27,7 +27,7 @@ import {
 import { getCartLineDisplay, sumCartFinalSubtotals, sumCartLineSavings } from '../utils/cartLineDisplay';
 import { BUNDLE_KITS } from '../utils/bundleKits';
 import { useCurrency } from '../utils/CurrencyContext';
-import { DEFAULT_CURRENCY } from '../utils/currency';
+import { CURRENCY_MARKETS, DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, type SupportedCurrencyCode } from '../utils/currency';
 import {
   buildResponsiveSrcSet,
   withDisplayWidth,
@@ -106,7 +106,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onDismissPromoError,
   checkoutSubtotalFromShopify = null
 }) => {
-  const { currency, formatMoney } = useCurrency();
+  const { currency, setCurrency, formatMoney } = useCurrency();
   const [promoInput, setPromoInput] = useState('');
   const [isPromoOpen, setIsPromoOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(CART_RESERVE_SECONDS);
@@ -205,7 +205,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       ? {
           ...MAKE_IT_A_KIT_OFFER,
           price: liveProduct.price,
-          originalPrice: liveProduct.compareAtPrice ?? MAKE_IT_A_KIT_OFFER.originalPrice,
+          originalPrice: liveProduct.compareAtPrice ?? liveProduct.price,
           currencyCode: liveProduct.currencyCode,
           originalCurrencyCode: liveProduct.compareAtCurrencyCode || liveProduct.currencyCode,
           image: liveProduct.image || MAKE_IT_A_KIT_OFFER.image,
@@ -274,6 +274,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </p>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value as SupportedCurrencyCode)}
+                aria-label="Cart currency"
+                className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+              >
+                {SUPPORTED_CURRENCIES.map((code) => (
+                  <option key={code} value={code}>
+                    {CURRENCY_MARKETS[code].label}
+                  </option>
+                ))}
+              </select>
             <button
               onClick={onClose}
               className="rounded-full p-2 text-slate-500 transition hover:bg-slate-200 hover:text-brand-dark"
@@ -281,6 +294,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             >
               <X className="h-5 w-5" />
             </button>
+            </div>
           </header>
 
           <div className="flex min-h-0 flex-1 flex-col">
@@ -553,9 +567,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                             <span className="text-sm font-bold text-brand-orange">
                               {formatMoney(liveMakeItAKitOffer.price, liveMakeItAKitOffer.currencyCode as any)}
                             </span>
-                            <span className="text-[10px] text-slate-400 line-through">
-                              {formatMoney(liveMakeItAKitOffer.originalPrice, liveMakeItAKitOffer.originalCurrencyCode as any)}
-                            </span>
+                            {liveMakeItAKitOffer.originalPrice > liveMakeItAKitOffer.price && (
+                              <span className="text-[10px] text-slate-400 line-through">
+                                {formatMoney(liveMakeItAKitOffer.originalPrice, liveMakeItAKitOffer.originalCurrencyCode as any)}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <button
