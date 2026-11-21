@@ -13,7 +13,9 @@ export function bundleKitInsoleLineAttributes(size: string, color: string) {
 
 /**
  * Bundle kits: handles and numeric IDs match the live Shopify store (Storefront API).
- * Prices/compare-at are baseline; `useShopifyBundleKits` refreshes from Shopify on the client.
+ * Prices/compare-at are USD fallbacks (the site's default currency, matching Shopify's US market) shown only
+ * until/unless `useShopifyBundleKits` loads live per-currency prices from Shopify. Keep them labelled with
+ * `currencyCode` so they are never displayed in a different currency than they are denominated in.
  */
 export const BUNDLE_KITS: BundleKit[] = [
   {
@@ -21,8 +23,10 @@ export const BUNDLE_KITS: BundleKit[] = [
     handle: 'fascilites-relief',
     shopifyProductId: '9037334708481',
     name: 'Plantar Fasciitis Relief Kit',
-    price: 77,
-    originalPrice: 120,
+    price: 52,
+    currencyCode: 'USD',
+    originalPrice: 82,
+    originalCurrencyCode: 'USD',
     image:
       'https://cdn.shopify.com/s/files/1/0805/2332/9793/files/1777814018972-nhdkd6i9e0r_png.jpg?v=1777814051',
     badge: 'Best For Rehab',
@@ -36,8 +40,10 @@ export const BUNDLE_KITS: BundleKit[] = [
     handle: 'heel-relief',
     shopifyProductId: '9037334741249',
     name: 'Heel Relief Kit',
-    price: 63,
-    originalPrice: 96,
+    price: 43,
+    currencyCode: 'USD',
+    originalPrice: 65,
+    originalCurrencyCode: 'USD',
     image: '',
     badge: 'Top Rated',
     items: [
@@ -50,8 +56,10 @@ export const BUNDLE_KITS: BundleKit[] = [
     handle: 'toe-relief',
     shopifyProductId: '9037334774017',
     name: 'Toe Relief Kit',
-    price: 63,
-    originalPrice: 96,
+    price: 43,
+    currencyCode: 'USD',
+    originalPrice: 65,
+    originalCurrencyCode: 'USD',
     image: '',
     badge: 'Doctor Choice',
     items: [
@@ -64,8 +72,10 @@ export const BUNDLE_KITS: BundleKit[] = [
     handle: 'complete-recovery-kit',
     shopifyProductId: '9037334806785',
     name: 'Ultimate Foot Relief Kit',
-    price: 156,
-    originalPrice: 240,
+    price: 106,
+    currencyCode: 'USD',
+    originalPrice: 163,
+    originalCurrencyCode: 'USD',
     image: '',
     badge: 'Ultimate Value',
     items: [

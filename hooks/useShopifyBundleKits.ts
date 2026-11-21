@@ -25,7 +25,8 @@ export function useShopifyBundleKits(): BundleKit[] {
 
             const price = parseFloat(String(v.price?.amount ?? kit.price));
             const rawCompare = v.compareAtPrice?.amount;
-            const compareAt = rawCompare != null ? parseFloat(String(rawCompare)) : kit.originalPrice;
+            // Only trust Shopify's compare-at price; never fall back to the hardcoded one (wrong currency / fake discount).
+            const compareAt = rawCompare != null ? parseFloat(String(rawCompare)) : 0;
             const image =
               p.images?.[0]?.src ||
               p.images?.edges?.[0]?.node?.url ||
@@ -38,9 +39,11 @@ export function useShopifyBundleKits(): BundleKit[] {
               name: p.title || kit.name,
               price,
               currencyCode: variantSaleCurrencyCode(v) ?? kit.currencyCode,
-              originalPrice: compareAt > price ? compareAt : kit.originalPrice,
+              originalPrice: compareAt > price ? compareAt : price,
               originalCurrencyCode:
-                compareAt > price ? variantCompareAtCurrencyCode(v) ?? variantSaleCurrencyCode(v) : kit.originalCurrencyCode,
+                compareAt > price
+                  ? variantCompareAtCurrencyCode(v) ?? variantSaleCurrencyCode(v)
+                  : variantSaleCurrencyCode(v) ?? kit.currencyCode,
               image: image || kit.image,
               availableForSale: v.available !== false && v.availableForSale !== false,
             };

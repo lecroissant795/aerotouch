@@ -64,7 +64,7 @@ import { extractDiscountCodesFromCheckout } from './utils/checkoutPromo';
 import { sumCartFinalSubtotals } from './utils/cartLineDisplay';
 import { extractCheckoutSubtotalAfterDiscounts } from './utils/checkoutMoney';
 import { CurrencyProvider, useCurrency } from './utils/CurrencyContext';
-import { DEFAULT_CURRENCY, getCheckoutStorageKey } from './utils/currency';
+import { CURRENCY_MARKETS, DEFAULT_CURRENCY, getCheckoutStorageKey } from './utils/currency';
 
 /**
  * Resolve a Shopify variant for checkout. Only requires Size/Color to match when those
@@ -335,7 +335,7 @@ function AppShell() {
 
       if (migrationLines.length > 0) {
         try {
-          const checkout = await shopify!.checkout.create({ lineItems: migrationLines });
+          const checkout = await shopify!.checkout.create({ lineItems: migrationLines, buyerIdentity: { countryCode: CURRENCY_MARKETS[currency].countryCode } } as any);
           if (cancelled) return;
           setCheckoutId(String(checkout.id));
           persistCheckoutId(String(checkout.id), currency);
@@ -347,7 +347,7 @@ function AppShell() {
       }
 
       try {
-        const checkout = await shopify!.checkout.create({});
+        const checkout = await shopify!.checkout.create({ buyerIdentity: { countryCode: CURRENCY_MARKETS[currency].countryCode } } as any);
         if (cancelled) return;
         setCheckoutId(String(checkout.id));
         persistCheckoutId(String(checkout.id), currency);

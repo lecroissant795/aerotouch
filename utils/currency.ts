@@ -165,5 +165,6 @@ export function formatCurrencyAmount(
 }
 
 export function getCheckoutStorageKey(currency: SupportedCurrencyCode): string {
-  return `shopify_checkout_id_${currency.toLowerCase()}`;
+  // v2: checkouts are now created with a buyer country; v1 carts were priced in the default market (VND).
+  return `shopify_checkout_v2_id_${currency.toLowerCase()}`;
 }
