@@ -1,6 +1,5 @@
 import React from 'react';
-import { Sun, ArrowRight, Truck, ShieldCheck, Percent } from 'lucide-react';
-import { InteractivePlusGridBackground } from './InteractivePlusGridBackground';
+import { Zap, ArrowRight, Truck, ShieldCheck, Percent } from 'lucide-react';
 
 interface SeasonalBannerProps {
   onShopSaleClick?: () => void;
@@ -14,52 +13,30 @@ export const SeasonalBanner: React.FC<SeasonalBannerProps> = ({
 }) => {
   return (
     <section
-      className="relative w-full overflow-hidden bg-brand-dark text-white"
+      className="relative flex w-full min-h-[650px] items-center overflow-hidden bg-brand-dark text-white sm:min-h-[650px] lg:min-h-0"
       aria-labelledby="seasonal-banner-heading"
     >
-      <InteractivePlusGridBackground />
-      <div
+      <img
+        src="/images/black-friday-hero.webp"
+        alt=""
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-br from-sky-600/30 via-transparent to-orange-500/20"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[60%_70%] max-lg:object-[45%_70%]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-32 -top-32 z-[1] h-[28rem] w-[28rem] rounded-full bg-amber-400/20 blur-[120px]"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent max-lg:bg-brand-dark/30"
       />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-40 right-0 z-[1] h-[32rem] w-[32rem] rounded-full bg-brand-orange/20 blur-[140px]"
-      />
-
-      <div
-        aria-hidden
-        className="pointer-events-none absolute right-[6%] top-1/2 z-[1] hidden -translate-y-1/2 lg:block"
-      >
-        <Sun className="h-72 w-72 fill-amber-400/10 text-amber-300/15 xl:h-96 xl:w-96" strokeWidth={1} />
-      </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-[42%] top-10 z-[1] hidden xl:block"
-      >
-        <Sun className="h-10 w-10 fill-brand-orange/15 text-brand-orange/25" strokeWidth={1} />
-      </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute bottom-12 left-[18%] z-[1] hidden lg:block"
-      >
-        <Sun className="h-6 w-6 fill-white/10 text-white/10" strokeWidth={1} />
-      </div>
 
       <div className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-col items-center gap-10 px-4 py-14 sm:px-6 md:py-20 lg:flex-row lg:items-center lg:justify-between lg:gap-16 lg:px-12 lg:py-24 xl:px-20">
         <div className="min-w-0 flex-1 text-center lg:text-left">
           <div className="mb-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
             <span className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/15 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.28em] text-sky-100 backdrop-blur-sm">
-              <Sun className="h-3.5 w-3.5 text-amber-300" aria-hidden />
-              Summer Seasonal Sale
+              <Zap className="h-3.5 w-3.5 text-amber-300" aria-hidden />
+              Black Friday Event
             </span>
             <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.28em] text-brand-lime">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-lime" aria-hidden />
-              Live now · All summer long
+              Live now · Limited time only
             </span>
           </div>
 
@@ -67,17 +44,17 @@ export const SeasonalBanner: React.FC<SeasonalBannerProps> = ({
             id="seasonal-banner-heading"
             className="mb-5 text-4xl font-black uppercase leading-[0.95] tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-[5rem] xl:text-[5.5rem]"
           >
-            Step into
+            Black Friday
             <br className="hidden sm:block" />{' '}
             <span className="bg-gradient-to-r from-sky-300 via-brand-orange to-amber-300 bg-clip-text text-transparent">
-              summer.
+              deals.
             </span>
           </h2>
 
           <p className="mx-auto mb-8 max-w-xl text-base font-medium leading-relaxed text-slate-300 sm:text-lg lg:mx-0">
-            Hot days, long miles, and every shoe in your rotation—save{' '}
-            <span className="font-bold text-white">{discountLabel.toLowerCase()}</span> on performance insoles with our
-            summer bundle pricing on best sellers.
+            Our biggest event of the year—save{' '}
+            <span className="font-bold text-white">{discountLabel.toLowerCase()}</span> on performance insoles with
+            exclusive Black Friday bundle pricing on best sellers.
           </p>
 
           <div className="flex justify-center lg:justify-start">
@@ -95,7 +72,7 @@ export const SeasonalBanner: React.FC<SeasonalBannerProps> = ({
           </div>
         </div>
 
-        <div className="w-full max-w-md flex-shrink-0 lg:max-w-sm xl:max-w-md">
+        <div className="hidden w-full max-w-md flex-shrink-0 lg:block lg:max-w-sm xl:max-w-md">
           <div className="relative">
             <div
               aria-hidden
@@ -104,12 +81,12 @@ export const SeasonalBanner: React.FC<SeasonalBannerProps> = ({
             <div className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-md sm:p-8">
               <div className="mb-6 flex items-baseline justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-300">Seasonal savings</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-sky-300">Black Friday savings</p>
                   <p className="mt-2 text-4xl font-black leading-none tracking-tight text-white sm:text-5xl">
                     {discountLabel}
                   </p>
                 </div>
-                <Sun className="h-10 w-10 flex-shrink-0 text-brand-lime" strokeWidth={1.5} aria-hidden />
+                <Zap className="h-10 w-10 flex-shrink-0 text-brand-lime" strokeWidth={1.5} aria-hidden />
               </div>
 
               <ul className="space-y-3 border-t border-white/10 pt-5">
