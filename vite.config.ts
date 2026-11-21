@@ -2,11 +2,11 @@ import path from 'path';
 import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import { handlePopupDiscountRequest } from './api/send-popup-email.handler.shared.js';
-import { handleCartAbandonmentRequest } from './api/cart-abandonment.handler.shared.js';
-import { extractClientContext } from './api/meta-capi.shared.js';
-import { handleReturnRequest } from './api/return-request.shared.js';
-import { handleMetaEventRequest } from './api/meta-event.handler.shared.js';
+import { handlePopupDiscountRequest } from './server/send-popup-email.handler.shared.js';
+import { handleCartAbandonmentRequest } from './server/cart-abandonment.handler.shared.js';
+import { extractClientContext } from './server/meta-capi.shared.js';
+import { handleReturnRequest } from './server/return-request.shared.js';
+import { handleMetaEventRequest } from './server/meta-event.handler.shared.js';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');

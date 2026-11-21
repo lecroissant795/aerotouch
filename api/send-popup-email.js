@@ -1,5 +1,5 @@
-import { handlePopupDiscountRequest } from './send-popup-email.handler.shared.js'
-import { extractClientContext } from './meta-capi.shared.js'
+import { handlePopupDiscountRequest } from '../server/send-popup-email.handler.shared.js'
+import { extractClientContext } from '../server/meta-capi.shared.js'
 import fs from 'fs'
 import path from 'path'
 

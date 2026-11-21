@@ -1,5 +1,5 @@
 
-import { handleReturnRequest } from './return-request.shared.js'
+import { handleReturnRequest } from '../server/return-request.shared.js'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true)
