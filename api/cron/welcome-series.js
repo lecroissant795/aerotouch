@@ -15,8 +15,8 @@ import fs from 'fs'
 import path from 'path'
 import {
   getSupabaseAdmin,
-} from '../popup-discount-db.shared.js'
-import { runWelcomeSeries } from '../welcome-series.shared.js'
+} from '../../server/popup-discount-db.shared.js'
+import { runWelcomeSeries } from '../../server/welcome-series.shared.js'
 
 function getEnvValue(name) {
   const value = process.env[name]

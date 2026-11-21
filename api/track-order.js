@@ -11,7 +11,7 @@
 import {
   getShopifyAdminAccessToken,
   readShopifyConfig,
-} from './shopify-admin.shared.js'
+} from '../server/shopify-admin.shared.js'
 
 const getProcessEnv = (name) => process.env[name]?.trim() || ''
 

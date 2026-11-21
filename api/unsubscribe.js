@@ -14,11 +14,11 @@ import {
   getSupabaseAdmin,
   findClaimByUnsubToken,
   markUnsubscribed,
-} from './popup-discount-db.shared.js'
+} from '../server/popup-discount-db.shared.js'
 import {
   findAbandonmentByUnsubToken,
   markAbandonmentUnsubscribed,
-} from './cart-abandonment-db.shared.js'
+} from '../server/cart-abandonment-db.shared.js'
 
 function getEnvValue(name) {
   const value = process.env[name]

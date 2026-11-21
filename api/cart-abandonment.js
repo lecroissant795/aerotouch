@@ -1,5 +1,5 @@
-import { handleCartAbandonmentRequest } from './cart-abandonment.handler.shared.js'
-import { extractClientContext } from './meta-capi.shared.js'
+import { handleCartAbandonmentRequest } from '../server/cart-abandonment.handler.shared.js'
+import { extractClientContext } from '../server/meta-capi.shared.js'
 import fs from 'fs'
 import path from 'path'
 

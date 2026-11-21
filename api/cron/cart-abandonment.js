@@ -11,8 +11,8 @@
 
 import fs from 'fs'
 import path from 'path'
-import { getSupabaseAdmin } from '../cart-abandonment-db.shared.js'
-import { runCartAbandonmentSeries } from '../cart-abandonment-series.shared.js'
+import { getSupabaseAdmin } from '../../server/cart-abandonment-db.shared.js'
+import { runCartAbandonmentSeries } from '../../server/cart-abandonment-series.shared.js'
 
 function getEnvValue(name) {
   const value = process.env[name]
