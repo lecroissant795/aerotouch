@@ -685,10 +685,12 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                 
                 {/* Price Display — matches Shopify variant price / compare-at */}
                 <div className="flex items-end gap-3 mb-4 flex-wrap">
-                   <div className="text-4xl font-black text-brand-orange">{formatPrice(unitPrice)}</div>
+                   <div className="text-4xl font-black text-brand-orange">
+                     {formatPrice(isBundleKitPdp ? unitPrice * bundle : unitPrice)}
+                   </div>
                    {compareAtEach != null && (
                      <div className="text-xl font-bold text-slate-400 line-through decoration-2 mb-1">
-                       {formatPrice(compareAtEach, compareAtCurrency)}
+                       {formatPrice(isBundleKitPdp ? compareAtEach * bundle : compareAtEach, compareAtCurrency)}
                      </div>
                    )}
                    {!isBundleKitPdp && (
@@ -696,10 +698,18 @@ export const ProductPage: React.FC<ProductPageProps> = ({
                    )}
                    {savingsPercent > 0 && (
                      <div className="mb-2 bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">
-                       Save {savingsPercent}% ({formatPrice(savingsEach, compareAtCurrency)})
+                       {isBundleKitPdp
+                         ? `Save ${savingsPercent}%`
+                         : `Save ${savingsPercent}% (${formatPrice(savingsEach, compareAtCurrency)})`}
                      </div>
                    )}
                 </div>
+                {isBundleKitPdp && savingsEach > 0 && (
+                  <p className="text-sm font-bold text-green-600 mb-4 -mt-2">
+                    You save {formatPrice(savingsEach * bundle, compareAtCurrency)}
+                    {bundle > 1 ? ` on ${bundle} kits` : ''}
+                  </p>
+                )}
                 {!isBundleKitPdp && bundle > 1 && (
                   <p className="text-sm font-bold text-slate-700 mb-4 -mt-2">
                     {bundle} pairs —{' '}
