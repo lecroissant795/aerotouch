@@ -38,26 +38,28 @@ export const TrackOrderPage: React.FC = () => {
 
       // Transform API data to component state format
       // Note: Some fields like dimensions/weight might need to be calculated or fetched from meta-fields if not in standard order data
-      const order = data.rawData; // Assuming rawData is passed for now, or use mapped fields
-      
-      // Basic mapping - refine based on actual API response structure
+      const order = data.rawData;
+      const status: string = data.status || 'Processing';
+      const tracking = order.fulfillments?.[0]?.trackingInfo?.[0];
+      const addr = order.shippingAddress;
+      const inactive = status === 'Cancelled' || status === 'Refunded';
+      const shippedOrBeyond = ['Shipped', 'Out for Delivery', 'Delivered'].includes(status);
+      const outOrDelivered = status === 'Out for Delivery' || status === 'Delivered';
+
       const mappedResult = {
-        status: data.status || 'Processing',
-        estimatedDelivery: 'Calculating...', // You might want to calculate this based on shipping dates
-        carrier: order.fulfillments?.[0]?.trackingInfo?.[0]?.company || 'Pending',
-        trackingNumber: order.fulfillments?.[0]?.trackingInfo?.[0]?.number || 'Pending',
-        weight: 'N/A', // Placeholder
-        dimensions: 'N/A', // Placeholder
-        service: 'Standard Shipping',
-        origin: 'Warehouse', // Placeholder
-        destination: 'Customer Address', // order.shippingAddress.city ...
+        status,
+        estimatedDelivery: data.estimatedDelivery || 'See carrier tracking',
+        carrier: tracking?.company || 'Pending',
+        trackingNumber: tracking?.number || 'Pending',
+        trackingUrl: tracking?.url || null,
+        destination: addr ? [addr.city, addr.province, addr.country].filter(Boolean).join(', ') : null,
         steps: [
-            { label: 'Order Placed', date: new Date(order.createdAt).toLocaleDateString(), completed: true, icon: CheckCircle },
-            { label: 'Processing', date: null, completed: data.status !== 'Order Placed', icon: Package },
-            { label: 'Shipped', date: null, completed: data.status === 'Shipped', icon: Truck },
-            { label: 'Out for Delivery', date: null, completed: false, icon: Truck },
-            { label: 'Delivered', date: null, completed: false, icon: CheckCircle },
-        ]
+          { label: 'Order Placed', date: new Date(order.createdAt).toLocaleDateString(), completed: true, icon: CheckCircle },
+          { label: 'Processing', date: null, completed: !inactive, icon: Package },
+          { label: 'Shipped', date: null, completed: shippedOrBeyond, icon: Truck },
+          { label: 'Out for Delivery', date: null, completed: outOrDelivered, icon: Truck },
+          { label: 'Delivered', date: null, completed: status === 'Delivered', icon: CheckCircle },
+        ],
       };
 
       setTrackingResult(mappedResult);
@@ -227,13 +229,14 @@ export const TrackOrderPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                         <p className="text-sm text-slate-600"><span className="font-medium text-slate-900">Carrier:</span> {trackingResult.carrier}</p>
                         <p className="text-sm text-slate-600"><span className="font-medium text-slate-900">Tracking #:</span> <span className="font-mono text-brand-dark">{trackingResult.trackingNumber}</span></p>
-                        <p className="text-sm text-slate-600"><span className="font-medium text-slate-900">Service:</span> {trackingResult.service}</p>
-                        <p className="text-sm text-slate-600"><span className="font-medium text-slate-900">Weight:</span> {trackingResult.weight}</p>
-                        <p className="text-sm text-slate-600"><span className="font-medium text-slate-900">Dimensions:</span> {trackingResult.dimensions}</p>
-                        <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                             <p className="text-sm text-slate-600"><span className="font-medium text-slate-900">Origin:</span> {trackingResult.origin}</p>
-                             <p className="text-sm text-slate-600"><span className="font-medium text-slate-900">Destination:</span> {trackingResult.destination}</p>
-                        </div>
+                        {trackingResult.trackingUrl && (
+                          <p className="text-sm text-slate-600 md:col-span-2">
+                            <a href={trackingResult.trackingUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-brand-orange hover:underline">Track with carrier →</a>
+                          </p>
+                        )}
+                        {trackingResult.destination && (
+                          <p className="text-sm text-slate-600 md:col-span-2"><span className="font-medium text-slate-900">Destination:</span> {trackingResult.destination}</p>
+                        )}
                     </div>
                  </div>
               </div>

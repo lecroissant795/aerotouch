@@ -109,7 +109,7 @@ export const OrderStatusPage: React.FC = () => {
       }) || [];
 
       const mappedResult: OrderDetails = {
-        orderNumber: orderNumber,
+        orderNumber: data.orderNumber || orderNumber,
         status: data.status || 'Processing',
         estimatedDelivery: data.estimatedDelivery || 'Calculating...',
         carrier: order.fulfillments?.[0]?.trackingInfo?.[0]?.company || 'Pending',
@@ -138,19 +138,19 @@ export const OrderStatusPage: React.FC = () => {
           },
           { 
             label: 'Processing', 
-            date: data.status !== 'Order Placed' ? 'In progress' : null,
-            completed: data.status !== 'Order Placed', 
+            date: data.status !== 'Cancelled' && data.status !== 'Refunded' ? 'In progress' : null,
+            completed: data.status !== 'Cancelled' && data.status !== 'Refunded', 
             icon: Package 
           },
           { 
             label: 'Shipped', 
-            date: data.status === 'Shipped' || data.status === 'Delivered' ? 'Shipped' : null,
-            completed: data.status === 'Shipped' || data.status === 'Delivered', 
+            date: data.status === 'Shipped' || data.status === 'Out for Delivery' || data.status === 'Delivered' ? 'Shipped' : null,
+            completed: data.status === 'Shipped' || data.status === 'Out for Delivery' || data.status === 'Delivered', 
             icon: Truck 
           },
           { 
             label: 'Out for Delivery', 
-            date: data.status === 'Out for Delivery' || data.status === 'Delivered' ? 'Today' : null,
+            date: data.status === 'Out for Delivery' || data.status === 'Delivered' ? 'Out for delivery' : null,
             completed: data.status === 'Out for Delivery' || data.status === 'Delivered', 
             icon: Truck 
           },
@@ -175,6 +175,7 @@ export const OrderStatusPage: React.FC = () => {
     const statusLower = status.toLowerCase();
     if (statusLower.includes('delivered')) return 'text-green-600 bg-green-50 border-green-200';
     if (statusLower.includes('shipped') || statusLower.includes('delivery')) return 'text-blue-600 bg-blue-50 border-blue-200';
+    if (statusLower.includes('cancel') || statusLower.includes('refund')) return 'text-red-600 bg-red-50 border-red-200';
     if (statusLower.includes('processing')) return 'text-orange-600 bg-orange-50 border-orange-200';
     return 'text-slate-600 bg-slate-50 border-slate-200';
   };
