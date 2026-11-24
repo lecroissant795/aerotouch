@@ -32,10 +32,27 @@ const ORDER_QUERY = `
             shopMoney { amount currencyCode }
             presentmentMoney { amount currencyCode }
           }
+          currentSubtotalPriceSet {
+            shopMoney { amount currencyCode }
+            presentmentMoney { amount currencyCode }
+          }
+          totalShippingPriceSet {
+            shopMoney { amount currencyCode }
+            presentmentMoney { amount currencyCode }
+          }
+          currentTotalTaxSet {
+            shopMoney { amount currencyCode }
+            presentmentMoney { amount currencyCode }
+          }
+          currentTotalDiscountsSet {
+            shopMoney { amount currencyCode }
+            presentmentMoney { amount currencyCode }
+          }
           lineItems(first: 20) {
             edges {
               node {
                 title
+                variantTitle
                 quantity
                 originalUnitPriceSet {
                   shopMoney { amount currencyCode }

@@ -230,6 +230,14 @@ function createSeoPayload(input: SeoInput): SeoPayload {
         image: DEFAULT_IMAGE,
         type: 'website'
       };
+    case Page.VIEW_ORDER:
+      return {
+        title: 'View Your Order | AeroTouch',
+        description: 'View a receipt of what you ordered from AeroTouch.',
+        path: '/view-order',
+        image: DEFAULT_IMAGE,
+        type: 'website'
+      };
     case Page.RETURNS_EXCHANGE:
       return {
         title: 'Returns & Exchanges | AeroTouch',
