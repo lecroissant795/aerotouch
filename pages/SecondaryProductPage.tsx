@@ -1081,25 +1081,23 @@ export const SecondaryProductPage: React.FC<SecondaryProductPageProps> = ({
                 
                 {/* Price Display — Shopify variant price / compare-at */}
                 <div className="flex items-end gap-3 mb-4 flex-wrap">
-                   <div className="text-4xl font-black text-brand-orange">{formatPrice(unitPrice)}</div>
+                   <div className="text-4xl font-black text-brand-orange">{formatPrice(unitPrice * bundle)}</div>
                    {compareAtEach != null && (
                      <div className="text-xl font-bold text-slate-400 line-through decoration-2 mb-1">
-                       {formatPrice(compareAtEach, compareAtCurrency)}
+                       {formatPrice(compareAtEach * bundle, compareAtCurrency)}
                      </div>
                    )}
-                   <div className="text-sm font-bold text-slate-500 mb-1">each</div>
-                   {savingsPercent > 0 && bundle === 1 && (
+                   <div className="text-sm font-bold text-slate-500 mb-1">
+                     {bundle === 1
+                       ? 'each'
+                       : `for ${bundle} ${quantityUsesPairs ? 'pairs' : 'items'}`}
+                   </div>
+                   {savingsPercent > 0 && (
                      <div className="mb-2 bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">
                        Sale · Save {savingsPercent}%
                      </div>
                    )}
                 </div>
-                {bundle > 1 && (
-                  <p className="text-sm font-bold text-slate-700 mb-4 -mt-2">
-                    {bundle} {quantityUsesPairs ? 'pairs' : 'items'} —{' '}
-                    <span className="text-slate-900">{formatPrice(unitPrice * bundle)} at checkout</span>
-                  </p>
-                )}
 
                 {/* Scarcity / Views */}
                 <div className="flex items-center justify-between text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
