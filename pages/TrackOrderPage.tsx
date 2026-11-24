@@ -46,7 +46,32 @@ export const TrackOrderPage: React.FC = () => {
       const shippedOrBeyond = ['Shipped', 'Out for Delivery', 'Delivered'].includes(status);
       const outOrDelivered = status === 'Out for Delivery' || status === 'Delivered';
 
+      const formatMoney = (money?: { amount?: string; currencyCode?: string } | null) => {
+        if (!money?.amount) return null;
+        const value = Number(money.amount);
+        if (Number.isNaN(value)) return null;
+        try {
+          return new Intl.NumberFormat('en-US', { style: 'currency', currency: money.currencyCode || 'USD' }).format(value);
+        } catch {
+          return `${value.toFixed(2)} ${money.currencyCode || ''}`.trim();
+        }
+      };
+      const items = (order.lineItems?.edges || []).map((edge: any) => {
+        const node = edge.node;
+        const unit = node.originalUnitPriceSet?.presentmentMoney || node.originalUnitPriceSet?.shopMoney;
+        return {
+          title: node.title,
+          quantity: node.quantity,
+          image: node.image?.url || null,
+          imageAlt: node.image?.altText || node.title,
+          unitPrice: formatMoney(unit),
+        };
+      });
+      const totalMoney = order.currentTotalPriceSet?.presentmentMoney || order.currentTotalPriceSet?.shopMoney;
+
       const mappedResult = {
+        items,
+        total: formatMoney(totalMoney),
         status,
         estimatedDelivery: data.estimatedDelivery || 'See carrier tracking',
         carrier: tracking?.company || 'Pending',
@@ -221,6 +246,38 @@ export const TrackOrderPage: React.FC = () => {
                     </div>
                 </div>
                 </div>
+
+              {trackingResult.items.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+                  <h4 className="font-bold text-brand-dark text-sm mb-4">Items in Your Order</h4>
+                  <ul className="divide-y divide-slate-100">
+                    {trackingResult.items.map((item: any, index: number) => (
+                      <li key={index} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+                        {item.image ? (
+                          <img src={item.image} alt={item.imageAlt} className="w-16 h-16 rounded-lg object-cover bg-slate-50 border border-slate-100 shrink-0" />
+                        ) : (
+                          <div className="w-16 h-16 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                            <Package className="w-6 h-6 text-slate-300" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-brand-dark text-sm">{item.title}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
+                        </div>
+                        {item.unitPrice && (
+                          <p className="text-sm text-slate-600 shrink-0">{item.unitPrice}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  {trackingResult.total && (
+                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
+                      <span className="text-sm text-slate-500">Order total</span>
+                      <span className="font-bold text-brand-dark">{trackingResult.total}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="p-4 bg-slate-50 rounded-lg flex items-start gap-3 border border-slate-100">
                  <Package className="w-5 h-5 text-slate-400 mt-0.5" />
