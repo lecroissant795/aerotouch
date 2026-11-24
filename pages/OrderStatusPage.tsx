@@ -104,7 +104,7 @@ export const OrderStatusPage: React.FC = () => {
           quantity: edge.node.quantity,
           price: parseFloat(money?.amount || '0'),
           currencyCode: money?.currencyCode,
-          image: edge.node.variant?.image?.url
+          image: edge.node.image?.url || edge.node.variant?.image?.url
         };
       }) || [];
 

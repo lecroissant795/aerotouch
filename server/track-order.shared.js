@@ -41,7 +41,7 @@ const ORDER_QUERY = `
                   shopMoney { amount currencyCode }
                   presentmentMoney { amount currencyCode }
                 }
-                variant { image { url altText } }
+                image { url altText }
               }
             }
           }
@@ -150,9 +150,14 @@ export async function handleTrackOrderRequest(body, getEnv) {
       variables: { search },
     })
 
+    // Optional fields (e.g. images) can be access-denied without invalidating the order data.
+    // Only fail hard when the order itself didn't come back or an error isn't an ACCESS_DENIED.
     if (data.errors) {
-      console.error('Shopify API Errors:', data.errors)
-      return { status: 500, body: { error: 'Failed to fetch order.' } }
+      console.error('Shopify API Errors:', JSON.stringify(data.errors))
+      const onlyAccessDenied = data.errors.every((e) => e?.extensions?.code === 'ACCESS_DENIED')
+      if (!data.data?.orders || !onlyAccessDenied) {
+        return { status: 500, body: { error: 'Failed to fetch order.' } }
+      }
     }
 
     const order = data.data?.orders?.edges?.[0]?.node
