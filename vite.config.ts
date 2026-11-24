@@ -6,6 +6,7 @@ import { handlePopupDiscountRequest } from './server/send-popup-email.handler.sh
 import { handleCartAbandonmentRequest } from './server/cart-abandonment.handler.shared.js';
 import { extractClientContext } from './server/meta-capi.shared.js';
 import { handleReturnRequest } from './server/return-request.shared.js';
+import { handleTrackOrderRequest } from './server/track-order.shared.js';
 import { handleMetaEventRequest } from './server/meta-event.handler.shared.js';
 
 export default defineConfig(({ mode }) => {
@@ -176,6 +177,44 @@ export default defineConfig(({ mode }) => {
               res.statusCode = 500;
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ error: 'Could not process meta event.' }));
+            }
+          });
+          server.middlewares.use('/api/track-order', async (req, res) => {
+            const sendJson = (status: number, payload: unknown) => {
+              res.statusCode = status;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(payload));
+            };
+            if (req.method === 'OPTIONS') {
+              res.statusCode = 204;
+              res.end();
+              return;
+            }
+            if (req.method !== 'POST') {
+              sendJson(405, { error: 'Method not allowed.' });
+              return;
+            }
+            try {
+              const raw = await new Promise<string>((resolve, reject) => {
+                let data = '';
+                req.on('data', (chunk) => {
+                  data += chunk;
+                });
+                req.on('end', () => resolve(data));
+                req.on('error', reject);
+              });
+              let parsed: Record<string, unknown> = {};
+              try {
+                parsed = raw.trim() ? JSON.parse(raw) : {};
+              } catch {
+                sendJson(400, { error: 'Invalid JSON body.' });
+                return;
+              }
+              const result = await handleTrackOrderRequest(parsed, getConfigEnv);
+              sendJson(result.status, result.body);
+            } catch (error) {
+              console.error('dev-track-order-api error:', error);
+              sendJson(500, { error: 'Internal server error.' });
             }
           });
           server.middlewares.use('/api/return-request', async (req, res) => {
