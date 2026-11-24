@@ -56,6 +56,7 @@ export const Footer: React.FC = () => {
               <li><a href={createUrl(Page.SIZE_GUIDE)} className="hover:text-brand-orange transition-colors" onClick={handleClick(Page.SIZE_GUIDE)}>Fit Guide</a></li>
               <li><a href={createUrl(Page.RETURNS_EXCHANGE)} className="hover:text-brand-orange transition-colors" onClick={handleClick(Page.RETURNS_EXCHANGE)}>Shipping & Returns</a></li>
               <li><a href={createUrl(Page.TRACK_ORDER)} className="hover:text-brand-orange transition-colors" onClick={handleClick(Page.TRACK_ORDER)}>Track Your Order</a></li>
+              <li><a href={createUrl(Page.VIEW_ORDER)} className="hover:text-brand-orange transition-colors" onClick={handleClick(Page.VIEW_ORDER)}>View Your Order</a></li>
               <li><a href={createUrl(Page.SUPPORT)} className="hover:text-brand-orange transition-colors" onClick={handleClick(Page.SUPPORT)}>FAQ</a></li>
               <li><a href={createUrl(Page.SUPPORT)} className="hover:text-brand-orange transition-colors" onClick={handleClick(Page.SUPPORT)}>Contact Us</a></li>
             </ul>

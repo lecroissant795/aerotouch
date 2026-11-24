@@ -25,6 +25,7 @@ import { CategoryPage } from './pages/CategoryPage';
 import { AccountPage } from './pages/AccountPage';
 import { TrackOrderPage } from './pages/TrackOrderPage';
 import { OrderStatusPage } from './pages/OrderStatusPage';
+import { ViewOrderPage } from './pages/ViewOrderPage';
 import { ReturnsExchangePage } from './pages/ReturnsExchangePage';
 import { SizeGuidePage } from './pages/SizeGuidePage';
 import { BundleKitsPage } from './pages/BundleKitsPage';
@@ -819,6 +820,7 @@ function AppShell() {
         forceWhite={
           page === Page.SUPPORT ||
           page === Page.ORDER_STATUS ||
+          page === Page.VIEW_ORDER ||
           page === Page.RETURNS_EXCHANGE ||
           page === Page.SIZE_GUIDE ||
           page === Page.WARRANTY ||
@@ -967,6 +969,10 @@ function AppShell() {
 
         {page === Page.ORDER_STATUS && (
           <OrderStatusPage />
+        )}
+
+        {page === Page.VIEW_ORDER && (
+          <ViewOrderPage />
         )}
 
         {page === Page.RETURNS_EXCHANGE && (

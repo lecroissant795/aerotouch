@@ -15,6 +15,7 @@ const ROUTES = {
   SUPPORT: '/support',
   TRACK_ORDER: '/track-order',
   ORDER_STATUS: '/order-status',
+  VIEW_ORDER: '/view-order',
   RETURNS_EXCHANGE: '/returns',
   SIZE_GUIDE: '/size-guide',
   WARRANTY: '/warranty',
